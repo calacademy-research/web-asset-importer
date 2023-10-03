@@ -16,6 +16,7 @@ class TestAgentList(unittest.TestCase, TestingTools):
 
         # jose Gonzalez is a real agent,
         # to make sure true matches are not added to list.
+
         data = {'collector_first_name1': ['Bob', 'Joe'],
                 'collector_last_name1': ['Fakeson jr.', 'DiMaggio'],
                 'collector_middle_name1': ['J', 'S'],

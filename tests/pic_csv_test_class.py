@@ -1,7 +1,7 @@
 """test case of the CsvCreatePicturae class which runs a reduced init method to use in unittests"""
-from image_client.importer import Importer
-from image_client.picturae_csv_create import CsvCreatePicturae
-from image_client import picturae_config
+from importer import Importer
+from picturae_csv_create import CsvCreatePicturae
+import picturae_config
 
 class TestCsvCreatePicturae(CsvCreatePicturae):
     def __init__(self, date_string):

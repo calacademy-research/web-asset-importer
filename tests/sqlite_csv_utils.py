@@ -1,8 +1,8 @@
 """derived class of SqlCsvTools in order to use sqlite protocols instead of
    standard database protocols"""
 import sqlite3
-from image_client import picturae_config
-from image_client.sql_csv_utils import SqlCsvTools
+import picturae_config
+from sql_csv_utils import SqlCsvTools
 class SqlLiteTools(SqlCsvTools):
     def __init__(self, sql_db):
         super().__init__(config=picturae_config)

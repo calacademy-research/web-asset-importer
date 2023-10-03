@@ -6,7 +6,7 @@ import os
 import hashlib
 import random
 import string
-from image_client import picturae_config
+import picturae_config
 class TestingTools:
 
     def create_fake_dataset(self, num_records: int, path_list: list):

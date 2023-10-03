@@ -3,8 +3,8 @@
 import logging
 from uuid import uuid4
 from tests.sqlite_csv_utils import SqlLiteTools
-from image_client.importer import Importer
-from image_client.picturae_importer import PicturaeImporter
+from importer import Importer
+from picturae_importer import PicturaeImporter
 from image_client import picturae_config
 
 
@@ -13,7 +13,7 @@ class TestPicturaeImporterlite(PicturaeImporter):
         Importer.__init__(self, db_config_class=picturae_config, collection_name="Botany")
         self.init_all_vars(date_string=date_string, paths=paths)
         self.logger = logging.getLogger("TestPicturaeImporter")
-        self.sql_csv_tools = SqlLiteTools(sql_db="../tests/casbotany_lite.db")
+        self.sql_csv_tools = SqlLiteTools(sql_db="tests/casbotany_lite.db")
 
     # patched populate_fields function to avoid having to pull from the geography tree, for taxon tree tests
     def populate_fields(self, row):

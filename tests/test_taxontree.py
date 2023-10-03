@@ -5,11 +5,11 @@ import shutil
 import logging
 import pandas as pd
 from uuid import uuid4
-from image_client import time_utils
-from image_client.picturae_import_utils import remove_two_index
+import time_utils
+from picturae_import_utils import remove_two_index
 from tests.pic_importer_test_class_lite import TestPicturaeImporterlite
 from tests.testing_tools import TestingTools
-from image_client.picturae_import_utils import unique_ordered_list
+from picturae_import_utils import unique_ordered_list
 os.chdir("./image_client")
 
 
@@ -27,7 +27,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
         # creating restore point for db
-        shutil.copyfile("../tests/casbotany_lite.db", "../tests/casbotany_backup.db")
+        shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
 
         data = {'CatalogNumber': ["12345", "12346", "12347", "12348"],
@@ -194,8 +194,8 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
     def tearDown(self):
         del self.test_picturae_importer_lite
         # restoring db to original state removing backup
-        shutil.copyfile("../tests/casbotany_backup.db", "../tests/casbotany_lite.db")
-        os.remove("../tests/casbotany_backup.db")
+        shutil.copyfile("tests/casbotany_backup.db", "tests/casbotany_lite.db")
+        os.remove("tests/casbotany_backup.db")
 
 
 if __name__ == '__main__':

@@ -5,10 +5,10 @@ import logging
 import numpy as np
 import pandas as pd
 import os
-from image_client.picturae_import_utils import remove_two_index
+from picturae_import_utils import remove_two_index
 from tests.pic_importer_test_class import TestPicturaeImporter
 from tests.testing_tools import TestingTools
-from image_client import time_utils
+import time_utils
 from uuid import uuid4
 import shutil
 
@@ -29,11 +29,11 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
         self.specify_db_connection = self.test_picturae_importer.specify_db_connection
 
-        shutil.copyfile("../tests/casbotany_lite.db", "../tests/casbotany_backup.db")
+        shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
     def test_casbotanylite(self):
         "testing the wether the sqlite datbase can connect"
-        connection = sqlite3.connect('../tests/casbotany_lite.db')
+        connection = sqlite3.connect('tests/casbotany_lite.db')
         curs = connection.cursor()
         curs.execute('''SELECT * FROM agent''')
         num_columns = len(curs.description)
@@ -124,8 +124,8 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
     def tearDown(self):
         """deleting instance of PicturaeImporter"""
         del self.test_picturae_importer
-        shutil.copyfile("../tests/casbotany_backup.db", "../tests/casbotany_lite.db")
-        os.remove("../tests/casbotany_backup.db")
+        shutil.copyfile("tests/casbotany_backup.db", "tests/casbotany_lite.db")
+        os.remove("tests/casbotany_backup.db")
 
 if __name__ == "__main__":
     unittest.main()

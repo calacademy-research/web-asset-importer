@@ -2,7 +2,7 @@ import unittest
 import shutil
 import os
 from tests.pic_csv_test_class import TestCsvCreatePicturae
-import image_client.picturae_config as picturae_config
+import picturae_config
 from tests.testing_tools import TestingTools
 
 os.chdir("./image_client")
