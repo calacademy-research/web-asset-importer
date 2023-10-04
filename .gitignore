@@ -1,3 +1,5 @@
+output.txt
+**/picturae_purge.sql
 server_host_settings.py
 **/tax_dump.sql
 **/run_picdb.sh

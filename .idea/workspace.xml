@@ -5,9 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cbaec975-4f38-4ac7-a785-3d2668475c58" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/specify-asset-importer.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/specify-asset-importer.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/specify7_ipup.py" beforeDir="false" afterPath="$PROJECT_DIR$/specify7_ipup.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/picturae_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/picturae_importer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/picturae_readme.txt" beforeDir="false" afterPath="$PROJECT_DIR$/picturae_readme.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/taxon_check/R_TNRS.R" beforeDir="false" afterPath="$PROJECT_DIR$/taxon_check/R_TNRS.R" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test_csv_purge_sql/picturae_purge_template.sql" beforeDir="false" afterPath="$PROJECT_DIR$/test_csv_purge_sql/picturae_purge_template.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -50,7 +54,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "picturae__import",
-    "last_opened_file_path": "/Users/mdelaroca/Documents/sandbox_db/specify-sandbox/specify-asset-importer",
+    "last_opened_file_path": "/Users/mdelaroca/Documents/sandbox_db/specify-sandbox/specify-asset-importer/test_csv_purge_sql",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -70,11 +74,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/test_csv_purge_sql" />
       <recent name="$PROJECT_DIR$" />
       <recent name="$PROJECT_DIR$/picturae_img" />
       <recent name="$PROJECT_DIR$/picturae_csv" />
       <recent name="$PROJECT_DIR$/image_client" />
-      <recent name="$PROJECT_DIR$/image_client/PIC_dbcreate" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/image_client/upload_purger" />
@@ -283,7 +287,8 @@
       <workItem from="1696278021956" duration="1132000" />
       <workItem from="1696349307899" duration="6462000" />
       <workItem from="1696371645972" duration="732000" />
-      <workItem from="1696373878594" duration="899000" />
+      <workItem from="1696373878594" duration="4728000" />
+      <workItem from="1696436399170" duration="4102000" />
     </task>
     <servers />
   </component>
@@ -355,7 +360,7 @@
     <SUITE FILE_PATH="coverage/web_asset_server$csv_purger.coverage" NAME="csv_purger Coverage Results" MODIFIED="1693933430022" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />
     <SUITE FILE_PATH="coverage/web_asset_server$data_utils.coverage" NAME="data_utils Coverage Results" MODIFIED="1694126940462" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />
     <SUITE FILE_PATH="coverage/web_asset_server$.coverage" NAME=" Coverage Results" MODIFIED="1695944471655" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
-    <SUITE FILE_PATH="coverage/specify_asset_importer$specify7_ipup.coverage" NAME="specify7_ipup Coverage Results" MODIFIED="1696374754722" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/specify_asset_importer$specify7_ipup.coverage" NAME="specify7_ipup Coverage Results" MODIFIED="1696436438154" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/web_asset_server$server_host_settings.coverage" NAME="server_host_settings Coverage Results" MODIFIED="1687898299327" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />
     <SUITE FILE_PATH="coverage/web_asset_server$server.coverage" NAME="server Coverage Results" MODIFIED="1696003272563" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/web_asset_server$client_utilities.coverage" NAME="client_utilities Coverage Results" MODIFIED="1687902854887" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
@@ -366,6 +371,7 @@
     <SUITE FILE_PATH="coverage/web_asset_server$picturae_import_utils.coverage" NAME="picturae_import_utils Coverage Results" MODIFIED="1694207889692" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />
     <SUITE FILE_PATH="coverage/web_asset_server$specify7_ipup.coverage" NAME="specify7_ipup Coverage Results" MODIFIED="1696003280793" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/web_asset_server$importer.coverage" NAME="importer Coverage Results" MODIFIED="1694537820455" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />
+    <SUITE FILE_PATH="coverage/specify_asset_importer$picturae_csv_create.coverage" NAME="picturae_csv_create Coverage Results" MODIFIED="1696439923664" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/web_asset_server$pic_importer_test_class.coverage" NAME="pic_importer_test_class Coverage Results" MODIFIED="1695745838986" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/web_asset_server$casbotany_lite_creator.coverage" NAME="casbotany_lite_creator Coverage Results" MODIFIED="1696008660529" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tests" />
     <SUITE FILE_PATH="coverage/web_asset_server$picturae_importer.coverage" NAME="picturae_importer Coverage Results" MODIFIED="1694042671761" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/image_client" />

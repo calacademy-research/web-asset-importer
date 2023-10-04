@@ -20,7 +20,7 @@ process_taxon_resolve <- function(tax_frame){
   
   today_date <- format(Sys.Date(), "%Y-%m-%d")
   
-  setwd("/Users/mdelaroca/specify-sandbox/web-asset-server/image_client")
+  setwd("/Users/mdelaroca/specify-sandbox/specify-asset-importer")
   
   # base TNRS api 
   url_tn = "https://tnrsapi.xyz/tnrs_api.php"
