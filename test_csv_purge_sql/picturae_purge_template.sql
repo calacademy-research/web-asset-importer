@@ -14,8 +14,8 @@ DELETE FROM agent WHERE TimestampCreated  > (now() - interval 20 day);
 # operates using a temporary table to select leaf nodes with no children added within time window.
 # deletes lowest level of taxa first, then can repeat the process, deleting newly added taxa,
 # with children recently deleted
-CREATE TEMPORARY TABLE temp_leaf_nodes AS SELECT TaxonID FROM casbotany.taxon WHERE TaxonID
-                       NOT IN (SELECT DISTINCT ParentID FROM casbotany.taxon
+CREATE TEMPORARY TABLE temp_leaf_nodes AS SELECT TaxonID FROM taxon WHERE TaxonID
+                       NOT IN (SELECT DISTINCT ParentID FROM taxon
                        WHERE ParentID IS NOT NULL) AND TimestampCreated >= (now() - interval 20 day);
 
 DELETE FROM taxon WHERE TaxonID IN (SELECT TaxonID FROM temp_leaf_nodes);
