@@ -41,6 +41,8 @@ class PicturaeImporter(Importer):
 
         self.batch_md5 = self.sql_csv_tools.generate_token(starting_time_stamp, self.file_path)
 
+
+
         self.run_all_methods()
 
 
@@ -53,7 +55,10 @@ class PicturaeImporter(Importer):
         self.date_use = date_string
 
         # setting up alternate db connection for batch database
+
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+
+        print("dfkgjndfg")
 
         # setting up db sql_tools for each connection
 
@@ -89,6 +94,8 @@ class PicturaeImporter(Importer):
 
         self.created_by_agent = picturae_config.agent_number
 
+        print("DONE INITS")
+
         self.paths = paths
 
 
@@ -109,7 +116,7 @@ class PicturaeImporter(Importer):
         for tab in error_tabs:
 
             sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
-                                                             val_list=[self.batch_md5], condition=condition)
+                                                               val_list=[self.batch_md5], condition=condition)
 
             self.batch_sql_tools.insert_table_record(sql=sql, logger_int=self.logger)
 

@@ -26,7 +26,7 @@ def set_direct():
     #current_directory = os.getcwd()
     # this is absolute path for running chron from bin
     current_directory = "/Users/mdelaroca/Documents/sandbox_db/" \
-                        "specify-sandbox/web-asset-server"
+                        "specify-sandbox/specify-asset-importer"
     # set current directory
     os.chdir(current_directory)
 
@@ -61,13 +61,13 @@ def master_run():
 
     ip_replace('settings.py')
 
-    ip_replace('image_client/server_host_settings.py')
+    ip_replace('server_host_settings.py')
 
-    ip_replace('image_client/picturae_config.py')
+    ip_replace('picturae_config.py')
 
-    ip_replace('image_client/botany_importer_config.py')
+    ip_replace('botany_importer_config.py')
 
-    ip_replace('image_client/picdb_config.py')
+    ip_replace('picdb_config.py')
 
 # running master function
 master_run()
