@@ -58,8 +58,6 @@ class PicturaeImporter(Importer):
 
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
 
-        print("dfkgjndfg")
-
         # setting up db sql_tools for each connection
 
         self.sql_csv_tools = SqlCsvTools(config=picturae_config)
@@ -93,8 +91,6 @@ class PicturaeImporter(Importer):
             setattr(self, param, None)
 
         self.created_by_agent = picturae_config.agent_number
-
-        print("DONE INITS")
 
         self.paths = paths
 
