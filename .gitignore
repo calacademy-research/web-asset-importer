@@ -1,3 +1,7 @@
+.idea/
+.idea/workspace.xml
+**/workspace.xml
+**/specify-asset-importer.iml
 *.xml
 output.txt
 **/picturae_purge.sql
