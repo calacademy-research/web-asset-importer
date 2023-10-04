@@ -5,13 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="cbaec975-4f38-4ac7-a785-3d2668475c58" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/picturae_importer.py" beforeDir="false" afterPath="$PROJECT_DIR$/picturae_importer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/picturae_readme.txt" beforeDir="false" afterPath="$PROJECT_DIR$/picturae_readme.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/taxon_check/R_TNRS.R" beforeDir="false" afterPath="$PROJECT_DIR$/taxon_check/R_TNRS.R" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test_csv_purge_sql/picturae_purge_template.sql" beforeDir="false" afterPath="$PROJECT_DIR$/test_csv_purge_sql/picturae_purge_template.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,6 +64,9 @@
     ],
     "RunConfigurationTargetLRU": [
       "7fc70597-e27f-4e86-86d2-66c9d0c46812/schema/\"casbotany\""
+    ],
+    "com.intellij.ide.scratch.LRUPopupBuilder$1/": [
+      "MySQL"
     ]
   }
 }]]></component>
@@ -288,7 +286,7 @@
       <workItem from="1696349307899" duration="6462000" />
       <workItem from="1696371645972" duration="732000" />
       <workItem from="1696373878594" duration="4728000" />
-      <workItem from="1696436399170" duration="4102000" />
+      <workItem from="1696436399170" duration="4950000" />
     </task>
     <servers />
   </component>
