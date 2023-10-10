@@ -1,10 +1,9 @@
-
+"""metadata_tools: utility functions for the addition, removal and reading of iptc and exif image metadata"""
 from timeout import timeout
 import errno
 import os
 import logging
 from iptcinfo3 import IPTCInfo
-import binascii
 import exifread
 import PIL
 from PIL import Image, ExifTags
@@ -20,7 +19,7 @@ class MetadataTools:
 
         self.logger.setLevel(logging.DEBUG)
 
-    def is_file_larger_than(self, filepath: str, size_in_mb) -> bool:
+    def is_file_larger_than(self, filepath: str, size_in_mb: int) -> bool:
         """
         Check if a file at the given filepath is larger than the specified size (in megabytes).
         """
@@ -35,15 +34,19 @@ class MetadataTools:
         # Compare the actual size with the specified size
         return size_in_mb_actual > size_in_mb
 
-    # def remove_iptc_fields(image_path, fields_to_remove):
-    #     """removes specified iptc fields"""
+    # def remove_iptc_fields(self, image_path, fields_to_remove):
+    #     """removes specified iptc fields
+    #         args:
+    #             image_path
+    #
+    #         """
     #     with ExifTool() as et:
     #         et.execute(f"-IPTC:{','.join(fields_to_remove)}=")
     #         et.execute(f"-IPTC:{','.join([f'iptc:{field}' for field in fields_to_remove])}=")
     #
     #     print("IPTC fields removed successfully.")
 
-    def iptc_attach_metadata(self, iptc_dict, path):
+    def iptc_attach_metadata(self, iptc_dict: dict, path: str):
         """Attach IPTC metadata to an image file."""
         info = self.read_iptc_metadata(path)
         if info is not None:
@@ -57,57 +60,71 @@ class MetadataTools:
         else:
             raise ValueError("None Returned")
 
-    def read_iptc_metadata(self, path):
-        """reads iptc metadata of image and returns the info"""
+    def read_iptc_metadata(self, path: str):
+        """reads iptc metadata of image and returns the dictionary"""
         info = IPTCInfo(path, force=True)
         return info
 
-
     def attach_exif_metadata(self, path, exif_dict):
-        print(path)
+        """attaches exif metadata tags to image using ExifTools subprocess in command line
+        args:
+            path: path to image
+            exif_dict: dictionary of exif terms using exif codes, and new values to assign"""
 
         for exif_code, exif_value in exif_dict.items():
-            exif_code = self.exif_code_to_tag_name(exif_code)
+            exif_code = self.exif_code_to_tag(exif_code)
             command = ['exiftool', f"-{exif_code}={exif_value}", path]
             subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         print("exif added succesfully")
 
-    def exif_code_to_tag_name(self, exif_code):
-        # Use the exifread library to get the tag name
+
+    # still doesn't work yet, but close
+    def remove_exif_tags(self, path, exif_codes):
+        """
+        Remove specified EXIF tags from an image.
+        args:
+            path: The path to the image.
+            exif_codes: A list of EXIF codes to remove.
+        """
+        try:
+            # Load EXIF
+            exif_data = self.read_exif_metadata(path=path, convert_tags=False)
+            # Iterate over the tags to remove
+            for code in exif_codes:
+                if code in exif_data:
+                    exif_data[code] = None
+
+            self.attach_exif_metadata(path=path, exif_dict=exif_data)
+
+            print("EXIF tags removed successfully")
+        except Exception as e:
+            print(f"Error removing EXIF tags: {e}")
+
+    def exif_code_to_tag(self, exif_code):
+        """converts exif code into the string of the tag name
+            args:
+                exif_code: the integer code of an exif tag to convert to TAG"""
         tag_name = exifread.tags.EXIF_TAGS.get(exif_code, "Unknown Tag")
         return tag_name[0]
 
-    def read_exif_metadata(self, path):
-        """reads and returns exif metadata"""
+    def read_exif_metadata(self, path, convert_tags=True):
+        """reads and returns exif metadata, reads exif codes into TAG names
+            args:
+                path: path to image
+                convert_tags: True to convert tags to string, False keep exif codes
+        """
         img = Image.open(path)
-        exif = {
-            PIL.ExifTags.TAGS[k]: v
-            for k, v in img._getexif().items()
-            if k in PIL.ExifTags.TAGS
-        }
+        if convert_tags is True:
+            exif = {
+                PIL.ExifTags.TAGS[k]: v
+                for k, v in img._getexif().items()
+                if k in PIL.ExifTags.TAGS
+            }
+        else:
+            exif = img._getexif()
+
         img.close()
         return exif
-
-    import binascii
-
-    def write_metadata_to_txt(self, image_path, output_file):
-        try:
-            # Open the image file
-            image = Image.open(image_path)
-
-            # Get the metadata as bytes (Exif data)
-            metadata_bytes = image.info.get("exif", b"")
-
-            # Perform the hex dump
-            hex_dump = binascii.hexlify(metadata_bytes).decode('utf-8')
-
-            # Save the hex dump to the specified text file
-            with open(output_file, 'w') as output:
-                output.write(hex_dump)
-
-            print(f"Metadata hex dump saved to {output_file}")
-        except Exception as e:
-            print("Error:", str(e))
 
 
 if __name__ == "__main__":
@@ -115,18 +132,23 @@ if __name__ == "__main__":
     #
     md = MetadataTools()
 
-    md.iptc_attach_metadata(path='tests/test_images/test_image.jpg', iptc_dict={
-    'by-line': "Mateo De La Roca",
-    'copyright notice': "@test_copyright_KML",
-    'caption/abstract': "An upsidedown image of a woodworking shop",
-    'City': 'San York'})
+    # # test code commented out
+    #
+    # md.iptc_attach_metadata(path='tests/test_images/test_image.jpg', iptc_dict={
+    # 'by-line': "Mateo De La Roca",
+    # 'copyright notice': "@test_copyright_KML",
+    # 'caption/abstract': "An upsidedown image of a woodworking shop",
+    # 'City': 'San York'})
+    #
+    # md.attach_exif_metadata(path='tests/test_images/test_image.jpg', exif_dict = {271: 'Hauwei'})
+    # #
+    # # # md.remove_iptc_fields(fields_to_remove
+    # print(md.read_exif_metadata(path='tests/test_images/test_image.jpg', convert_tags=False))
+    #
+    # md.remove_exif_tags(path='tests/test_images/test_image.jpg', exif_codes=[271])
+    #
+    # print(md.read_exif_metadata(path='tests/test_images/test_image.jpg', convert_tags=False))
 
-    md.attach_exif_metadata(path='tests/test_images/test_image.jpg', exif_dict = {271: 'Samsung'})
-
-    # md.remove_iptc_fields(fields_to_remove
-    print(md.read_exif_metadata(path='tests/test_images/test_image.jpg'))
-    print(md.read_iptc_metadata(path='tests/test_images/test_image.jpg'))
-
-    print(md.is_file_larger_than('tests/test_images/test_image.jpg', 1.2))
-
-    # md.write_metadata_to_txt(image_path='tests/test_images/test_image.jpg', output_file='tests/test_images/test_hexdump.txt')
+    # print(md.read_iptc_metadata(path='tests/test_images/test_image.jpg'))
+    #
+    # print(md.is_file_larger_than('tests/test_images/test_image.jpg', 1.2))
