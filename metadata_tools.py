@@ -102,8 +102,13 @@ class MetadataTools:
         """converts exif code into the string of the tag name
             args:
                 exif_code: the integer code of an exif tag to convert to TAG"""
+
         tag_name = exifread.tags.EXIF_TAGS.get(exif_code, "Unknown Tag")
-        return tag_name[0]
+
+        if tag_name == "Unknown Tag":
+            raise ValueError("unknown code")
+        else:
+            return tag_name[0]
 
     def read_exif_metadata(self, convert_tags=True):
         """reads and returns exif metadata, reads exif codes into TAG names
@@ -125,7 +130,10 @@ class MetadataTools:
         return exif
 
 
-# if __name__ == "__main__":
-#     # print("Running tests...")
-#     #
-#     md = MetadataTools(path = 'tests/test_images/test_image.jpg')
+if __name__ == "__main__":
+    # print("Running tests...")
+    #
+    md = MetadataTools(path = 'tests/test_images/test_image.jpg')
+
+    print(md.exif_code_to_tag(exif_code=1243309534959))
+

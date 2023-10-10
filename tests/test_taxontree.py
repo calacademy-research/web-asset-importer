@@ -5,8 +5,6 @@ import shutil
 import logging
 import pandas as pd
 from uuid import uuid4
-import time_utils
-from picturae_import_utils import remove_two_index
 from tests.pic_importer_test_class_lite import TestPicturaeImporterlite
 from tests.testing_tools import TestingTools
 from picturae_import_utils import unique_ordered_list
