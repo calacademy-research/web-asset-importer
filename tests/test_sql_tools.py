@@ -8,7 +8,6 @@ import os
 from picturae_import_utils import remove_two_index
 from tests.pic_importer_test_class import TestPicturaeImporter
 from tests.testing_tools import TestingTools
-import time_utils
 from uuid import uuid4
 import shutil
 

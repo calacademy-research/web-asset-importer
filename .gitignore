@@ -1,3 +1,7 @@
+tests/test_images/test_image.jpg~
+**/test_hexdump.txt
+**/test_image.jpg_original
+**/ascii_hex.txt
 .idea/
 .idea/workspace.xml
 **/workspace.xml

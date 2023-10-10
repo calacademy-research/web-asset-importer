@@ -5,7 +5,7 @@ from uuid import uuid4
 from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
-from image_client import picturae_config
+from .. import picturae_config
 
 
 class TestPicturaeImporterlite(PicturaeImporter):
