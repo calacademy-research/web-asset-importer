@@ -73,7 +73,7 @@ class MetadataTools:
         exif_tag = self.exif_code_to_tag(exif_code)
         command = ['exiftool', f"-{exif_tag}={exif_value}", self.path]
         subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        print("exif added succesfully")
+        self.logger.info("exif added succesfully")
 
 
     # still doesn't work yet, but close
