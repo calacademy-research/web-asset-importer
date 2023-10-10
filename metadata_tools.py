@@ -19,7 +19,7 @@ class MetadataTools:
 
         self.logger.setLevel(logging.DEBUG)
 
-    def is_file_larger_than(self, filepath: str, size_in_mb: int) -> bool:
+    def is_file_larger_than(self, filepath: str, size_in_mb: float) -> bool:
         """
         Check if a file at the given filepath is larger than the specified size (in megabytes).
         """
@@ -140,7 +140,7 @@ if __name__ == "__main__":
     # 'caption/abstract': "An upsidedown image of a woodworking shop",
     # 'City': 'San York'})
     #
-    # md.attach_exif_metadata(path='tests/test_images/test_image.jpg', exif_dict = {271: 'Hauwei'})
+    # md.attach_exif_metadata(path='tests/test_images/test_image.jpg', exif_dict = {271: 'Apple'})
     # #
     # # # md.remove_iptc_fields(fields_to_remove
     # print(md.read_exif_metadata(path='tests/test_images/test_image.jpg', convert_tags=False))
