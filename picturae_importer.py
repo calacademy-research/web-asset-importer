@@ -16,6 +16,8 @@ from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
 import picdb_config
 import time_utils
+import logging.handlers
+from monitoring_tools import create_monitoring_report
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -27,11 +29,14 @@ class PicturaeImporter(Importer):
 
     def __init__(self, paths, date_string=None):
         super().__init__(picturae_config, "Botany")
+        self.logger = logging.getLogger("PicturaeImporter")
 
         self.init_all_vars(date_string=date_string, paths=paths)
 
         # running csv create
-        CsvCreatePicturae(date_string=self.date_use)
+        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use, logger=self.logger)
+
+        self.records_dropped = csv_create_picturae.records_dropped
 
         self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
 
@@ -40,8 +45,6 @@ class PicturaeImporter(Importer):
         self.batch_size = len(self.record_full)
 
         self.batch_md5 = self.sql_csv_tools.generate_token(starting_time_stamp, self.file_path)
-
-
 
         self.run_all_methods()
 
@@ -64,8 +67,6 @@ class PicturaeImporter(Importer):
 
         self.batch_sql_tools = SqlCsvTools(config=picdb_config)
 
-
-        self.logger = logging.getLogger('PicturaeImporter')
 
         # full collector list is for populating existing and missing agents into collector table
         # new_collector_list is only for adding new agents to agent table.
@@ -752,7 +753,6 @@ class PicturaeImporter(Importer):
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
-            sys.exit()
 
 
     def create_collector(self):
@@ -947,7 +947,12 @@ class PicturaeImporter(Importer):
         # unlocking database
 
         sql = f"""UPDATE mysql.user
-                 SET account_locked = 'n'
-                 WHERE user != '{picturae_config.USER}' AND host = '%';"""
+                  SET account_locked = 'n'
+                  WHERE user != '{picturae_config.USER}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+
+        value_list = [len(self.new_taxa), self.records_dropped]
+
+        create_monitoring_report(value_list=value_list, batch_size=self.batch_size, batch_md5=self.batch_md5,
+                                 agent_number=picturae_config.agent_number, config_file=picturae_config)

@@ -3,6 +3,7 @@ import argparse
 import botany_importer_config
 import picturae_config
 from picturae_import_utils import get_max_subdirectory_date
+from monitoring_tools import clear_txt
 import os
 import logging
 import collection_definitions
@@ -14,7 +15,6 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
-
 args = None
 logger = None
 
@@ -54,7 +54,8 @@ def parse_command_line():
 
 
 def main(args):
-
+    # clearing import logs
+    clear_txt("import_monitoring.txt")
     if args.subcommand == 'search':
         image_client = ImageClient()
     elif args.subcommand == 'import':
@@ -121,6 +122,7 @@ def setup_logging(verbosity: int):
     logger.addHandler(console_handler)
 
     # with this pattern, it's rarely necessary to propagate the error up to parent
+
     logger.propagate = False
 
     if verbosity == 0:

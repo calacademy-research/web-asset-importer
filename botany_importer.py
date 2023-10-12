@@ -30,6 +30,8 @@ class BotanyImporter(Importer):
 
         self.logger.debug("Botany import mode")
 
+
+
         # FILENAME = "bio_importer.bin"
         # if not os.path.exists(FILENAME):
         for cur_dir in paths:

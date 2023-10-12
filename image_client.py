@@ -3,11 +3,10 @@ import time
 import sys
 import server_host_settings
 from uuid import uuid4
-from os.path import splitext
 import datetime
 import logging
 import os
-
+from monitoring_tools import add_imagepath_to_txt
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
 
@@ -114,6 +113,7 @@ class ImageClient:
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
             print(f"Image upload aborted: {r.status_code}:{r.text}")
+            add_imagepath_to_txt(local_filename, failure=True)
             raise UploadFailureException
         else:
             params = {
@@ -126,9 +126,11 @@ class ImageClient:
             r = requests.get(self.build_url("getfileref"), params=params)
             url = r.text
             assert r.status_code == 200
+            logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
+            add_imagepath_to_txt(local_filename)
 
-            print(f"  Uploaded: {local_filename},{attach_loc},{url}", flush=True)
         logging.debug("Upload to file server complete")
+
 
         return url, attach_loc
 

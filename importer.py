@@ -17,7 +17,6 @@ from os.path import isfile, join
 import traceback
 import hashlib
 
-
 class ConvertException(Exception):
     pass
 

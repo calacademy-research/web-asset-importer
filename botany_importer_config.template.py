@@ -16,4 +16,8 @@ BOTANY_SCAN_FOLDERS = [f'botany{sla}TYPE IMAGES',
                        f'botany{sla}PLANT FAMILIES']
 
 
+# list of custom summary terms to add to monitoring email template
+SUMMARY_TERMS = ["term1", "term2"]
+
+mailing_list = ['list of email addresses']
 

@@ -32,3 +32,8 @@ EXIF_DECODER_RING = {
     33432: 'Copyright',
     270: 'ImageDescription'
 }
+
+
+# list of custom summary terms to add to monitoring email template
+SUMMARY_TERMS = ["term1", "term2"]
+mailing_list = ['list of email addresses']

@@ -12,3 +12,8 @@ IMAGE_DIRECTORY_PREFIX = "/letter_drives/n_drive"
 SCAN_DIR = f'ichthyology{sla}images{sla}'
 ICH_SCAN_FOLDERS = ['AutomaticSpecifyImport']
 
+
+# list of custom summary terms to add to monitoring email template
+SUMMARY_TERMS = ["term1", "term2"]
+
+mailing_list = ['list of email addresses']
