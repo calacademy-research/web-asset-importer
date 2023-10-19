@@ -7,7 +7,7 @@ from uuid import uuid4
 import picturae_config
 import logging
 from taxon_parse_utils import *
-from picturae_import_utils import *
+from gen_import_utils import *
 from string_utils import *
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
@@ -21,9 +21,8 @@ class CsvCreatePicturae(Importer):
     def __init__(self, date_string, logger):
         super().__init__(picturae_config, "Botany")
 
-        self.init_all_vars(date_string)
-
         self.logger = logger
+        self.init_all_vars(date_string)
 
         self.run_all()
 
@@ -470,10 +469,11 @@ class CsvCreatePicturae(Importer):
         # writing csv for inspection and upload
         self.write_upload_csv()
 
-#
+
 # def full_run():
 #     """testing function to run just the first piece o
 #           f the upload process"""
+#     # logger = logging.getLogger("full_run")
 #     CsvCreatePicturae(date_string="2023-06-28")
 #
 # full_run()

@@ -1,6 +1,6 @@
 import traceback
 import pandas as pd
-from picturae_import_utils import remove_two_index
+from gen_import_utils import remove_two_index
 import time_utils
 from datetime import datetime
 from datetime import timedelta
@@ -334,19 +334,3 @@ class SqlCsvTools():
                                            val_list=val_list)
 
         return sql
-
-    def generate_token(self, timestamp, filename):
-        """Generate the auth token for the given filename and timestamp.
-        This is for comparing to the client submited token.
-        args:
-            timestamp: starting timestamp of upload batch
-            file_name: the name of the datafile that was uploaded
-        """
-        timestamp = str(timestamp)
-        if timestamp is None:
-            print(f"Missing timestamp; token generation failure.")
-        if filename is None:
-            print(f"Missing filename, token generation failure.")
-        mac = hmac.new(settings.KEY.encode(), timestamp.encode() + filename.encode(), digestmod='md5')
-        print(f"Generated new token for {filename} at {timestamp}.")
-        return ':'.join((mac.hexdigest(), timestamp))

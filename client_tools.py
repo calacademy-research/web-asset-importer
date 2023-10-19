@@ -2,7 +2,7 @@
 import argparse
 import botany_importer_config
 import picturae_config
-from picturae_import_utils import get_max_subdirectory_date
+from gen_import_utils import get_max_subdirectory_date
 from monitoring_tools import clear_txt
 import os
 import logging
@@ -55,7 +55,7 @@ def parse_command_line():
 
 def main(args):
     # clearing import logs
-    clear_txt("import_monitoring.txt")
+    clear_txt("import_monitoring.html")
     if args.subcommand == 'search':
         image_client = ImageClient()
     elif args.subcommand == 'import':
@@ -67,7 +67,7 @@ def main(args):
                                           botany_importer_config.BOTANY_PREFIX,
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
-
+            print(paths)
             BotanyImporter(paths=paths, config=botany_importer_config)
         elif args.collection == 'Botany_PIC':
             date_override = args.date

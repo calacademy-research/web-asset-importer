@@ -3,8 +3,8 @@ SPECIFY_DATABASE_PORT = 3306
 SPECIFY_DATABASE = 'redacted'
 USER = 'redacted'
 PASSWORD = 'redacted'
-
-
+# agent id in database
+AGENT_ID = 123456
 import os
 sla = os.path.sep
 COLLECTION_NAME = 'Botany'
@@ -17,7 +17,7 @@ BOTANY_SCAN_FOLDERS = [f'botany{sla}TYPE IMAGES',
 
 
 # list of custom summary terms to add to monitoring email template
-SUMMARY_TERMS = ["term1", "term2"]
+SUMMARY_TERMS = ['additional terms to summarize']
 
-mailing_list = ['list of email addresses']
+mailing_list = ['mdelaroca@calacademy.org']
 

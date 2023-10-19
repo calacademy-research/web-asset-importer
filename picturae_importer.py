@@ -5,7 +5,7 @@
 import atexit
 import picturae_config
 from uuid import uuid4
-from picturae_import_utils import *
+from gen_import_utils import *
 import logging
 from string_utils import *
 from importer import Importer
@@ -44,7 +44,7 @@ class PicturaeImporter(Importer):
 
         self.batch_size = len(self.record_full)
 
-        self.batch_md5 = self.sql_csv_tools.generate_token(starting_time_stamp, self.file_path)
+        self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
         self.run_all_methods()
 
@@ -91,7 +91,7 @@ class PicturaeImporter(Importer):
         for param in init_list:
             setattr(self, param, None)
 
-        self.created_by_agent = picturae_config.agent_number
+        self.created_by_agent = picturae_config.AGENT_ID
 
         self.paths = paths
 
@@ -955,4 +955,4 @@ class PicturaeImporter(Importer):
         value_list = [len(self.new_taxa), self.records_dropped]
 
         create_monitoring_report(value_list=value_list, batch_size=self.batch_size, batch_md5=self.batch_md5,
-                                 agent_number=picturae_config.agent_number, config_file=picturae_config)
+                                 agent=picturae_config.AGENT_ID, config_file=picturae_config)

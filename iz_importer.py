@@ -4,13 +4,16 @@ import iz_importer_config
 
 from importer import Importer
 from directory_tree import DirectoryTree
-
+from uuid import uuid4
 import os
 import re
 import logging
+from gen_import_utils import generate_token
 # from dir_tools import DirTools
 from metadata_tools import MetadataTools
+from monitoring_tools import create_monitoring_report
 import traceback
+from time_utils import get_pst_time_now_string
 
 CASIZ_FILE_LOG = "file_log.tsv"
 
@@ -52,9 +55,16 @@ class IzImporter(Importer):
         self.cur_extract_casiz = self.extract_casiz
         self.directory_tree_core = DirectoryTree(iz_importer_config.IZ_SCAN_FOLDERS)
         self.directory_tree_core.process_files(self.build_filename_map)
+        self.batch_size = 0
+        # placeholder for filename now
+        self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
 
         print("Starting to process loaded core files...")
         self.process_loaded_files()
+
+        create_monitoring_report(batch_size=self.batch_size, batch_md5=self.batch_md5,
+                                 agent=iz_importer_config.AGENT_ID,
+                                 config_file=iz_importer_config)
 
 
 
@@ -62,12 +72,14 @@ class IzImporter(Importer):
 
         for casiz_number in self.casiz_filepath_map.keys():
             filepaths = self.casiz_filepath_map[casiz_number]
+            self.batch_size += len(filepaths)
             filepath_list = []
             #  redundant from an old cleaning operation but harmless for now
             for cur_filepath in filepaths:
                 filepath_list.append(cur_filepath)
 
             self.process_casiz_number(casiz_number, filepath_list)
+
 
 
     def read_decoder_ring(self,ring_path):
@@ -334,3 +346,6 @@ class IzImporter(Importer):
     def get_collectionobjectid_from_casiz_number(self, casiz_number):
         sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
         return self.specify_db_connection.get_one_record(sql)
+
+
+

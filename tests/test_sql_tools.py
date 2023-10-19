@@ -5,7 +5,7 @@ import logging
 import numpy as np
 import pandas as pd
 import os
-from picturae_import_utils import remove_two_index
+from gen_import_utils import remove_two_index
 from tests.pic_importer_test_class import TestPicturaeImporter
 from tests.testing_tools import TestingTools
 from uuid import uuid4

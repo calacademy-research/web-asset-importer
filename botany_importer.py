@@ -7,7 +7,10 @@ import os
 import re
 import logging
 from dir_tools import DirTools
-
+from uuid import uuid4
+from time_utils import get_pst_time_now_string
+from monitoring_tools import create_monitoring_report
+from gen_import_utils import generate_token
 # I:\botany\PLANT FAMILIES
 #
 # I:\botany\TYPE IMAGES
@@ -40,7 +43,19 @@ class BotanyImporter(Importer):
         #     pickle.dump(self.barcode_map, outfile)
         # else:
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
+
+        if config == botany_importer_config:
+            self.batch_size = len(paths)
+            self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
+
         self.process_loaded_files()
+
+        if config == botany_importer_config:
+            create_monitoring_report(batch_size=self.batch_size, batch_md5=self.batch_md5,
+                                     agent=botany_importer_config.AGENT_ID,
+                                     config_file=botany_importer_config)
+
+
 
     def process_loaded_files(self):
         for barcode in self.barcode_map.keys():

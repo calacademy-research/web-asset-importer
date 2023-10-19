@@ -7,7 +7,7 @@ import pandas as pd
 from uuid import uuid4
 from tests.pic_importer_test_class_lite import TestPicturaeImporterlite
 from tests.testing_tools import TestingTools
-from picturae_import_utils import unique_ordered_list
+from gen_import_utils import unique_ordered_list
 os.chdir("./image_client")
 
 

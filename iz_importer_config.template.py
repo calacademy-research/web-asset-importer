@@ -9,6 +9,9 @@ PASSWORD = 'redacted'
 
 COLLECTION_NAME = 'IZ'
 
+# agent if in DB
+AGENT_ID = 123456
+
 MINIMUM_ID_DIGITS = 5
 IMAGE_SUFFIX = '[a-z\-\(\)0-9 ©_,.]*(.(jpg|jpeg|tiff|tif|png|PNG))$'
 CASIZ_NUMBER = '([0-9]{2,})'
