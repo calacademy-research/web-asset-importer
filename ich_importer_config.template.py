@@ -14,8 +14,15 @@ IMAGE_DIRECTORY_PREFIX = "/letter_drives/n_drive"
 SCAN_DIR = f'ichthyology{sla}images{sla}'
 ICH_SCAN_FOLDERS = ['AutomaticSpecifyImport']
 
+# config fields for monitoring emails
+SUMMARY_TERMS = ['list of summary stats to add ']
 
-# list of custom summary terms to add to monitoring email template
-SUMMARY_TERMS = ["term1", "term2"]
+SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
-mailing_list = ['list of email addresses']
+mailing_list = ['list of emails to send report to']
+
+#smpty terms
+smtp_user = "your email"
+smtp_server = "smtp.gmail.com"
+smtp_port = 587
+smtp_password = "your app password"

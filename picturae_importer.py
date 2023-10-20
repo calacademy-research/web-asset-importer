@@ -17,7 +17,7 @@ from specify_db import SpecifyDb
 import picdb_config
 import time_utils
 import logging.handlers
-from monitoring_tools import create_monitoring_report, send_out_emails, insert_images_to_html
+from monitoring_tools import create_monitoring_report, send_monitoring_report
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -947,11 +947,7 @@ class PicturaeImporter(Importer):
 
         self.upload_attachments()
 
-
-        insert_images_to_html("tests/test_images/test_image.jpg", title='image of woodshop')
-
-
-        send_out_emails(subject=f"PIC_Batch:{time_utils.get_pst_time_now_string()}", config=picturae_config)
+        send_monitoring_report(config=picturae_config, subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}")
 
         # writing time stamps to txt file
 

@@ -6,7 +6,7 @@ from uuid import uuid4
 import datetime
 import logging
 import os
-from monitoring_tools import add_imagepath_to_txt
+from monitoring_tools import add_imagepath_to_html
 from string_utils import remove_non_numerics
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
@@ -114,7 +114,7 @@ class ImageClient:
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
             print(f"Image upload aborted: {r.status_code}:{r.text}")
-            add_imagepath_to_txt(local_filename, barcode=remove_non_numerics(os.path.basename(local_filename)),
+            add_imagepath_to_html(local_filename, barcode=remove_non_numerics(os.path.basename(local_filename)),
                                  success=False)
             raise UploadFailureException
         else:
@@ -130,7 +130,7 @@ class ImageClient:
             assert r.status_code == 200
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             print("adding to image")
-            add_imagepath_to_txt(path=local_filename, barcode=remove_non_numerics(os.path.basename(local_filename)),
+            add_imagepath_to_html(path=local_filename, barcode=remove_non_numerics(os.path.basename(local_filename)),
                                  success=True)
 
         logging.debug("Upload to file server complete")

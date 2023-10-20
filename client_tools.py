@@ -67,7 +67,6 @@ def main(args):
                                           botany_importer_config.BOTANY_PREFIX,
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
-            print(paths)
             BotanyImporter(paths=paths, config=botany_importer_config)
         elif args.collection == 'Botany_PIC':
             date_override = args.date
@@ -114,7 +113,7 @@ def setup_logging(verbosity: int):
 
     """
     global logger
-    print("setting up logging...")
+    logger.info("setting up logging...")
     logger = logging.getLogger('Client')
     console_handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter("%(name)s — %(levelname)s — %(funcName)s:%(lineno)d - %(message)s")

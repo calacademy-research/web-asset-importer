@@ -37,6 +37,15 @@ EXIF_DECODER_RING = {
 }
 
 
-# list of custom summary terms to add to monitoring email template
-SUMMARY_TERMS = ["term1", "term2"]
-mailing_list = ['list of email addresses']
+# config fields for monitoring emails
+SUMMARY_TERMS = ['list of summary stats to add ']
+
+SUMMARY_IMG = ['list of graph/image filepaths to add to report']
+
+mailing_list = ['list of emails to send report to']
+
+#smpt terms
+smtp_user = "your email"
+smtp_server = "smtp.gmail.com"
+smtp_port = 587
+smtp_password = "your app password"

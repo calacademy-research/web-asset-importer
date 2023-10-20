@@ -1,53 +1,17 @@
-
+import smtplib
 import time_utils
-import subprocess
-import base64
-import os
-
-
-def encode_image(image_path):
-    with open(image_path, 'rb') as image_file:
-        # Read the binary image data
-        image_binary = image_file.read()
-
-    image_base64 = base64.b64encode(image_binary).decode()
-
-    return image_base64
-
-
-def send_txt_to_email(subject, recipient):
-    """send_txt_to_email: uses the subproccess package in order to send
-       emails from command line.
-       args:
-            subject: the subject line of the email
-            recipient: the email address of the recipient
-            file: the text file to copy to an email
-    """
-    if not os.path.exists("import_monitoring.html"):
-        subprocess.run("touch import_monitoring.html")
-
-    email_command = f'mutt -s "{subject}" -a import_monitoring.html -- {recipient} < <(echo -e "batch report from ' \
-                    f'{time_utils.get_pst_time_now_string()}")'
-    try:
-        subprocess.run(['bash', '-c', email_command])
-        print(f"Email sent to {recipient} with subject: {subject}")
-    except subprocess.CalledProcessError as e:
-        print(f"Error sending email: {e}")
-
-
-def send_out_emails(subject, config):
-    """standard function for looping through mailing list in config file"""
-    for email in config.mailing_list:
-        send_txt_to_email(subject=subject, recipient=email)
-
+from email.utils import make_msgid
+from email.message import EmailMessage
 
 def clear_txt(path):
-    """clears out the all the contents of a .txt file , leaving a blank file"""
+    """clears out the all the contents of a text file , leaving a blank file.
+        args:
+            path: path of .txt or html file to clear"""
     with open(path, 'w') as file:
         pass
 
 
-def add_imagepath_to_txt(path, barcode, success):
+def add_imagepath_to_html(path, barcode, success):
     """add_filepath_to_monitor_txt: adds single line to end of txt file,
         in this case with 4 spaces,
         to keep alignment with generic template
@@ -94,7 +58,7 @@ def create_summary_term_list(value_list, config):
             terms += f"<li>{term}: {value_list[index]}</li>"
         return terms
 
-def add_format_batch_report(num_records, uploader, md5_code, custom_terms):
+def add_format_batch_report(num_records, uploader, md5_code, custom_terms=None):
     """add_format_batch_report:
         creates template of upload batch report. Takes standard summary terms and args,
        and allows for custom terms to be added with custom_terms.
@@ -105,10 +69,12 @@ def add_format_batch_report(num_records, uploader, md5_code, custom_terms):
             config: the config file to use.
             custom_terms: the list of custom values to add as summary terms, myst correspond with order of
                           SUMMARY_TERMS variable in config."""
+
     if custom_terms is None:
         custom_terms = ""
     else:
         pass
+
     report = """<html>
     <head>
         <title>Upload Batch Report</title>
@@ -180,35 +146,20 @@ def create_monitoring_report(num_barcodes, batch_md5, agent, config_file, value_
                             md5_code=batch_md5, uploader=agent,
                             custom_terms=custom_terms)
 
-
-def convert_image_base64(image_path):
-    with open(image_path, 'rb') as image_file:
-        image_data = image_file.read()
-
-        base64_data = base64.b64encode(image_data).decode('utf-8')
-
-        return base64_data
-
-
-def insert_images_to_html(image_path, title):
-    """add_filepath_to_monitor_txt: adds single line to end of txt file,
-        in this case with 4 spaces,
-        to keep alignment with generic template
+def insert_cid_img(cid):
+    """insert_cid_img: adds single line to end of txt file,
+                        containing generic html embedded image with cid code.
         args:
-            path: path to the txt file
-            failure: indicates whether image at filepath failed to upload to image server or not
+            cid: the cid code to use for the embedded image html
     """
 
     with open("import_monitoring.html", "r") as file:
         html_content = file.readlines()
 
-    base64_encoded = convert_image_base64(image_path)
-
     image_section = html_content.index('        <h2>Summary Figures:</h2>\n')
 
-    image_html = f"<img src = 'data:image/jpg;base64,{base64_encoded}' alt = '{title}' " \
-                 f"style='display:block' width='300'," \
-                 f"height = '300' title='{title}'>"
+    image_html = f"""<img src="cid:{cid[1:-1]}"
+                    style="display:block" width="300" height="300">"""
 
     html_content.insert(image_section+1, image_html + '\n')
 
@@ -216,5 +167,65 @@ def insert_images_to_html(image_path, title):
     with open("import_monitoring.html", 'w') as file:
         file.writelines(html_content)
 
+def attach_html_images(config):
+    """attach_html_images:
+       an iterative function that allows for embedding of images
+       in a variety of mail platforms, using both html and cids
+       args:
+        config: the config file to use containing image_paths
+    """
 
-# insert_images_to_html(image_path="tests/test_images/test_image.jpg")
+    image_paths = config.SUMMARY_IMG
+    msg = EmailMessage()
+    image_cids = []
+
+    for i in range(len(image_paths)):
+        cid = make_msgid()
+        insert_cid_img(cid)
+        image_cids.append(cid)
+
+    with open("import_monitoring.html", "r") as file:
+        html_content = file.read()
+
+    msg.add_alternative(html_content, subtype='html')
+
+    for index, image in enumerate(image_paths):
+        cid = image_cids[index]
+
+        with open(f'{image}', 'rb') as img:
+            msg.get_payload()[0].add_related(img.read(), 'image', 'jpeg', cid=cid)
+
+    with open("import_monitoring.html", "w") as file:
+        file.write(msg.as_string())
+
+    return msg
+
+
+def send_smtp_email(msg_string, to_email, config):
+    """send_smtp_email: sends email through smtp server,
+        using user credentials stored in config file
+        args:
+            to_email:recipient of email
+            subject: subject line of email
+            msg_string: content to be in body of email
+            config: config file to send
+            """
+    with smtplib.SMTP(config.smtp_server, config.smtp_port) as server:
+        server.starttls()
+        server.login(config.smtp_user, config.smtp_password)
+        server.sendmail(config.smtp_user, to_email, msg_string)
+
+def send_monitoring_report(config, subject):
+    """send_monitoring_repot: completes the final steps after adding batch failure/success rates.
+                                attaches custom graphs and images before sending email through smtp
+        args:
+            config: config file to use for smtp credentials, and custom image list.
+            subject: subject line of report email
+    """
+    msg = attach_html_images(config)
+    for email in config.mailing_list:
+        msg['Subject'] = subject
+        msg['to'] = email
+        msg_string = msg.as_string()
+        send_smtp_email(msg_string=msg_string,
+                        config=config, to_email=email)

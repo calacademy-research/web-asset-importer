@@ -11,7 +11,7 @@ import logging
 from gen_import_utils import generate_token
 # from dir_tools import DirTools
 from metadata_tools import MetadataTools
-from monitoring_tools import create_monitoring_report, send_out_emails
+from monitoring_tools import create_monitoring_report, send_monitoring_report
 import traceback
 from time_utils import get_pst_time_now_string
 
@@ -67,8 +67,8 @@ class IzImporter(Importer):
 
         self.process_loaded_files()
 
-        send_out_emails(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                        config=iz_importer_config)
+        send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                               config=iz_importer_config)
 
 
 

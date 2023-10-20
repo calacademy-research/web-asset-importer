@@ -5,7 +5,7 @@ import re
 import logging
 from dir_tools import DirTools
 from uuid import uuid4
-from monitoring_tools import create_monitoring_report, send_out_emails
+from monitoring_tools import create_monitoring_report, send_monitoring_report
 from time_utils import get_pst_time_now_string
 from gen_import_utils import generate_token
 
@@ -44,7 +44,7 @@ class IchthyologyImporter(Importer):
 
         self.process_loaded_files()
 
-        send_out_emails(subject=f"ICH_Batch:{get_pst_time_now_string()}", config=ich_importer_config)
+        send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}", config=ich_importer_config)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
