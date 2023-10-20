@@ -1,9 +1,8 @@
-import bs4
 
 import time_utils
 import subprocess
 import base64
-from bs4 import BeautifulSoup, NavigableString
+import os
 
 
 def encode_image(image_path):
@@ -16,7 +15,7 @@ def encode_image(image_path):
     return image_base64
 
 
-def send_txt_to_email(subject, recipient, file):
+def send_txt_to_email(subject, recipient):
     """send_txt_to_email: uses the subproccess package in order to send
        emails from command line.
        args:
@@ -24,7 +23,10 @@ def send_txt_to_email(subject, recipient, file):
             recipient: the email address of the recipient
             file: the text file to copy to an email
     """
-    email_command = f'mutt -s "{subject}" -a {file} -- {recipient} < <(echo -e "batch report from ' \
+    if not os.path.exists("import_monitoring.html"):
+        subprocess.run("touch import_monitoring.html")
+
+    email_command = f'mutt -s "{subject}" -a import_monitoring.html -- {recipient} < <(echo -e "batch report from ' \
                     f'{time_utils.get_pst_time_now_string()}")'
     try:
         subprocess.run(['bash', '-c', email_command])
@@ -33,10 +35,17 @@ def send_txt_to_email(subject, recipient, file):
         print(f"Error sending email: {e}")
 
 
+def send_out_emails(subject, config):
+    """standard function for looping through mailing list in config file"""
+    for email in config.mailing_list:
+        send_txt_to_email(subject=subject, recipient=email)
+
+
 def clear_txt(path):
     """clears out the all the contents of a .txt file , leaving a blank file"""
     with open(path, 'w') as file:
         pass
+
 
 def add_imagepath_to_txt(path, barcode, success):
     """add_filepath_to_monitor_txt: adds single line to end of txt file,
@@ -46,9 +55,8 @@ def add_imagepath_to_txt(path, barcode, success):
             path: path to the txt file
             failure: indicates whether image at filepath failed to upload to image server or not
     """
-    monitor_line = f"<tr><td>{path}</td> <td>{barcode}</td><td>{success}</td></tr>"
+    monitor_line = f"<tr style='width: 50%'><td>{path}</td> <td>{barcode}</td><td>{success}</td></tr>"
 
-    # add_line_between(txt_file="import_monitoring.html", line_num=14, string=monitor_line)
     with open("import_monitoring.html", "r") as file:
         html_content = file.readlines()
 
@@ -59,6 +67,7 @@ def add_imagepath_to_txt(path, barcode, success):
     # Write the updated HTML content back to the file
     with open("import_monitoring.html", 'w') as file:
         file.writelines(html_content)
+
 
 def add_line_between(txt_file, line_num, string):
     """add_line_between: used to add a string line into a txt file, between two existing lines,
@@ -75,6 +84,7 @@ def add_line_between(txt_file, line_num, string):
     with open(txt_file, "w") as file:
         file.writelines(lines)
 
+
 def create_summary_term_list(value_list, config):
     if value_list is None:
         return None
@@ -83,7 +93,8 @@ def create_summary_term_list(value_list, config):
         for index, term in enumerate(config.SUMMARY_TERMS):
             terms += f"<li>{term}: {value_list[index]}</li>"
         return terms
-def add_format_batch_report(num_records, uploader, md5_code, config, custom_terms):
+
+def add_format_batch_report(num_records, uploader, md5_code, custom_terms):
     """add_format_batch_report:
         creates template of upload batch report. Takes standard summary terms and args,
        and allows for custom terms to be added with custom_terms.
@@ -101,8 +112,13 @@ def add_format_batch_report(num_records, uploader, md5_code, config, custom_term
     report = """<html>
     <head>
         <title>Upload Batch Report</title>
-            <style>
-        table {
+        <style>
+        img {
+            max-width: 300px; /* Maximum width of 300 pixels */
+            max-height: 300px; /* Maximum height of 200 pixels */
+        }
+                table {
+            table-layout: fixed;
             border-collapse: collapse;
             width: 100%;
         }
@@ -113,7 +129,9 @@ def add_format_batch_report(num_records, uploader, md5_code, config, custom_term
 
         th, td {
             padding: 8px;
-            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-align: left;
         }
     </style>
     </head>
@@ -124,20 +142,19 @@ def add_format_batch_report(num_records, uploader, md5_code, config, custom_term
         <p>Uploader: {uploader}</p>
         <p>Batch md5: {md5_code}</p>
 
-        <h2>Summary:</h2>
+        <h2>Summary Statistics:</h2>
         <ul>
             <li>Number of Records Added: {num_records}</li>
             {custom_terms}
         </ul>
-        <img src="tests/test_images/test_image.jpg" alt="picture of a woodshop" >
+        <h2>Summary Figures:</h2>
         <h2>Images Uploaded:</h2>
         <table>
             <tr>
-                <th>File Path</th>
+                <th style="width: 50%">File Path</th>
                 <th>Barcode</th>
-                <th>Failure</th>
+                <th>Success</th>
             </tr>
-            
             
         </table>
         
@@ -148,11 +165,7 @@ def add_format_batch_report(num_records, uploader, md5_code, config, custom_term
     add_line_between("import_monitoring.html", line_num=0, string=report)
 
 
-    for email in config.mailing_list:
-        send_txt_to_email(subject=f"Batch Upload:{time_utils.get_pst_time_now_string()}", recipient=email,
-                          file="import_monitoring.html")
-
-def create_monitoring_report(batch_size, batch_md5, agent, config_file, value_list=None):
+def create_monitoring_report(num_barcodes, batch_md5, agent, config_file, value_list=None):
     """creates customizable report template, and then sends it the form of an email
         args:
             value_list: the list of values to use for custom terms.
@@ -163,11 +176,45 @@ def create_monitoring_report(batch_size, batch_md5, agent, config_file, value_li
             """
     custom_terms = create_summary_term_list(config=config_file, value_list=value_list)
 
-    add_format_batch_report(num_records=batch_size,
-                            md5_code=batch_md5, uploader=agent, config=config_file,
+    add_format_batch_report(num_records=num_barcodes,
+                            md5_code=batch_md5, uploader=agent,
                             custom_terms=custom_terms)
 
 
-# send_txt_to_email("asdasd", recipient="mdelaroca@calacademy.org", file="import_monitoring.html")
+def convert_image_base64(image_path):
+    with open(image_path, 'rb') as image_file:
+        image_data = image_file.read()
 
-add_imagepath_to_txt(path="path/to/image", barcode="123124", success=True)
+        base64_data = base64.b64encode(image_data).decode('utf-8')
+
+        return base64_data
+
+
+def insert_images_to_html(image_path, title):
+    """add_filepath_to_monitor_txt: adds single line to end of txt file,
+        in this case with 4 spaces,
+        to keep alignment with generic template
+        args:
+            path: path to the txt file
+            failure: indicates whether image at filepath failed to upload to image server or not
+    """
+
+    with open("import_monitoring.html", "r") as file:
+        html_content = file.readlines()
+
+    base64_encoded = convert_image_base64(image_path)
+
+    image_section = html_content.index('        <h2>Summary Figures:</h2>\n')
+
+    image_html = f"<img src = 'data:image/jpg;base64,{base64_encoded}' alt = '{title}' " \
+                 f"style='display:block' width='300'," \
+                 f"height = '300' title='{title}'>"
+
+    html_content.insert(image_section+1, image_html + '\n')
+
+    # Write the updated HTML content back to the file
+    with open("import_monitoring.html", 'w') as file:
+        file.writelines(html_content)
+
+
+# insert_images_to_html(image_path="tests/test_images/test_image.jpg")

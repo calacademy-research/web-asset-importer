@@ -11,7 +11,7 @@ import logging
 from gen_import_utils import generate_token
 # from dir_tools import DirTools
 from metadata_tools import MetadataTools
-from monitoring_tools import create_monitoring_report
+from monitoring_tools import create_monitoring_report, send_out_emails
 import traceback
 from time_utils import get_pst_time_now_string
 
@@ -55,16 +55,20 @@ class IzImporter(Importer):
         self.cur_extract_casiz = self.extract_casiz
         self.directory_tree_core = DirectoryTree(iz_importer_config.IZ_SCAN_FOLDERS)
         self.directory_tree_core.process_files(self.build_filename_map)
-        self.batch_size = 0
+        self.barcodes_processed = len(self.casiz_filepath_map.keys())
         # placeholder for filename now
         self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
 
         print("Starting to process loaded core files...")
-        self.process_loaded_files()
 
-        create_monitoring_report(batch_size=self.batch_size, batch_md5=self.batch_md5,
+        create_monitoring_report(num_barcodes=self.barcodes_processed, batch_md5=self.batch_md5,
                                  agent=iz_importer_config.AGENT_ID,
                                  config_file=iz_importer_config)
+
+        self.process_loaded_files()
+
+        send_out_emails(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                        config=iz_importer_config)
 
 
 

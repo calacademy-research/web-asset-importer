@@ -9,7 +9,7 @@ import logging
 from dir_tools import DirTools
 from uuid import uuid4
 from time_utils import get_pst_time_now_string
-from monitoring_tools import create_monitoring_report
+from monitoring_tools import create_monitoring_report, send_out_emails
 from gen_import_utils import generate_token
 # I:\botany\PLANT FAMILIES
 #
@@ -45,15 +45,17 @@ class BotanyImporter(Importer):
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
         if config == botany_importer_config:
-            self.batch_size = len(paths)
+            self.batch_size = len(self.barcode_map.keys())
             self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
+            create_monitoring_report(num_barcodes=self.batch_size, batch_md5=self.batch_md5,
+                                     agent=botany_importer_config.AGENT_ID,
+                                     config_file=botany_importer_config)
 
         self.process_loaded_files()
 
         if config == botany_importer_config:
-            create_monitoring_report(batch_size=self.batch_size, batch_md5=self.batch_md5,
-                                     agent=botany_importer_config.AGENT_ID,
-                                     config_file=botany_importer_config)
+            send_out_emails(f"BOT_Batch: {get_pst_time_now_string()}", config=botany_importer_config)
+
 
 
 

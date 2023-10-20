@@ -5,7 +5,7 @@ import re
 import logging
 from dir_tools import DirTools
 from uuid import uuid4
-from monitoring_tools import create_monitoring_report
+from monitoring_tools import create_monitoring_report, send_out_emails
 from time_utils import get_pst_time_now_string
 from gen_import_utils import generate_token
 
@@ -33,15 +33,18 @@ class IchthyologyImporter(Importer):
         # pickle.dump(ichthyology_importer.catalog_number_map, outfile)
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
-        self.batch_size = 0
+        self.barcodes_processed = len(self.catalog_number_map.keys())
 
         # uuid is a placeholder for now
         self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
 
+        create_monitoring_report(num_barcodes=self.barcodes_processed, batch_md5=self.batch_md5,
+                                 agent=ich_importer_config.AGENT_ID,
+                                 config_file=ich_importer_config)
+
         self.process_loaded_files()
 
-        create_monitoring_report(batch_size=self.batch_size, batch_md5=self.batch_md5,
-                                 agent=ich_importer_config.AGENT_ID, config_file=ich_importer_config)
+        send_out_emails(subject=f"ICH_Batch:{get_pst_time_now_string()}", config=ich_importer_config)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number

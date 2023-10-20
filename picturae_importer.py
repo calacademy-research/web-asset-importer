@@ -17,7 +17,7 @@ from specify_db import SpecifyDb
 import picdb_config
 import time_utils
 import logging.handlers
-from monitoring_tools import create_monitoring_report
+from monitoring_tools import create_monitoring_report, send_out_emails, insert_images_to_html
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -42,7 +42,7 @@ class PicturaeImporter(Importer):
 
         self.record_full = pd.read_csv(self.file_path)
 
-        self.batch_size = len(self.record_full)
+        self.num_barcodes = len(self.record_full)
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
@@ -125,7 +125,7 @@ class PicturaeImporter(Importer):
                         for record purging"""
         # marking starting time stamp
         # at exit run ending timestamp and append timestamp csv
-        atexit.register(self.run_timestamps, batch_size=self.batch_size)
+        atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
 
 
     def assign_col_dtypes(self):
@@ -938,7 +938,20 @@ class PicturaeImporter(Importer):
                                                           logger_int=self.logger, df=self.record_full)
 
         # uploading attachments
+
+        value_list = [len(self.new_taxa), self.records_dropped]
+
+
+        create_monitoring_report(value_list=value_list, num_barcodes=self.num_barcodes, batch_md5=self.batch_md5,
+                                 agent=picturae_config.AGENT_ID, config_file=picturae_config)
+
         self.upload_attachments()
+
+
+        insert_images_to_html("tests/test_images/test_image.jpg", title='image of woodshop')
+
+
+        send_out_emails(subject=f"PIC_Batch:{time_utils.get_pst_time_now_string()}", config=picturae_config)
 
         # writing time stamps to txt file
 
@@ -951,8 +964,3 @@ class PicturaeImporter(Importer):
                   WHERE user != '{picturae_config.USER}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
-
-        value_list = [len(self.new_taxa), self.records_dropped]
-
-        create_monitoring_report(value_list=value_list, batch_size=self.batch_size, batch_md5=self.batch_md5,
-                                 agent=picturae_config.AGENT_ID, config_file=picturae_config)
