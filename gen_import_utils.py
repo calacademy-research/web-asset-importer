@@ -7,8 +7,6 @@ import sys
 import numpy as np
 import pandas as pd
 import os
-from PIL import Image
-import re
 import hmac
 import settings
 

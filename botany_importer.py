@@ -2,14 +2,14 @@ import botany_importer_config
 
 from importer import Importer
 import time_utils
-from uuid import uuid4
+from datetime import datetime
 import os
 import re
 import logging
 from dir_tools import DirTools
 from uuid import uuid4
 from time_utils import get_pst_time_now_string
-from monitoring_tools import create_monitoring_report, send_monitoring_report
+from monitoring_tools import MonitoringTools
 from gen_import_utils import generate_token
 # I:\botany\PLANT FAMILIES
 #
@@ -21,15 +21,19 @@ from gen_import_utils import generate_token
 # I:\botany\TYPE IMAGES\CAS_Batch13
 # CAS0410512
 # CAS0410512_a
+starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
-    def __init__(self, paths, config):
+    def __init__(self, paths, config, full_import):
         self.logger = logging.getLogger('Client.BotanyImporter')
         super().__init__(config, "Botany")
         # limit is for debugging
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
+
+        if not full_import:
+            self.monitoring_tools = MonitoringTools(config=botany_importer_config)
 
         self.logger.debug("Botany import mode")
 
@@ -44,17 +48,14 @@ class BotanyImporter(Importer):
         # else:
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
-        if config == botany_importer_config:
-            self.batch_size = len(self.barcode_map.keys())
-            self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
-            create_monitoring_report(num_barcodes=self.batch_size, batch_md5=self.batch_md5,
-                                     agent=botany_importer_config.AGENT_ID,
-                                     config_file=botany_importer_config)
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
 
-        if config == botany_importer_config:
-            send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}", config=botany_importer_config)
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
 
 

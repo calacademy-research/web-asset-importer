@@ -17,7 +17,7 @@ from specify_db import SpecifyDb
 import picdb_config
 import time_utils
 import logging.handlers
-from monitoring_tools import create_monitoring_report, send_monitoring_report
+from monitoring_tools_derived import MonitoringToolsDir
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -34,17 +34,14 @@ class PicturaeImporter(Importer):
         self.init_all_vars(date_string=date_string, paths=paths)
 
         # running csv create
-        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use, logger=self.logger)
+        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use, logging_level=self.logger.getEffectiveLevel())
 
         self.records_dropped = csv_create_picturae.records_dropped
 
-        self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
 
         self.record_full = pd.read_csv(self.file_path)
 
         self.num_barcodes = len(self.record_full)
-
-        self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
         self.run_all_methods()
 
@@ -57,9 +54,15 @@ class PicturaeImporter(Importer):
                 paths: the paths string recieved from the init params"""
         self.date_use = date_string
 
+        self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
+
+        self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
+
         # setting up alternate db connection for batch database
 
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+
+        self.monitoring_tools = MonitoringToolsDir(config=picturae_config, batch_md5=self.batch_md5)
 
         # setting up db sql_tools for each connection
 
@@ -238,13 +241,16 @@ class PicturaeImporter(Importer):
                 self.logger.warning(f"image {row['image_path']} "
                                     f"already in database, appending record")
                 self.barcode_list.append(row['CatalogNumber'])
-            # create case so that if two duplicate rows , but with different images, upload both images,
-            # but not both rows
+                # image path is added any-ways as the image client checks regardless
+                # for image duplication, this way it will still create the attachment rows.
+                self.image_list.append(row['image_path'])
+
             else:
                 self.image_list.append(row['image_path'])
                 self.barcode_list.append(row['CatalogNumber'])
-                self.barcode_list = list(set(self.barcode_list))
-                self.image_list = list(set(self.image_list))
+
+            self.barcode_list = list(set(self.barcode_list))
+            self.image_list = list(set(self.image_list))
 
 
     def create_agent_list(self, row):
@@ -776,7 +782,7 @@ class PicturaeImporter(Importer):
             column_list = ['TimestampCreated',
                            'TimestampModified',
                            'Version',
-                           'IsPrimary',
+                          'IsPrimary',
                            'OrderNumber',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
@@ -893,7 +899,7 @@ class PicturaeImporter(Importer):
         try:
             self.hide_unwanted_files()
 
-            BotanyImporter(paths=self.paths, config=picturae_config)
+            BotanyImporter(paths=self.paths, config=picturae_config, full_import=True)
 
             self.unhide_files()
         except Exception as e:
@@ -942,12 +948,12 @@ class PicturaeImporter(Importer):
         value_list = [len(self.new_taxa), self.records_dropped]
 
 
-        create_monitoring_report(value_list=value_list, num_barcodes=self.num_barcodes, batch_md5=self.batch_md5,
-                                 agent=picturae_config.AGENT_ID, config_file=picturae_config)
+        self.monitoring_tools.create_monitoring_report(value_list=value_list)
 
         self.upload_attachments()
 
-        send_monitoring_report(config=picturae_config, subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}")
+        self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
+                                                     time_stamp=starting_time_stamp)
 
         # writing time stamps to txt file
 

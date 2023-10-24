@@ -3,9 +3,7 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
-from uuid import uuid4
 import picturae_config
-import logging
 from taxon_parse_utils import *
 from gen_import_utils import *
 from string_utils import *
@@ -13,15 +11,16 @@ from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import picdb_config
-
+import logging
 starting_time_stamp = datetime.now()
 
 
 class CsvCreatePicturae(Importer):
-    def __init__(self, date_string, logger):
+    def __init__(self, date_string, logging_level):
         super().__init__(picturae_config, "Botany")
 
-        self.logger = logger
+        self.logger = logging.getLogger("CsvCreatePicturae")
+        self.logger.setLevel(logging_level)
         self.init_all_vars(date_string)
 
         self.run_all()
@@ -119,8 +118,6 @@ class CsvCreatePicturae(Importer):
         # checking if columns to merge contain same data
         if (set(fold_csv['specimen_barcode']) == set(spec_csv['specimen_barcode'])) is True:
             # removing duplicate columns
-            # (Warning! will want to double-check whether these columns are truly the
-            # same between datasets when more info received)
 
             common_columns = list(set(fold_csv.columns).intersection(set(spec_csv.columns)))
 

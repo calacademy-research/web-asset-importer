@@ -1,22 +1,19 @@
-import sys
 
 import iz_importer_config
-
+from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from uuid import uuid4
 import os
 import re
 import logging
-from gen_import_utils import generate_token
-# from dir_tools import DirTools
 from metadata_tools import MetadataTools
-from monitoring_tools import create_monitoring_report, send_monitoring_report
+from monitoring_tools import MonitoringTools
 import traceback
 from time_utils import get_pst_time_now_string
 
 CASIZ_FILE_LOG = "file_log.tsv"
 
+starting_time_stamp = datetime.now()
 
 #  EXIF takes first priority Directory takes second. File name takes 3rd.
 
@@ -26,7 +23,7 @@ class IzImporter(Importer):
         def __init__(self):
             self.casiz_numbers = []
 
-    def __init__(self):
+    def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
@@ -55,20 +52,19 @@ class IzImporter(Importer):
         self.cur_extract_casiz = self.extract_casiz
         self.directory_tree_core = DirectoryTree(iz_importer_config.IZ_SCAN_FOLDERS)
         self.directory_tree_core.process_files(self.build_filename_map)
-        self.barcodes_processed = len(self.casiz_filepath_map.keys())
         # placeholder for filename now
-        self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
+
+        self.monitoring_tools = MonitoringTools(iz_importer_config)
 
         print("Starting to process loaded core files...")
 
-        create_monitoring_report(num_barcodes=self.barcodes_processed, batch_md5=self.batch_md5,
-                                 agent=iz_importer_config.AGENT_ID,
-                                 config_file=iz_importer_config)
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
-
-        send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                               config=iz_importer_config)
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
 
 
@@ -76,7 +72,6 @@ class IzImporter(Importer):
 
         for casiz_number in self.casiz_filepath_map.keys():
             filepaths = self.casiz_filepath_map[casiz_number]
-            self.batch_size += len(filepaths)
             filepath_list = []
             #  redundant from an old cleaning operation but harmless for now
             for cur_filepath in filepaths:

@@ -4,10 +4,11 @@ import os
 import re
 import logging
 from dir_tools import DirTools
-from uuid import uuid4
-from monitoring_tools import create_monitoring_report, send_monitoring_report
+from monitoring_tools import MonitoringTools
 from time_utils import get_pst_time_now_string
-from gen_import_utils import generate_token
+from datetime import datetime
+
+starting_time_stamp = datetime.now()
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -15,13 +16,15 @@ class FilenameFormatException(Exception):
     pass
 
 class IchthyologyImporter(Importer):
-    def __init__(self):
+    def __init__(self,  full_import):
         self.logger = logging.getLogger('Client.IchthyologyImporter')
 
         super().__init__(ich_importer_config, "Ichthyology")
         self.catalog_number_map = {}
 
         dir_tools = DirTools(self.build_filename_map)
+
+        self.monitoring_tools = MonitoringTools(ich_importer_config)
 
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
@@ -33,18 +36,15 @@ class IchthyologyImporter(Importer):
         # pickle.dump(ichthyology_importer.catalog_number_map, outfile)
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
-        self.barcodes_processed = len(self.catalog_number_map.keys())
 
-        # uuid is a placeholder for now
-        self.batch_md5 = generate_token(timestamp=get_pst_time_now_string(), filename=uuid4())
-
-        create_monitoring_report(num_barcodes=self.barcodes_processed, batch_md5=self.batch_md5,
-                                 agent=ich_importer_config.AGENT_ID,
-                                 config_file=ich_importer_config)
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
 
-        send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}", config=ich_importer_config)
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
