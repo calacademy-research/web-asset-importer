@@ -10,7 +10,6 @@ from monitoring_tools import MonitoringTools
 from string_utils import remove_non_numerics
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
-
 class UploadFailureException(Exception):
     pass
 
@@ -25,7 +24,8 @@ class FileNotFoundException(Exception):
 
 class ImageClient:
     def __init__(self):
-        self.datetime_now = datetime.datetime.now(datetime.timezone.utc)
+        ptc_timezone = datetime.timezone(datetime.timedelta(hours=-7), name="PTC")
+        self.datetime_now = datetime.datetime.now(ptc_timezone)
         self.update_time_delta()
         self.monitoring_tools = MonitoringTools(config=None)
 

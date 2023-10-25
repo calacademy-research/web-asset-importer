@@ -49,9 +49,8 @@ def parse_command_line():
 
     parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database', default=None)
 
-    parser.add_argument('-i', '--img_purge', nargs="?", type=bool, help='Setting to only purge image attachments', default=False)
-
-    parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an import that imports both data and images',
+    parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an '
+                                                                          'import that imports both data and images',
                         default=False)
 
     return parser.parse_args()
@@ -104,8 +103,7 @@ def main(args):
             purger.purge()
         if args.collection == "Botany_PIC":
             md5_insert = args.md5
-            images_only = args.img_purge
-            PicturaeUndoBatch(MD5=md5_insert, images_only=images_only)
+            PicturaeUndoBatch(MD5=md5_insert)
 
     else:
         print(f"Unknown command: {args.subcommand}")
