@@ -3,11 +3,11 @@ import time
 import sys
 import server_host_settings
 from uuid import uuid4
-from os.path import splitext
 import datetime
 import logging
 import os
-
+from monitoring_tools import MonitoringTools
+from string_utils import remove_non_numerics
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
 
@@ -27,6 +27,7 @@ class ImageClient:
     def __init__(self):
         self.datetime_now = datetime.datetime.now(datetime.timezone.utc)
         self.update_time_delta()
+        self.monitoring_tools = MonitoringTools(config=None)
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -114,6 +115,9 @@ class ImageClient:
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
             print(f"Image upload aborted: {r.status_code}:{r.text}")
+            self.monitoring_tools.add_imagepath_to_html(image_path=local_filename,
+                                                        barcode=remove_non_numerics(os.path.basename(local_filename)),
+                                                        success=False)
             raise UploadFailureException
         else:
             params = {
@@ -126,9 +130,14 @@ class ImageClient:
             r = requests.get(self.build_url("getfileref"), params=params)
             url = r.text
             assert r.status_code == 200
+            logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
+            print("adding to image")
+            self.monitoring_tools.add_imagepath_to_html(image_path=local_filename,
+                                                        barcode=remove_non_numerics(os.path.basename(local_filename)),
+                                                        success=True)
 
-            print(f"  Uploaded: {local_filename},{attach_loc},{url}", flush=True)
         logging.debug("Upload to file server complete")
+
 
         return url, attach_loc
 
@@ -154,7 +163,7 @@ class ImageClient:
         }
         return self.decode_response(params)
 
-    def check_specify_if_filepath_attached_to_collection_object_id(self,collection,filepath,collection_object_id):
+    def check_specify_if_filepath_attached_to_collection_object_id(self, collection, filepath, collection_object_id):
         pass
 
 

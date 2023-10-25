@@ -2,7 +2,7 @@
 import argparse
 import botany_importer_config
 import picturae_config
-from picturae_import_utils import get_max_subdirectory_date
+from gen_import_utils import get_max_subdirectory_date
 import os
 import logging
 import collection_definitions
@@ -14,7 +14,6 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
-
 args = None
 logger = None
 
@@ -50,11 +49,16 @@ def parse_command_line():
 
     parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database', default=None)
 
+    parser.add_argument('-i', '--img_purge', nargs="?", type=bool, help='Setting to only purge image attachments', default=False)
+
+    parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an import that imports both data and images',
+                        default=False)
+
     return parser.parse_args()
 
 
 def main(args):
-
+    # clearing import logs
     if args.subcommand == 'search':
         image_client = ImageClient()
     elif args.subcommand == 'import':
@@ -66,8 +70,8 @@ def main(args):
                                           botany_importer_config.BOTANY_PREFIX,
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
-
-            BotanyImporter(paths=paths, config=botany_importer_config)
+            full_import = args.full_import
+            BotanyImporter(paths=paths, config=botany_importer_config, full_import=full_import)
         elif args.collection == 'Botany_PIC':
             date_override = args.date
             # default is to get date of most recent folder in csv folder
@@ -82,13 +86,16 @@ def main(args):
                                           picturae_config.PIC_PREFIX,
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
+
             PicturaeImporter(paths=paths, date_string=date_override)
 
 
         elif args.collection == "Ichthyology":
-            IchthyologyImporter()
+            full_import = args.full_import
+            IchthyologyImporter(full_import=full_import)
         elif args.collection == "IZ":
-            IzImporter()
+            full_import = args.full_import
+            IzImporter(full_import=full_import)
     elif args.subcommand == 'purge':
         logger.debug("Purge!")
 
@@ -97,7 +104,8 @@ def main(args):
             purger.purge()
         if args.collection == "Botany_PIC":
             md5_insert = args.md5
-            PicturaeUndoBatch(MD5=md5_insert)
+            images_only = args.img_purge
+            PicturaeUndoBatch(MD5=md5_insert, images_only=images_only)
 
     else:
         print(f"Unknown command: {args.subcommand}")
@@ -121,6 +129,7 @@ def setup_logging(verbosity: int):
     logger.addHandler(console_handler)
 
     # with this pattern, it's rarely necessary to propagate the error up to parent
+
     logger.propagate = False
 
     if verbosity == 0:

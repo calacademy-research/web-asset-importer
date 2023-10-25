@@ -1,5 +1,4 @@
 from db_utils import DbUtils
-import logging
 class SpecifyDb(DbUtils):
     def __init__(self, db_config_class):
 

@@ -60,6 +60,10 @@ file list:
                                  contains a date_str variable that can be changed in the command line (default behavior
 
 
+    monitoring_tools.py: a toolbox of function with which to parse a summary report of upload batches, and send
+                         a formatted version through email.
+
+
     specify7_ipup : used to update ip addresses in config and settings files.
     R files:
         R_TNRS: a taxonomic name resolver in the taxon_check/ folder. Further details in .readme.txt

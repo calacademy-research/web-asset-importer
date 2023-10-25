@@ -7,9 +7,8 @@ import sys
 import numpy as np
 import pandas as pd
 import os
-from PIL import Image
-import re
-
+import hmac
+import settings
 
 # import list tools
 
@@ -97,3 +96,19 @@ def cont_prompter():
             sys.exit("Script terminated by user.")
         else:
             print("Invalid input. Please enter 'y' or 'n'.")
+
+def generate_token(timestamp, filename):
+    """Generate the auth token for the given filename and timestamp.
+    This is for comparing to the client submited token.
+    args:
+        timestamp: starting timestamp of upload batch
+        file_name: the name of the datafile that was uploaded
+    """
+    timestamp = str(timestamp)
+    if timestamp is None:
+        print(f"Missing timestamp; token generation failure.")
+    if filename is None:
+        print(f"Missing filename, token generation failure.")
+    mac = hmac.new(settings.KEY.encode(), timestamp.encode() + filename.encode(), digestmod='md5')
+    print(f"Generated new token for {filename} at {timestamp}.")
+    return ':'.join((mac.hexdigest(), timestamp))

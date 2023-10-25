@@ -9,6 +9,9 @@ PASSWORD = 'redacted'
 
 COLLECTION_NAME = 'IZ'
 
+# agent if in DB
+AGENT_ID = 123456
+
 MINIMUM_ID_DIGITS = 5
 IMAGE_SUFFIX = '[a-z\-\(\)0-9 ©_,.]*(.(jpg|jpeg|tiff|tif|png|PNG))$'
 CASIZ_NUMBER = '([0-9]{2,})'
@@ -32,3 +35,17 @@ EXIF_DECODER_RING = {
     33432: 'Copyright',
     270: 'ImageDescription'
 }
+
+
+# config fields for monitoring emails
+SUMMARY_TERMS = ['list of summary stats to add ']
+
+SUMMARY_IMG = ['list of graph/image filepaths to add to report']
+
+mailing_list = ['list of emails to send report to']
+
+#smpt terms
+smtp_user = "your email"
+smtp_server = "smtp.gmail.com"
+smtp_port = 587
+smtp_password = "your app password"
