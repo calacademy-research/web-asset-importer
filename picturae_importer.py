@@ -5,7 +5,7 @@
 import atexit
 import picturae_config
 from uuid import uuid4
-from picturae_import_utils import *
+from gen_import_utils import *
 import logging
 from string_utils import *
 from importer import Importer
@@ -16,6 +16,8 @@ from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
 import picdb_config
 import time_utils
+import logging.handlers
+from monitoring_tools_derived import MonitoringToolsDir
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -27,21 +29,19 @@ class PicturaeImporter(Importer):
 
     def __init__(self, paths, date_string=None):
         super().__init__(picturae_config, "Botany")
+        self.logger = logging.getLogger("PicturaeImporter")
 
         self.init_all_vars(date_string=date_string, paths=paths)
 
         # running csv create
-        CsvCreatePicturae(date_string=self.date_use)
+        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use, logging_level=self.logger.getEffectiveLevel())
 
-        self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
+        self.records_dropped = csv_create_picturae.records_dropped
+
 
         self.record_full = pd.read_csv(self.file_path)
 
-        self.batch_size = len(self.record_full)
-
-        self.batch_md5 = self.sql_csv_tools.generate_token(starting_time_stamp, self.file_path)
-
-
+        self.num_barcodes = len(self.record_full)
 
         self.run_all_methods()
 
@@ -54,9 +54,15 @@ class PicturaeImporter(Importer):
                 paths: the paths string recieved from the init params"""
         self.date_use = date_string
 
+        self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
+
+        self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
+
         # setting up alternate db connection for batch database
 
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+
+        self.monitoring_tools = MonitoringToolsDir(config=picturae_config, batch_md5=self.batch_md5)
 
         # setting up db sql_tools for each connection
 
@@ -64,8 +70,6 @@ class PicturaeImporter(Importer):
 
         self.batch_sql_tools = SqlCsvTools(config=picdb_config)
 
-
-        self.logger = logging.getLogger('PicturaeImporter')
 
         # full collector list is for populating existing and missing agents into collector table
         # new_collector_list is only for adding new agents to agent table.
@@ -90,7 +94,7 @@ class PicturaeImporter(Importer):
         for param in init_list:
             setattr(self, param, None)
 
-        self.created_by_agent = picturae_config.agent_number
+        self.created_by_agent = picturae_config.AGENT_ID
 
         self.paths = paths
 
@@ -124,7 +128,7 @@ class PicturaeImporter(Importer):
                         for record purging"""
         # marking starting time stamp
         # at exit run ending timestamp and append timestamp csv
-        atexit.register(self.run_timestamps, batch_size=self.batch_size)
+        atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
 
 
     def assign_col_dtypes(self):
@@ -237,13 +241,16 @@ class PicturaeImporter(Importer):
                 self.logger.warning(f"image {row['image_path']} "
                                     f"already in database, appending record")
                 self.barcode_list.append(row['CatalogNumber'])
-            # create case so that if two duplicate rows , but with different images, upload both images,
-            # but not both rows
+                # image path is added any-ways as the image client checks regardless
+                # for image duplication, this way it will still create the attachment rows.
+                self.image_list.append(row['image_path'])
+
             else:
                 self.image_list.append(row['image_path'])
                 self.barcode_list.append(row['CatalogNumber'])
-                self.barcode_list = list(set(self.barcode_list))
-                self.image_list = list(set(self.image_list))
+
+            self.barcode_list = list(set(self.barcode_list))
+            self.image_list = list(set(self.image_list))
 
 
     def create_agent_list(self, row):
@@ -752,7 +759,6 @@ class PicturaeImporter(Importer):
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
-            sys.exit()
 
 
     def create_collector(self):
@@ -776,7 +782,7 @@ class PicturaeImporter(Importer):
             column_list = ['TimestampCreated',
                            'TimestampModified',
                            'Version',
-                           'IsPrimary',
+                          'IsPrimary',
                            'OrderNumber',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
@@ -893,7 +899,7 @@ class PicturaeImporter(Importer):
         try:
             self.hide_unwanted_files()
 
-            BotanyImporter(paths=self.paths, config=picturae_config)
+            BotanyImporter(paths=self.paths, config=picturae_config, full_import=True)
 
             self.unhide_files()
         except Exception as e:
@@ -938,7 +944,16 @@ class PicturaeImporter(Importer):
                                                           logger_int=self.logger, df=self.record_full)
 
         # uploading attachments
+
+        value_list = [len(self.new_taxa), self.records_dropped]
+
+
+        self.monitoring_tools.create_monitoring_report(value_list=value_list)
+
         self.upload_attachments()
+
+        self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
+                                                     time_stamp=starting_time_stamp)
 
         # writing time stamps to txt file
 
@@ -947,7 +962,7 @@ class PicturaeImporter(Importer):
         # unlocking database
 
         sql = f"""UPDATE mysql.user
-                 SET account_locked = 'n'
-                 WHERE user != '{picturae_config.USER}' AND host = '%';"""
+                  SET account_locked = 'n'
+                  WHERE user != '{picturae_config.USER}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)

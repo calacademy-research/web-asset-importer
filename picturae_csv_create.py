@@ -3,28 +3,24 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
-from uuid import uuid4
 import picturae_config
-import logging
 from taxon_parse_utils import *
-from picturae_import_utils import *
+from gen_import_utils import *
 from string_utils import *
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import picdb_config
-
-# creating a batch uuid
-batch_uuid = uuid4()
-
-
+import logging
 starting_time_stamp = datetime.now()
 
 
 class CsvCreatePicturae(Importer):
-    def __init__(self, date_string):
+    def __init__(self, date_string, logging_level):
         super().__init__(picturae_config, "Botany")
 
+        self.logger = logging.getLogger("CsvCreatePicturae")
+        self.logger.setLevel(logging_level)
         self.init_all_vars(date_string)
 
         self.run_all()
@@ -34,9 +30,10 @@ class CsvCreatePicturae(Importer):
         """init_all_vars:to use for testing and decluttering init function,
                             initializes all class level variables  """
         self.date_use = date_string
-        self.logger = logging.getLogger('DataOnboard')
+
 
         # setting up alternate db connection for batch database
+
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
 
         # setting up alternate csv tools connections
@@ -51,10 +48,12 @@ class CsvCreatePicturae(Importer):
                      'collector_number', 'collecting_event_guid',
                      'collecting_event_id',
                      'determination_guid', 'collection_ob_id', 'collection_ob_guid',
-                     'name_id', 'author_sci', 'family', 'gen_spec_id', 'family_id', 'parent_author']
+                     'name_id', 'author_sci', 'family', 'gen_spec_id', 'family_id', 'parent_author',
+                     'records_dropped']
 
         for param in init_list:
             setattr(self, param, None)
+
 
 
     def file_present(self):
@@ -119,8 +118,6 @@ class CsvCreatePicturae(Importer):
         # checking if columns to merge contain same data
         if (set(fold_csv['specimen_barcode']) == set(spec_csv['specimen_barcode'])) is True:
             # removing duplicate columns
-            # (Warning! will want to double-check whether these columns are truly the
-            # same between datasets when more info received)
 
             common_columns = list(set(fold_csv.columns).intersection(set(spec_csv.columns)))
 
@@ -334,10 +331,11 @@ class CsvCreatePicturae(Importer):
 
         clean_length = len(self.record_full.index)
 
-        records_dropped = upload_length - clean_length
+        self.records_dropped = upload_length - clean_length
 
-        if records_dropped != 0:
-            self.logger.info(f"{records_dropped} rows dropped due to taxon errors")
+
+        if self.records_dropped != 0:
+            self.logger.info(f"{self.records_dropped} rows dropped due to taxon errors")
 
         # re-consolidating hybrid column to fullname and removing hybrid_base column
         hybrid_mask = self.record_full['hybrid_base'].notna()
@@ -427,7 +425,7 @@ class CsvCreatePicturae(Importer):
     def check_if_images_present(self):
         """checks that each image exists, creating boolean column for later use"""
 
-        self.record_full['image_valid'] = self.record_full['image_path'].apply(self.check_for_valid_image)
+        self.record_full['image_valid'] = self.record_full['image_path'].apply(lambda path: os.path.exists(path))
 
     def write_upload_csv(self):
         """write_upload_csv: writes a copy of csv to PIC upload
@@ -468,9 +466,11 @@ class CsvCreatePicturae(Importer):
         # writing csv for inspection and upload
         self.write_upload_csv()
 
+
 # def full_run():
 #     """testing function to run just the first piece o
 #           f the upload process"""
+#     # logger = logging.getLogger("full_run")
 #     CsvCreatePicturae(date_string="2023-06-28")
 #
 # full_run()

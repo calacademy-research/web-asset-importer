@@ -4,7 +4,11 @@ import os
 import re
 import logging
 from dir_tools import DirTools
+from monitoring_tools import MonitoringTools
+from time_utils import get_pst_time_now_string
+from datetime import datetime
 
+starting_time_stamp = datetime.now()
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -12,13 +16,15 @@ class FilenameFormatException(Exception):
     pass
 
 class IchthyologyImporter(Importer):
-    def __init__(self):
+    def __init__(self,  full_import):
         self.logger = logging.getLogger('Client.IchthyologyImporter')
 
         super().__init__(ich_importer_config, "Ichthyology")
         self.catalog_number_map = {}
 
         dir_tools = DirTools(self.build_filename_map)
+
+        self.monitoring_tools = MonitoringTools(ich_importer_config)
 
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
@@ -31,7 +37,14 @@ class IchthyologyImporter(Importer):
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
+
         self.process_loaded_files()
+
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
@@ -85,6 +98,7 @@ class IchthyologyImporter(Importer):
 
             for cur_filepath in self.catalog_number_map[catalog_number]:
                 filepath_list.append(cur_filepath)
+            self.batch_size += len(filepath_list)
             self.process_catalog_number(catalog_number, filepath_list)
 
     def process_catalog_number(self, catalog_number, filepath_list):

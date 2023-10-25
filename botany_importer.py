@@ -2,12 +2,15 @@ import botany_importer_config
 
 from importer import Importer
 import time_utils
-from uuid import uuid4
+from datetime import datetime
 import os
 import re
 import logging
 from dir_tools import DirTools
-
+from uuid import uuid4
+from time_utils import get_pst_time_now_string
+from monitoring_tools import MonitoringTools
+from gen_import_utils import generate_token
 # I:\botany\PLANT FAMILIES
 #
 # I:\botany\TYPE IMAGES
@@ -18,17 +21,23 @@ from dir_tools import DirTools
 # I:\botany\TYPE IMAGES\CAS_Batch13
 # CAS0410512
 # CAS0410512_a
+starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
-    def __init__(self, paths, config):
+    def __init__(self, paths, config, full_import):
         self.logger = logging.getLogger('Client.BotanyImporter')
         super().__init__(config, "Botany")
         # limit is for debugging
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
 
+        if not full_import:
+            self.monitoring_tools = MonitoringTools(config=botany_importer_config)
+
         self.logger.debug("Botany import mode")
+
+
 
         # FILENAME = "bio_importer.bin"
         # if not os.path.exists(FILENAME):
@@ -38,7 +47,18 @@ class BotanyImporter(Importer):
         #     pickle.dump(self.barcode_map, outfile)
         # else:
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
+
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
+
         self.process_loaded_files()
+
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
+
+
+
 
     def process_loaded_files(self):
         for barcode in self.barcode_map.keys():

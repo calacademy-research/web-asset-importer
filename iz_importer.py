@@ -1,19 +1,19 @@
-import sys
 
 import iz_importer_config
-
+from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-
 import os
 import re
 import logging
-# from dir_tools import DirTools
 from metadata_tools import MetadataTools
+from monitoring_tools import MonitoringTools
 import traceback
+from time_utils import get_pst_time_now_string
 
 CASIZ_FILE_LOG = "file_log.tsv"
 
+starting_time_stamp = datetime.now()
 
 #  EXIF takes first priority Directory takes second. File name takes 3rd.
 
@@ -23,7 +23,7 @@ class IzImporter(Importer):
         def __init__(self):
             self.casiz_numbers = []
 
-    def __init__(self):
+    def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
@@ -52,9 +52,19 @@ class IzImporter(Importer):
         self.cur_extract_casiz = self.extract_casiz
         self.directory_tree_core = DirectoryTree(iz_importer_config.IZ_SCAN_FOLDERS)
         self.directory_tree_core.process_files(self.build_filename_map)
+        # placeholder for filename now
+
+        self.monitoring_tools = MonitoringTools(iz_importer_config)
 
         print("Starting to process loaded core files...")
+
+        if not full_import:
+            self.monitoring_tools.create_monitoring_report()
+
         self.process_loaded_files()
+        if not full_import:
+            self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
 
 
@@ -68,6 +78,7 @@ class IzImporter(Importer):
                 filepath_list.append(cur_filepath)
 
             self.process_casiz_number(casiz_number, filepath_list)
+
 
 
     def read_decoder_ring(self,ring_path):
@@ -334,3 +345,6 @@ class IzImporter(Importer):
     def get_collectionobjectid_from_casiz_number(self, casiz_number):
         sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
         return self.specify_db_connection.get_one_record(sql)
+
+
+
