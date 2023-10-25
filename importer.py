@@ -122,6 +122,7 @@ class Importer:
                                    agent_id,
                                    copyright=None,
                                    is_public=True):
+
         attachment_guid = uuid4()
 
         file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
@@ -138,7 +139,9 @@ class Importer:
                                                 copyright=copyright,
                                                 is_public=is_public)
         attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
+
 
     # This may be replaceable by a simple re.sub + zfill
     def get_first_digits_from_filepath(self, filepath, field_size=9):
@@ -267,10 +270,9 @@ class Importer:
             try:
                 cur_file_base, cur_file_ext = cur_filename.split(".")
             except ValueError as e:
-                print (f"Can't parse {cur_filename}, skipping.")
+                print(f"Can't parse {cur_filename}, skipping.")
                 continue
-
-
+            # added this in to still create
             if not self.image_client.check_image_db_if_filename_imported(self.collection_name,
                                                                          cur_file_base + ".jpg",
                                                                          exact=True):
