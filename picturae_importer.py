@@ -905,8 +905,6 @@ class PicturaeImporter(Importer):
         except Exception as e:
             self.logger.error(f"{e}")
 
-
-
     def run_all_methods(self):
         """run_all_methods:
                         self-explanatory function, will run all methods in class in sequential manner"""

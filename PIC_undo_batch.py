@@ -7,14 +7,23 @@ from importer import Importer
 from specify_db import SpecifyDb
 import picdb_config
 import traceback
-
-
 class PicturaeUndoBatch(Importer):
     def __init__(self, MD5):
         super().__init__(picturae_config, "Botany")
         self.purge_code = MD5
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
         self.run_all(MD5=self.purge_code)
+
+
+
+    def get_attachment_location(self, timestamp1, timestamp2):
+        sql = f"""SELECT AttachmentLocation FROM attachment WHERE 
+                  TimestampCreated >= '{timestamp1}' AND TimestampCreated <= '{timestamp2}'; """
+        list_of_attachments = self.specify_db_connection.get_records(query=sql)
+
+        image_location = [record[0] for record in list_of_attachments]
+
+        return image_location
 
     def batch_undo_timestamps(self, table, timestamp1, timestamp2):
         """batch_undo_timestamps: purges records from select database added between two timestamps.
@@ -119,19 +128,22 @@ class PicturaeUndoBatch(Importer):
         """
         md5_start = f'''SELECT StartTimeStamp FROM {table} WHERE batch_MD5 = "{MD5}";'''
 
-        start_time = self.batch_db_connection.get_one_record(md5_start)
+        start_time = str(self.batch_db_connection.get_one_record(md5_start))
 
         md5_end = f'''SELECT EndTimeStamp FROM {table} WHERE batch_MD5 = "{MD5}";'''
 
-        end_time = self.batch_db_connection.get_one_record(md5_end)
+        end_time = str(self.batch_db_connection.get_one_record(md5_end))
 
         if start_time is None or end_time is None:
             raise ValueError(f"{MD5} not found in database table")
 
-        time_stamp_list = []
 
-        time_stamp_list.append(str(start_time))
-        time_stamp_list.append(str(end_time))
+        attachment_locations = self.get_attachment_location(timestamp1=start_time, timestamp2=end_time)
+
+        for attachment in attachment_locations:
+            print(attachment)
+            self.image_client.delete_from_image_server(attach_loc=attachment, collection='Botany')
+
 
         table_list = ['collectionobjectattachment', 'attachment',
                       'determination', 'collectionobject', 'collector',
@@ -139,15 +151,14 @@ class PicturaeUndoBatch(Importer):
 
         for table in table_list:
             self.batch_undo_timestamps(table=table,
-                                       timestamp1=time_stamp_list[0],
-                                       timestamp2=time_stamp_list[1])
+                                       timestamp1=start_time,
+                                       timestamp2=end_time)
 
         table = "taxon"
 
         self.batch_tree_pruner(table=table,
-                               timestamp1=time_stamp_list[0],
-                               timestamp2=time_stamp_list[1])
-
+                               timestamp1=start_time,
+                               timestamp2=end_time)
         # clearing picbatch records
         for table in ['picturaetaxa_added', 'taxa_unmatch', 'picturae_batch']:
             self.batch_log_clear(table=table, MD5=MD5)

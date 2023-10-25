@@ -24,7 +24,7 @@ class MonitoringToolsDir(MonitoringTools):
 
         report = f"""<html>
         <head>
-            <title>Upload Batch Report:{self.batch_md5}</title>
+            <title>Upload Batch Report:</title>
             <style>
             """ + """
             img {
@@ -53,6 +53,7 @@ class MonitoringToolsDir(MonitoringTools):
             <h1>Upload Batch Report</h1>
             <hr>
             <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
+            <p>Batch MD5: {self.batch_md5}</p>
             <p>Uploader: {self.config.AGENT_ID}</p>
 
             <h2>Summary Statistics:</h2>
