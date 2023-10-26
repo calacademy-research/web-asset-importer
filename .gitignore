@@ -2,6 +2,7 @@
 import_monitoring.html
 **taxon_dump.sql
 tests/test_images/test_image.jpg~
+tests/casbotany_sqlite_create.sh
 **/test_hexdump.txt
 **/test_image.jpg_original
 **/ascii_hex.txt
