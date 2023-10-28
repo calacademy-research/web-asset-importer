@@ -228,6 +228,13 @@ class SqlCsvTools():
             else:
                 pass
 
+    def taxon_get(self, name):
+
+        result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                        match_type="string")
+
+        return result_id
+
 
 
     def create_tnrs_unmatch_tab(self, row, df, tab_name: str):

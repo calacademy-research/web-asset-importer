@@ -355,12 +355,6 @@ class PicturaeImporter(Importer):
         self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col='LocalityID',
                                                             key_col='LocalityName', match=self.locality)
 
-    def taxon_get(self, name):
-
-        result_id = self.sql_csv_tools.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                                     match_type="string")
-
-        return result_id
 
     def populate_taxon(self):
         """populate taxon: creates a taxon list, which checks different rank levels in the taxon,
@@ -371,18 +365,18 @@ class PicturaeImporter(Importer):
         """
         self.gen_spec_id = None
         self.taxon_list = []
-        self.taxon_id = self.taxon_get(name=self.full_name)
+        self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
         # append taxon full name
         if self.taxon_id is None:
             self.taxon_list.append(self.full_name)
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
-                self.first_intra_id = self.taxon_get(name=self.first_intra)
+                self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
                 if self.first_intra_id is None:
                     self.taxon_list.append(self.first_intra)
 
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
-                self.gen_spec_id = self.taxon_get(name=self.gen_spec)
+                self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec)
                 # check high taxa gen_spec for author
                 self.single_taxa_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
@@ -413,7 +407,7 @@ class PicturaeImporter(Importer):
                        iterrated through from highest to lowest rank"""
         taxon_guid = uuid4()
         rank_name = taxon
-        parent_id = self.taxon_get(name=self.parent_list[index + 1])
+        parent_id = self.sql_csv_tools.taxon_get(name=self.parent_list[index + 1])
         if taxon == self.full_name:
             rank_end = self.tax_name
         else:
@@ -940,11 +934,9 @@ class PicturaeImporter(Importer):
         if len(self.new_taxa) > 0:
             self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa,
                                                           logger_int=self.logger, df=self.record_full)
-
         # uploading attachments
 
         value_list = [len(self.new_taxa), self.records_dropped]
-
 
         self.monitoring_tools.create_monitoring_report(value_list=value_list)
 

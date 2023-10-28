@@ -3,6 +3,8 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
+import pandas as pd
+
 import picturae_config
 from taxon_parse_utils import *
 from gen_import_utils import *
@@ -274,80 +276,6 @@ class CsvCreatePicturae(Importer):
 
         return str(gen_spec), str(full_name), str(first_intra), str(tax_name), str(hybrid_base)
 
-    def taxon_check_real(self):
-        """taxon_check_real:
-           Sends the concatenated taxon column, through TNRS, to match names,
-           with and without spelling mistakes, only checks base name
-           for hybrids as IPNI does not work well with hybrids
-           """
-
-        from rpy2 import robjects
-        from rpy2.robjects import pandas2ri
-
-        bar_tax = self.record_full[['CatalogNumber', 'fullname']]
-
-        pandas2ri.activate()
-
-        r_dataframe_tax = pandas2ri.py2rpy(bar_tax)
-
-        robjects.globalenv['r_dataframe_taxon'] = r_dataframe_tax
-
-        with open('taxon_check/R_TNRS.R', 'r') as file:
-            r_script = file.read()
-
-        robjects.r(r_script)
-
-        resolved_taxon = robjects.r['resolved_taxa']
-
-        resolved_taxon = robjects.conversion.rpy2py(resolved_taxon)
-
-        resolved_taxon['overall_score'].fillna(0, inplace=True)
-
-        # filtering out taxa without exact matches , saving to db table
-
-        unmatched_taxa = resolved_taxon[resolved_taxon["overall_score"] < .99]
-
-        # writing unmatched taxa to db table taxa_unmatch
-        SpecifyDb(db_config_class=picdb_config)
-        if len(unmatched_taxa) > 0:
-            self.batch_sql_tools.taxon_unmatch_insert(logger=self.logger, unmatched_taxa=unmatched_taxa)
-
-        # filtering out taxa with tnrs scores lower than .99 (basically exact match)
-        resolved_taxon = resolved_taxon[resolved_taxon["overall_score"] >= .99]
-
-        # dropping uneccessary columns
-
-        resolved_taxon = resolved_taxon.drop(columns=["fullname", "overall_score", "unmatched_terms"])
-        # merging columns on full name
-
-        self.record_full = pd.merge(self.record_full, resolved_taxon, on="CatalogNumber", how="left")
-
-        upload_length = len(self.record_full.index)
-
-        # dropping taxon rows with no match
-
-        self.record_full = self.record_full.dropna(subset=['name_matched'])
-
-
-        clean_length = len(self.record_full.index)
-
-        self.records_dropped = upload_length - clean_length
-
-
-        if self.records_dropped != 0:
-            self.logger.info(f"{self.records_dropped} rows dropped due to taxon errors")
-
-        # re-consolidating hybrid column to fullname and removing hybrid_base column
-        hybrid_mask = self.record_full['hybrid_base'].notna()
-
-        self.record_full.loc[hybrid_mask, 'fullname'] = self.record_full.loc[hybrid_mask, 'hybrid_base']
-
-        self.record_full = self.record_full.drop(columns=['hybrid_base'])
-
-        # executing qualifier separator function
-        self.record_full = separate_qualifiers(self.record_full, tax_col='fullname')
-
-        self.record_full['gen_spec'] = self.record_full['gen_spec'].apply(remove_qualifiers)
 
     def col_clean(self):
         """parses and cleans dataframe columns until ready for upload.
@@ -427,6 +355,115 @@ class CsvCreatePicturae(Importer):
 
         self.record_full['image_valid'] = self.record_full['image_path'].apply(lambda path: os.path.exists(path))
 
+
+    def check_taxa_against_database(self):
+        col_list = ['Genus', 'Species', 'Rank 1', 'Epithet 1', 'Rank 2', 'Epithet 2']
+
+        self.record_full['fulltaxon'] = ''
+        for column in col_list:
+            self.record_full['fulltaxon'] += self.record_full[column].fillna('') + ' '
+
+        self.record_full['fulltaxon'] = self.record_full['fulltaxon'].str.strip()
+
+        self.record_full['taxon_id'] = self.record_full['fulltaxon'].apply(self.sql_csv_tools.taxon_get)
+
+        self.record_full['taxon_id'] = self.record_full['taxon_id'].astype(pd.Int64Dtype())
+
+        self.record_full.drop(columns=['fulltaxon'])
+
+
+
+    def taxon_check_tnrs(self):
+        """taxon_check_real:
+           Sends the concatenated taxon column, through TNRS, to match names,
+           with and without spelling mistakes, only checks base name
+           for hybrids as IPNI does not work well with hybrids
+           """
+
+        from rpy2 import robjects
+        from rpy2.robjects import pandas2ri
+
+        bar_tax = self.record_full[pd.isna(self.record_full['taxon_id'])]
+
+        bar_tax = bar_tax[['CatalogNumber', 'fullname']]
+
+        bar_tax['taxon_id'] = bar_tax['fullname'].apply(self.sql_csv_tools.taxon_get)
+
+        bar_tax = bar_tax.drop(columns='taxon_id')
+
+        pandas2ri.activate()
+
+        r_dataframe_tax = pandas2ri.py2rpy(bar_tax)
+
+        robjects.globalenv['r_dataframe_taxon'] = r_dataframe_tax
+
+        with open('taxon_check/R_TNRS.R', 'r') as file:
+            r_script = file.read()
+
+        robjects.r(r_script)
+
+        resolved_taxon = robjects.r['resolved_taxa']
+
+        resolved_taxon = robjects.conversion.rpy2py(resolved_taxon)
+
+        resolved_taxon['overall_score'].fillna(0, inplace=True)
+
+        # filtering out taxa without exact matches , saving to db table
+
+        unmatched_taxa = resolved_taxon[resolved_taxon["overall_score"] < .99]
+
+        # writing unmatched taxa to db table taxa_unmatch
+        SpecifyDb(db_config_class=picdb_config)
+
+        print(unmatched_taxa)
+
+        if len(unmatched_taxa) > 0:
+            self.batch_sql_tools.taxon_unmatch_insert(logger=self.logger, unmatched_taxa=unmatched_taxa)
+
+        # filtering out taxa with tnrs scores lower than .99 (basically exact match)
+        resolved_taxon = resolved_taxon[resolved_taxon["overall_score"] >= .99]
+
+        # dropping uneccessary columns
+
+        resolved_taxon = resolved_taxon.drop(columns=["fullname", "overall_score", "unmatched_terms"])
+
+        # merging columns on full name
+        if len(resolved_taxon) > 0:
+            self.record_full = pd.merge(self.record_full, resolved_taxon, on="CatalogNumber", how="left")
+        else:
+            self.record_full['name_matched'] = pd.NA
+
+        upload_length = len(self.record_full.index)
+
+        # dropping taxon rows with no match
+
+        self.record_full = self.record_full[pd.notna(self.record_full['name_matched']) |
+                                            pd.notna(self.record_full['taxon_id'])]
+
+        self.record_full.drop(columns='taxon_id')
+
+        clean_length = len(self.record_full.index)
+
+        self.records_dropped = upload_length - clean_length
+
+        if self.records_dropped > 0:
+            print(self.records_dropped)
+            self.logger.info(f"{self.records_dropped} rows dropped due to taxon errors")
+
+        # re-consolidating hybrid column to fullname and removing hybrid_base column
+        hybrid_mask = self.record_full['hybrid_base'].notna()
+
+        self.record_full.loc[hybrid_mask, 'fullname'] = self.record_full.loc[hybrid_mask, 'hybrid_base']
+
+        self.record_full = self.record_full.drop(columns=['hybrid_base'])
+
+        # executing qualifier separator function
+        self.record_full = separate_qualifiers(self.record_full, tax_col='fullname')
+
+        self.record_full['gen_spec'] = self.record_full['gen_spec'].apply(remove_qualifiers)
+
+
+
     def write_upload_csv(self):
         """write_upload_csv: writes a copy of csv to PIC upload
             allows for manual review before uploading.
@@ -449,8 +486,6 @@ class CsvCreatePicturae(Importer):
         self.csv_colnames()
         # cleaning data
         self.col_clean()
-        # running taxa through TNRS
-        self.taxon_check_real()
 
         # checking if barcode record present in database
         self.barcode_has_record()
@@ -463,14 +498,20 @@ class CsvCreatePicturae(Importer):
         # checking if barcode has valid file name for barcode
         self.check_barcode_match()
 
+        # check taxa against db
+        self.check_taxa_against_database()
+
+        # running taxa through TNRS
+        self.taxon_check_tnrs()
+
         # writing csv for inspection and upload
         self.write_upload_csv()
 
 
-# def full_run():
-#     """testing function to run just the first piece o
-#           f the upload process"""
-#     # logger = logging.getLogger("full_run")
-#     CsvCreatePicturae(date_string="2023-06-28")
-#
-# full_run()
+def full_run():
+    """testing function to run just the first piece o
+          f the upload process"""
+    # logger = logging.getLogger("full_run")
+    CsvCreatePicturae(date_string="2023-06-28", logging_level='DEBUG')
+
+full_run()
