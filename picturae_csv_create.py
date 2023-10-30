@@ -3,8 +3,6 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
-import pandas as pd
-
 import picturae_config
 from taxon_parse_utils import *
 from gen_import_utils import *
@@ -27,12 +25,10 @@ class CsvCreatePicturae(Importer):
 
         self.run_all()
 
-
     def init_all_vars(self, date_string):
         """init_all_vars:to use for testing and decluttering init function,
                             initializes all class level variables  """
         self.date_use = date_string
-
 
         # setting up alternate db connection for batch database
 
@@ -55,7 +51,6 @@ class CsvCreatePicturae(Importer):
 
         for param in init_list:
             setattr(self, param, None)
-
 
 
     def file_present(self):
@@ -372,7 +367,6 @@ class CsvCreatePicturae(Importer):
         self.record_full.drop(columns=['fulltaxon'])
 
 
-
     def taxon_check_tnrs(self):
         """taxon_check_real:
            Sends the concatenated taxon column, through TNRS, to match names,
@@ -415,8 +409,6 @@ class CsvCreatePicturae(Importer):
         # writing unmatched taxa to db table taxa_unmatch
         SpecifyDb(db_config_class=picdb_config)
 
-        print(unmatched_taxa)
-
         if len(unmatched_taxa) > 0:
             self.batch_sql_tools.taxon_unmatch_insert(logger=self.logger, unmatched_taxa=unmatched_taxa)
 
@@ -447,7 +439,6 @@ class CsvCreatePicturae(Importer):
         self.records_dropped = upload_length - clean_length
 
         if self.records_dropped > 0:
-            print(self.records_dropped)
             self.logger.info(f"{self.records_dropped} rows dropped due to taxon errors")
 
         # re-consolidating hybrid column to fullname and removing hybrid_base column
@@ -461,6 +452,7 @@ class CsvCreatePicturae(Importer):
         self.record_full = separate_qualifiers(self.record_full, tax_col='fullname')
 
         self.record_full['gen_spec'] = self.record_full['gen_spec'].apply(remove_qualifiers)
+
 
 
 
@@ -508,10 +500,11 @@ class CsvCreatePicturae(Importer):
         self.write_upload_csv()
 
 
-def full_run():
-    """testing function to run just the first piece o
-          f the upload process"""
-    # logger = logging.getLogger("full_run")
-    CsvCreatePicturae(date_string="2023-06-28", logging_level='DEBUG')
-
-full_run()
+# def full_run():
+#     """testing function to run just the first piece o
+#           f the upload process"""
+#     # logger = logging.getLogger("full_run")
+#     CsvCreatePicturae(date_string="2023-09-07", logging_level='DEBUG')
+#
+#
+# full_run()

@@ -383,9 +383,9 @@ class PicturaeImporter(Importer):
                 if self.gen_spec_id is None:
                     self.taxon_list.append(self.gen_spec)
 
-            # base value for gen spec is set as None so will work either way.
+            # base value for gen spec id is set as None so will work either way.
             # checking for genus id
-                self.genus_id = self.taxon_get(name=self.genus)
+                self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus)
                 # adding genus name if missing
                 if self.genus_id is None:
                     self.taxon_list.append(self.genus)
