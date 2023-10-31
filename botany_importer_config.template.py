@@ -4,7 +4,6 @@ SPECIFY_DATABASE = 'redacted'
 USER = 'redacted'
 PASSWORD = 'redacted'
 # agent id in database
-AGENT_ID = 123456
 import os
 sla = os.path.sep
 COLLECTION_NAME = 'Botany'

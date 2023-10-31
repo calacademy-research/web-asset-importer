@@ -24,7 +24,7 @@ class IchthyologyImporter(Importer):
 
         dir_tools = DirTools(self.build_filename_map)
 
-        self.monitoring_tools = MonitoringTools(ich_importer_config)
+        # self.monitoring_tools = MonitoringTools(ich_importer_config)
 
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
@@ -38,18 +38,20 @@ class IchthyologyImporter(Importer):
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            self.monitoring_tools.create_monitoring_report()
+            pass
+            # self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
 
         if not full_import:
-            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
+            pass
+            # self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+            #                                                  time_stamp=starting_time_stamp)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
         #  either CAS-ICH-###### or CAS-SU-#####.
-#        pattern = re.compile("(CAS)?(SU)?(ICH)?([0-9]*)")
+        #  pattern = re.compile("(CAS)?(SU)?(ICH)?([0-9]*)")
         pattern = re.compile("cas-(ich)?(su)?-([0-9]+)")
         rematch = pattern.match(filename)
         if rematch is None:
@@ -98,7 +100,6 @@ class IchthyologyImporter(Importer):
 
             for cur_filepath in self.catalog_number_map[catalog_number]:
                 filepath_list.append(cur_filepath)
-            self.batch_size += len(filepath_list)
             self.process_catalog_number(catalog_number, filepath_list)
 
     def process_catalog_number(self, catalog_number, filepath_list):
