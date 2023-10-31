@@ -33,7 +33,8 @@ class BotanyImporter(Importer):
         self.barcode_map = {}
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=botany_importer_config)
+            pass
+        #     self.monitoring_tools = MonitoringTools(config=botany_importer_config)
 
         self.logger.debug("Botany import mode")
 
@@ -49,13 +50,15 @@ class BotanyImporter(Importer):
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            self.monitoring_tools.create_monitoring_report()
+            pass
+            # self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
 
         if not full_import:
-            self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
+            pass
+            # self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
+                                                    #     time_stamp=starting_time_stamp)
 
 
 
