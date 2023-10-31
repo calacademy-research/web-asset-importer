@@ -114,7 +114,7 @@ class MonitoringTools:
                           <h1>Upload Batch Report</h1>
                           <hr>
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.config.AGENT_ID}</p>
+                          <p>Uploader: {self.config.USER}</p>
                           
                           <h2>Summary Statistics:</h2>
                           <ul>
@@ -163,10 +163,12 @@ class MonitoringTools:
                 config_file: the config file to use
                 """
         self.clear_txt()
+        if self.config.SUMMARY_TERMS is not None:
+            custom_terms = self.create_summary_term_list(value_list=value_list)
+            self.add_format_batch_report(custom_terms=custom_terms)
+        else:
+            self.add_format_batch_report()
 
-        custom_terms = self.create_summary_term_list(value_list=value_list)
-
-        self.add_format_batch_report(custom_terms=custom_terms)
 
     def insert_cid_img(self, cid):
         """insert_cid_img: adds single line to end of txt file,
@@ -194,26 +196,25 @@ class MonitoringTools:
            an iterative function that allows for embedding of images
            in a variety of mail platforms, using both html and cids
         """
-
-        image_paths = self.config.SUMMARY_IMG
         msg = EmailMessage()
-        image_cids = []
-
-        for i in range(len(image_paths)):
-            cid = make_msgid()
-            self.insert_cid_img(cid)
-            image_cids.append(cid)
+        if self.config.SUMMARY_IMG is not None:
+            image_paths = self.config.SUMMARY_IMG
+            image_cids = []
+            for i in range(len(image_paths)):
+                cid = make_msgid()
+                self.insert_cid_img(cid)
+                image_cids.append(cid)
 
         with open("import_monitoring.html", "r") as file:
             html_content = file.read()
 
         msg.add_alternative(html_content, subtype='html')
 
-        for index, image in enumerate(image_paths):
-            cid = image_cids[index]
-
-            with open(f'{image}', 'rb') as img:
-                msg.get_payload()[0].add_related(img.read(), 'image', 'jpeg', cid=cid)
+        if self.config.SUMMARY_IMG is not None:
+            for index, image in enumerate(image_paths):
+                cid = image_cids[index]
+                with open(f'{image}', 'rb') as img:
+                    msg.get_payload()[0].add_related(img.read(), 'image', 'jpeg', cid=cid)
 
         with open("import_monitoring.html", "w") as file:
             file.write(msg.as_string())
@@ -229,8 +230,9 @@ class MonitoringTools:
                 msg_string: content to be in body of email
                 """
         with smtplib.SMTP(self.config.smtp_server, self.config.smtp_port) as server:
-            server.starttls()
-            server.login(self.config.smtp_user, self.config.smtp_password)
+            if self.config.smtp_password is not None and self.config.smtp_user is not None:
+                server.starttls()
+                server.login(self.config.smtp_user, self.config.smtp_password)
             server.sendmail(self.config.smtp_user, to_email, msg_string)
 
     def send_monitoring_report(self, subject, time_stamp):
@@ -248,12 +250,11 @@ class MonitoringTools:
         batch_size = self.sql_csv_tools.get_record(sql=sql)
 
         self.add_batch_size(batch_size=batch_size)
-
         msg = self.attach_html_images()
-
         for email in self.config.mailing_list:
             msg['Subject'] = subject
             msg['to'] = email
             msg_string = msg.as_string()
             self.send_smtp_email(msg_string=msg_string,
                                  to_email=email)
+
