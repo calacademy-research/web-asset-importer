@@ -83,7 +83,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         data_base_locality = self.sql_csv_tools.get_one_match(id_col="LocalityID", tab_name="locality",
                                                               key_col="LocalityName",
                                                               match=self.test_picturae_importer.locality,
-                                                              match_type="string")
+                                                              match_type=str)
 
         self.assertFalse(data_base_locality is None)
 
@@ -92,7 +92,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         data_base_geo_code = self.sql_csv_tools.get_one_match(id_col="GeographyID", tab_name="locality",
                                                               key_col="LocalityName",
                                                               match=self.test_picturae_importer.locality,
-                                                              match_type="string")
+                                                              match_type=str)
 
         self.assertEqual(data_base_geo_code, self.test_picturae_importer.GeographyID)
 
@@ -107,12 +107,12 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         collection_ob_guid = self.sql_csv_tools.get_one_match(id_col="GUID", tab_name="collectionobject",
                                                                key_col="CatalogNumber",
                                                                match=self.test_picturae_importer.barcode,
-                                                               match_type="integer")
+                                                               match_type=int)
 
         catalog_number = self.sql_csv_tools.get_one_match(id_col="CatalogNumber", tab_name="collectionobject",
                                                           key_col="GUID",
                                                           match=self.test_picturae_importer.collection_ob_guid,
-                                                          match_type="string")
+                                                          match_type=int)
 
         # asserting that station field number is in right column
 

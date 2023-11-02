@@ -6,6 +6,11 @@ SPECIFY_DATABASE = 'casich'
 USER = 'redacrted'
 PASSWORD = 'redacted'
 COLLECTION_NAME='Ichthyology'
+
+
+# only needed if doing csv import
+# AGENT_ID = 123456
+
 # agent id number in db
 sla = os.path.sep
 # final directory will be prefix + scan dir  and then iterate over all ICH_SCAN_FOLDERS
@@ -20,8 +25,6 @@ SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
 mailing_list = ['list of emails to send report to']
 
-#smpty terms
-smtp_user = "your email"
-smtp_server = "smtp.gmail.com"
-smtp_port = 587
-smtp_password = "your app password"
+#smpt terms
+smtp_server = "localhost"
+smtp_port = "port"

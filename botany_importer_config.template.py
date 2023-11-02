@@ -4,6 +4,10 @@ SPECIFY_DATABASE = 'redacted'
 USER = 'redacted'
 PASSWORD = 'redacted'
 # agent id in database
+
+# only needed if doing csv import
+# AGENT_ID = 123456
+
 import os
 sla = os.path.sep
 COLLECTION_NAME = 'Botany'
@@ -22,9 +26,7 @@ SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
 mailing_list = ['list of emails to send report to']
 
-#smpty terms
-smtp_user = "your email"
-smtp_server = "smtp.gmail.com"
-smtp_port = 587
-smtp_password = "your app password"
+#smpt terms
+smtp_server = "localhost"
+smtp_port = "port"
 
