@@ -36,7 +36,10 @@ def replace_apostrophes(string: str):
         re.sub: a string with all apostrophes replaces by double quotes
     """
     # using double quotes on one and single on the other is actually important this time
-    return re.sub("'", "''", string)
+    if isinstance(string, str):
+        return re.sub("'", "''", string)
+    else:
+        return string
 
 
 def move_first_substring(string: str, n_char: int):

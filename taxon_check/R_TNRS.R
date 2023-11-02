@@ -49,7 +49,7 @@ process_taxon_resolve <- function(tax_frame){
   opts_json = gsub('\\]','',opts_json)
   
   # Combine the options and data into single JSON object
-  input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
+  input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )x
   
   results_json <- POST(url = url_tn,
                        add_headers('Content-Type' = 'application/json'),
@@ -102,7 +102,7 @@ resolved_taxa = process_taxon_resolve(tax_frame = r_dataframe_taxon)
 sink()
 
 # test_taxon = list(CatalogNumber = c(1234, 1234),
-                  # fullname = c('Sarapicamptis', 'Quercus'))
+                 # fullname = c('Sarapicamptis', 'Quercus'))
 
 # test_frame = do.call(data.frame, test_taxon)
 
