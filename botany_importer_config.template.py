@@ -5,7 +5,6 @@ USER = 'redacted'
 PASSWORD = 'redacted'
 # agent id in database
 
-
 # only needed if doing csv import
 # AGENT_ID = 123456
 
@@ -26,4 +25,3 @@ SUMMARY_TERMS = ['list of summary stats to add ']
 SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
 mailing_list = ['list of emails to send report to']
-

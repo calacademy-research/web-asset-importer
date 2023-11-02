@@ -245,4 +245,3 @@ class MonitoringTools:
             msg['Subject'] = subject
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)
-
