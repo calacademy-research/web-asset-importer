@@ -42,6 +42,7 @@ class IchthyologyImporter(Importer):
         self.process_loaded_files()
 
         if not full_import:
+
             self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
                                                              time_stamp=starting_time_stamp)
 
