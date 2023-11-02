@@ -45,3 +45,9 @@ SUMMARY_TERMS = ['list of summary stats to add ']
 SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
 mailing_list = ['list of emails to send report to']
+
+# testing smtp settings
+# smtp_port = 587
+# smtp_server = "smtp.gmail.com"
+# smtp_user = "youremail@gmail.com"
+# smtp_password = "generated app password"
