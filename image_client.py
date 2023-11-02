@@ -168,7 +168,8 @@ class ImageClient:
 
 
     def decode_response(self,params):
-        r = requests.get(self.build_url("getImageRecord"), params=params)
+        url = self.build_url("getImageRecord")
+        r = requests.get(url, params=params)
         if r.status_code == 404:
             logging.debug(f"Checked {params['file_string']} and found no duplicates")
             return False
@@ -177,6 +178,7 @@ class ImageClient:
             return True
         if r.status_code == 500:
             logging.error(f"500: Internal server error checking {params['file_string']}")
+            logging.error(f"URL: {url}")
             assert False
 
         assert False

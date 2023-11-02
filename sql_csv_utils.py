@@ -4,8 +4,7 @@ from gen_import_utils import remove_two_index
 import time_utils
 from datetime import datetime
 from datetime import timedelta
-import hmac
-import settings
+import string_utils
 import sys
 from specify_db import SpecifyDb
 
@@ -214,6 +213,7 @@ class SqlCsvTools():
             args:
                 unmatched_taxa: a pandas dataframe with unmatched taxa terms filtered by score
         """
+        unmatched_taxa = unmatched_taxa.applymap(string_utils.replace_apostrophes)
         print("uploading unmatched taxa")
         for index, row in unmatched_taxa.iterrows():
             catalognumber = unmatched_taxa.columns.get_loc("CatalogNumber")
