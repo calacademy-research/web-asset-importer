@@ -5,7 +5,6 @@ USER = 'redacted'
 PASSWORD = 'redacted'
 # agent id in database
 
-
 # only needed if doing csv import
 # AGENT_ID = 123456
 
