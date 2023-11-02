@@ -246,4 +246,5 @@ class MonitoringTools:
             msg['Subject'] = subject
             pop = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
             pop.communicate(msg.as_bytes() if sys.version_info >= (3, 0) else msg.as_string())
+          
 
