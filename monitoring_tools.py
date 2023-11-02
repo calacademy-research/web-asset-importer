@@ -1,8 +1,10 @@
-import smtplib
+
 import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
+from subprocess import Popen, PIPE
+import sys
 
 class MonitoringTools:
     def __init__(self, config):
@@ -222,19 +224,6 @@ class MonitoringTools:
         return msg
 
 
-    def send_smtp_email(self, msg_string, to_email):
-        """send_smtp_email: sends email through smtp server,
-            using user credentials stored in config file
-            args:
-                to_email:recipient of email
-                msg_string: content to be in body of email
-                """
-        with smtplib.SMTP(self.config.smtp_server, self.config.smtp_port) as server:
-            if self.config.smtp_password is not None and self.config.smtp_user is not None:
-                server.starttls()
-                server.login(self.config.smtp_user, self.config.smtp_password)
-            server.sendmail(self.config.smtp_user, to_email, msg_string)
-
     def send_monitoring_report(self, subject, time_stamp):
         """send_monitoring_repot: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
@@ -252,9 +241,9 @@ class MonitoringTools:
         self.add_batch_size(batch_size=batch_size)
         msg = self.attach_html_images()
         for email in self.config.mailing_list:
+            msg['From'] = "ibss-crontab@calacademy.org"
+            msg['To'] = email
             msg['Subject'] = subject
-            msg['to'] = email
-            msg_string = msg.as_string()
-            self.send_smtp_email(msg_string=msg_string,
-                                 to_email=email)
+            pop = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
+            pop.communicate(msg.as_bytes() if sys.version_info >= (3, 0) else msg.as_string())
 

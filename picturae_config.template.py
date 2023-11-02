@@ -16,8 +16,7 @@ PIC_SCAN_FOLDERS = [f'PIC_{date_str}']
 PREFIX = f"web-asset-server{sla}image_client{sla}"
 
 # number for created by agent field , check your agent id on the agent table
-
-AGENT_ID= 123456
+AGENT_ID = 123456
 
 
 DATA_FOLDER = f"picturae_csv{sla}"
@@ -31,3 +30,7 @@ SUMMARY_TERMS = ['Number of Taxa Added', "Number of Taxa Dropped by TNRS"]
 
 # these are used for people who need batch monitoring
 mailing_list = ['list of email addresses']
+
+#smpt terms
+smtp_server = "localhost"
+smtp_port = "port"

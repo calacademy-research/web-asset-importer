@@ -9,6 +9,9 @@ PASSWORD = 'redacted'
 
 COLLECTION_NAME = 'IZ'
 
+# only needed if doing csv import
+# AGENT_ID = 123456
+
 MINIMUM_ID_DIGITS = 5
 IMAGE_SUFFIX = '[a-z\-\(\)0-9 ©_,.]*(.(jpg|jpeg|tiff|tif|png|PNG))$'
 CASIZ_NUMBER = '([0-9]{2,})'
@@ -16,6 +19,7 @@ CASIZ_PREFIX = 'cas(iz)?[_ \-]?'
 CASIZ_MATCH = CASIZ_PREFIX + CASIZ_NUMBER
 FILENAME_MATCH = CASIZ_MATCH + IMAGE_SUFFIX
 FILENAME_CONJUNCTION_MATCH = CASIZ_MATCH + f' (and|or) ({CASIZ_PREFIX})?({CASIZ_NUMBER})'
+
 
 
 IZ_DIRECTORY_REGEX = CASIZ_MATCH
@@ -34,6 +38,7 @@ EXIF_DECODER_RING = {
 }
 
 
+
 # config fields for monitoring emails
 SUMMARY_TERMS = ['list of summary stats to add ']
 
@@ -42,7 +47,5 @@ SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 mailing_list = ['list of emails to send report to']
 
 #smpt terms
-smtp_user = "your email"
-smtp_server = "smtp.gmail.com"
-smtp_port = 587
-smtp_password = "your app password"
+smtp_server = "localhost"
+smtp_port = "port"

@@ -24,8 +24,6 @@ class IchthyologyImporter(Importer):
 
         dir_tools = DirTools(self.build_filename_map)
 
-        # self.monitoring_tools = MonitoringTools(ich_importer_config)
-
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
             cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
@@ -38,15 +36,14 @@ class IchthyologyImporter(Importer):
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            pass
-            # self.monitoring_tools.create_monitoring_report()
+            self.monitoring_tools = MonitoringTools(ich_importer_config)
+            self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
 
         if not full_import:
-            pass
-            # self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
-            #                                                  time_stamp=starting_time_stamp)
+            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+                                                             time_stamp=starting_time_stamp)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number

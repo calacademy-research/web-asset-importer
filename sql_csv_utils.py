@@ -222,12 +222,18 @@ class SqlCsvTools():
 
             sql_result = self.get_one_match(tab_name='taxa_unmatch',
                                             id_col='CatalogNumber', key_col='CatalogNumber',
-                                            match=row[catalognumber], match_type='integer')
+                                            match=row[catalognumber], match_type=int)
             if sql_result is None:
                 self.insert_table_record(logger_int=logger, sql=sql)
             else:
                 pass
 
+    def taxon_get(self, name):
+
+        result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                       match_type=str)
+
+        return result_id
 
 
     def create_tnrs_unmatch_tab(self, row, df, tab_name: str):
@@ -291,7 +297,7 @@ class SqlCsvTools():
                                                 id_col='CatalogNumber',
                                                 key_col='CatalogNumber',
                                                 match=row[catalog_number],
-                                                match_type="integer")
+                                                match_type=int)
             if barcode_result is None:
                 sql = self.create_new_tax_tab(row=row, df=taxa_frame, tab_name='picturaetaxa_added')
 

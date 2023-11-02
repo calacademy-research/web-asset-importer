@@ -116,7 +116,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                 test_parent_id = self.sql_csv_tools.get_one_match(id_col="TaxonID", tab_name="taxon",
                                                                   key_col="FullName",
                                                                   match=self.test_picturae_importer_lite.parent_list[index+1],
-                                                                  match_type="string")
+                                                                  match_type=str)
 
                 self.assertEqual(parent_id, test_parent_id)
 
@@ -165,7 +165,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
             name_pull = self.sql_csv_tools.get_one_match(id_col="Name", tab_name="taxon",
                                                          key_col="FullName",
                                                          match=full_name[index],
-                                                         match_type="string")
+                                                         match_type=str)
             self.assertEqual(name_pull, tax_end)
 
         # checking parent id
@@ -173,19 +173,19 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
             parent_id= self.sql_csv_tools.get_one_match(id_col="ParentID", tab_name="taxon",
                                                         key_col="FullName",
                                                         match=full_name[index],
-                                                           match_type="string")
+                                                           match_type=str)
 
             parent_name = self.sql_csv_tools.get_one_match(id_col="FullName", tab_name="taxon",
                                                            key_col="ParentID",
                                                            match=parent_id,
-                                                           match_type="integer")
+                                                           match_type=int)
             self.assertTrue(parent_names[index], parent_name)
 
             # checking taxon id
             pull_taxid = self.sql_csv_tools.get_one_match(id_col="TaxonID", tab_name="taxon",
                                                           key_col="FullName",
                                                           match=full_name[index],
-                                                          match_type="string")
+                                                          match_type=str)
 
             self.assertFalse(pd.isna(pull_taxid))
 
