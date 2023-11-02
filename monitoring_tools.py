@@ -3,8 +3,7 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
-from subprocess import Popen, PIPE
-import sys
+import smtplib
 
 class MonitoringTools:
     def __init__(self, config):
@@ -244,6 +243,6 @@ class MonitoringTools:
             msg['From'] = "ibss-crontab@calacademy.org"
             msg['To'] = email
             msg['Subject'] = subject
-            pop = Popen(["/usr/sbin/sendmail", "-t", "-oi"], stdin=PIPE)
-            pop.communicate(msg.as_bytes() if sys.version_info >= (3, 0) else msg.as_string())
+            with smtplib.SMTP('localhost') as server:
+                server.send_message(msg)
 

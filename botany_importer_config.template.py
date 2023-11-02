@@ -27,7 +27,3 @@ SUMMARY_IMG = ['list of graph/image filepaths to add to report']
 
 mailing_list = ['list of emails to send report to']
 
-#smpt terms
-smtp_server = "localhost"
-smtp_port = "port"
-
