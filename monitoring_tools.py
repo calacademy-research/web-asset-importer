@@ -243,5 +243,9 @@ class MonitoringTools:
             msg['From'] = "ibss-crontab@calacademy.org"
             msg['To'] = email
             msg['Subject'] = subject
-            with smtplib.SMTP('localhost') as server:
+            with smtplib.SMTP(port=self.config.smtp_port, host=self.config.smtp_server) as server:
+                server.starttls()
+                server.login(user=self.config.smtp_user, password=self.config.smtp_password)
                 server.send_message(msg)
+            # with smtplib.SMTP('localhost') as server:
+            #     server.send_message(msg)

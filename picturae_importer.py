@@ -776,7 +776,7 @@ class PicturaeImporter(Importer):
             column_list = ['TimestampCreated',
                            'TimestampModified',
                            'Version',
-                          'IsPrimary',
+                           'IsPrimary',
                            'OrderNumber',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
