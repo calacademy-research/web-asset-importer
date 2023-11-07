@@ -75,7 +75,7 @@ class SqlCsvTools():
         else:
             return result
 
-    def get_one_match(self, tab_name, id_col, key_col, match, match_type="string"):
+    def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
         """populate_sql:
                 creates a custom select statement for get one record,
                 from which a result can be gotten more seamlessly
@@ -196,9 +196,15 @@ class SqlCsvTools():
                 val_list: list of values with which to update above list of columns(order matters)
                 condition: condition sql string used to select sub-sect of records to update.
         """
-        update_string = " SET"
+        update_string = f'''SET TimestampModified = "{time_utils.get_pst_time_now_string()}"'''
         for index, column in enumerate(col_list):
-            update_string += " " + f'''{column} = "{val_list[index]}",'''
+            if isinstance(val_list[index], str):
+                update_string += " " + f'''{column} = "{val_list[index]}",'''
+            elif isinstance(val_list[index], float) or isinstance(val_list[index], int) or \
+                    (val_list[index], type(None)):
+                update_string += " " + f'''{column} = {val_list[index]},'''
+            else:
+                raise ValueError("unrecognized datatype for datatype parameter")
 
         update_string = update_string[:-1]
 

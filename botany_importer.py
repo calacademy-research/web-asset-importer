@@ -53,7 +53,7 @@ class BotanyImporter(Importer):
 
         if not full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
-                                                        time_stamp=starting_time_stamp)
+                                                         time_stamp=starting_time_stamp)
 
 
 
@@ -95,6 +95,8 @@ class BotanyImporter(Importer):
 
     def build_filename_map(self, full_path):
         full_path = full_path.lower()
+
+        print(full_path)
 
         if not self.check_for_valid_image(full_path):
             return
