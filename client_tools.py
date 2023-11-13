@@ -104,7 +104,6 @@ def main(args):
         if args.collection == "Botany_PIC":
             md5_insert = args.md5
             PicturaeUndoBatch(MD5=md5_insert)
-
     else:
         print(f"Unknown command: {args.subcommand}")
 

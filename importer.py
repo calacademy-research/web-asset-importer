@@ -105,7 +105,6 @@ class Importer:
                                                             collection_object_id,
                                                             agent_id):
         ordinal = self.attachment_utils.get_ordinal_for_collection_object_attachment(collection_object_id)
-        print(ordinal)
         if ordinal is None:
             ordinal = 0
         else:

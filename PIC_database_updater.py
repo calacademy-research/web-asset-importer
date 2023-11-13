@@ -2,15 +2,12 @@
 from sql_csv_utils import SqlCsvTools
 import pandas as pd
 import logging
-# from uuid import uuid4
-# import time_utils
-# from gen_import_utils import remove_two_index
 
 class UpdateDbFields:
     def __init__(self, config, csv_path):
-        self.logger = logging.getLogger('UpdateDbFields')
         self.config = config
-        self.sql_csv_tools = SqlCsvTools(config=self.config)
+        self.logger = logging.getLogger('UpdateDbFields')
+        self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
         self.update_frame = pd.read_csv(csv_path)
         self.config = config
         self.process_update_csv()
@@ -49,50 +46,6 @@ class UpdateDbFields:
         return locality_id
 
 
-
-
-    # def insert_single_agent(self, first, middle, last, title):
-    #     self.agent_guid = uuid4()
-    #
-    #     columns = ['TimestampCreated',
-    #                'TimestampModified',
-    #                'Version',
-    #                'AgentType',
-    #                'DateOfBirthPrecision',
-    #                'DateOfDeathPrecision',
-    #                'FirstName',
-    #                'LastName',
-    #                'MiddleInitial',
-    #                'Title',
-    #                'DivisionID',
-    #                'GUID',
-    #                'ModifiedByAgentID',
-    #                'CreatedByAgentID']
-    #
-    #     values = [f'{time_utils.get_pst_time_now_string()}',
-    #               f'{time_utils.get_pst_time_now_string()}',
-    #               1,
-    #               1,
-    #               1,
-    #               1,
-    #               f"{first}",
-    #               f"{last}",
-    #               f"{middle}",
-    #               f"{title}",
-    #               2,
-    #               f'{self.agent_guid}',
-    #               f'{self.config.AGENT_ID}',
-    #               f'{self.config.AGENT_ID}'
-    #               ]
-    #     # removing na values from both lists
-    #     values, columns = remove_two_index(values, columns)
-    #
-    #     sql = self.sql_csv_tools.create_insert_statement(tab_name='agent', col_list=columns,
-    #                                                      val_list=values)
-    #
-    #     self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
-
-
     def update_accession(self, barcode, accession):
         """function used to update accession number in the collectionobject table
             args:
@@ -120,7 +73,7 @@ class UpdateDbFields:
         sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
                                                          val_list=[herb_code], condition=condition)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def update_coords(self, barcode, column_list, colname_list):
@@ -140,7 +93,7 @@ class UpdateDbFields:
         sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
                                                          val_list=column_list, condition=condition)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
     # def update_utm(self):
     #
     def update_habitat(self, barcode, habitat_string):
@@ -157,7 +110,7 @@ class UpdateDbFields:
         sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
                                                          val_list=[habitat_string], condition=condition)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def update_locality_string(self, barcode, loc_string):
@@ -172,7 +125,7 @@ class UpdateDbFields:
                                                          val_list=[loc_string],
                                                          condition=condition
                                                          )
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
     def update_elevation(self, barcode, max_elev, min_elev, elev_unit):
         """updates the elevation fields in the locality table, assumes having at least min max and unit
@@ -194,7 +147,7 @@ class UpdateDbFields:
                                                          val_list=[max_elev, min_elev, elev_unit],
                                                          condition=condition
                                                          )
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
 
@@ -221,7 +174,7 @@ class UpdateDbFields:
                                                          col_list=['Township', 'RangeDesc', 'Section'],
                                                          val_list=[township, range, section], condition=condition)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
     def update_UTM(self, barcode, easting: float, northing: float, datum: str):
         """update_utm: updates utm fields on database
@@ -246,10 +199,10 @@ class UpdateDbFields:
                                                          col_list=['UtmEasting', 'UtmNorthing', 'UtmDatum'],
                                                          val_list=[easting, northing, datum], condition=condition)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
-    # leaving this incomplete/ commented as unsure about final structure of determiner transcribed data
+    # leaving this incomplete/ commented as unsure about final structure of determiner data
 
     # def update_determiner(self, barcode, det_first,det_last, det_middle, det_title, det_date):
     #

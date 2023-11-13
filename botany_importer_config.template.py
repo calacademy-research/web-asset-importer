@@ -16,7 +16,7 @@ BOTANY_REGEX = '(CAS|cas)[0-9]*([\-_])*[0-9a-zA-Z]?.(JPG|jpg|jpeg|TIFF|tif)'
 PREFIX = f"{sla}"
 BOTANY_PREFIX = f'images'
 
-BOTANY_SCAN_FOLDERS = [f'botany{sla}PLANT FAMILIES', f'botany{sla}TYPE IMAGES']
+BOTANY_SCAN_FOLDERS = [f'botany{sla}TYPE IMAGES', f'botany{sla}PLANT FAMILIES']
 
 
 # config fields for monitoring emails

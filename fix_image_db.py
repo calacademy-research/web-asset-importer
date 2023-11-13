@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # synchronizes from specify to the image database to fix an import error.
 # keeping in case we ever get image DB corruption again...
@@ -28,10 +29,11 @@ cursor.close()
 specify_db_connection.connect()
 goodcount = badcount = 0
 for attachment_record in attachment_records:
+    print(attachment_record)
     url = attachment_record[2]
     original_path = attachment_record[1]
-    original_path = original_path.replace('\\','/')
-    original_path = original_path.replace("N:/","/Volumes/data/")
+    original_path = original_path.replace('\\', '/')
+    original_path = original_path.replace("N:/", "/Volumes/data/")
 
     internal_filename = attachment_record[0]
     original_filename = os.path.basename(original_path)
@@ -49,7 +51,7 @@ for attachment_record in attachment_records:
         datetime_now = datetime.utcnow()
 
         if not internal_filename.startswith('sp6'):
-            image_db.create_image_record(original_filename,url,internal_filename, 'Ichthyology',original_path,"",False, datetime.utcnow())
+            image_db.create_image_record(original_filename, url, internal_filename, 'Ichthyology',original_path,"",False, datetime.utcnow())
             # sql = (f'''
             # insert into images (original_filename,url,images.images.internal_filename, 'Ichthyology',original_path,"",False, datetime.utcnow())
             #
