@@ -1,3 +1,4 @@
+import logging
 
 import time_utils
 from email.utils import make_msgid
@@ -9,6 +10,7 @@ class MonitoringTools:
     def __init__(self, config):
         self.path = "import_monitoring.html"
         self.config = config
+        self.logger = logging.getLogger("MonitoringTools")
         if config is not None:
             self.sql_csv_tools = SqlCsvTools(config=self.config)
 
@@ -243,5 +245,9 @@ class MonitoringTools:
             msg['From'] = "ibss-crontab@calacademy.org"
             msg['To'] = email
             msg['Subject'] = subject
+            # with smtplib.SMTP(port=self.config.smtp_port, host=self.config.smtp_server) as server:
+            #     server.starttls()
+            #     server.login(user=self.config.smtp_user, password=self.config.smtp_password)
+            #     server.send_message(msg)
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)

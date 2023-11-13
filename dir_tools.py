@@ -34,7 +34,7 @@ class DirTools:
                 for cur_file in f_names:
                     if self.processed_limit is not None and self.processed_num > self.processed_limit:
                         return
-                    self.process_file(root,cur_file)
+                    self.process_file(root, cur_file)
 
 
     def process_directory(self, dirpath):

@@ -3,6 +3,7 @@
 import sqlite3
 import picturae_config
 from sql_csv_utils import SqlCsvTools
+import logging
 class SqlLiteTools(SqlCsvTools):
     def __init__(self, sql_db):
         super().__init__(config=picturae_config)

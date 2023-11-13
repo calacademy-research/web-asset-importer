@@ -272,7 +272,6 @@ class Importer:
             except ValueError as e:
                 print(f"Can't parse {cur_filename}, skipping.")
                 continue
-            # added this in to still create
             if not self.image_client.check_image_db_if_filename_imported(self.collection_name,
                                                                          cur_file_base + ".jpg",
                                                                          exact=True):

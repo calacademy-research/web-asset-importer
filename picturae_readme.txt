@@ -17,7 +17,7 @@ setup:
       5. to undo uploads, look in picbatch db and retrieve from picturae_batch,
           the correct md5 associated with your upload time, call PIC_undo_batch.py from the command line
           by invoking client tools and the purge functionality (example as done from parent directory):
-          python image_client/client_tools.py -m "0d7903b24a616290cf4c449401068f51:2023-09-13 12:24:02.387138" Botany_PIC purge
+          "python client_tools.py -m "0d7903b24a616290cf4c449401068f51:2023-09-13 12:24:02.387138" Botany_PIC purge
 
 file list:
     Python files:
@@ -53,7 +53,7 @@ file list:
                     is run under the purge function in client_tools.py example command using
                     MD5 batch code from error tracking db.
             example:
-               python image_client/client_tools.py -m "0d7903b24a616290cf4c449401068f51:2023-09-13 12:24:02.387138" Botany_PIC purge
+               python client_tools.py -m "0d7903b24a616290cf4c449401068f51:2023-09-13 12:24:02.387138" Botany_PIC purge
 
 
     picturae_config.template.py: template for database credentials, and for specifying image and csv folder locations.
@@ -72,5 +72,5 @@ file list:
     SQL files:
         in test_csv_purge_sq/:
         !! warning : only use these on a testing database, quick scorched earth method of purging test records.
-        image_server_purge.sql: scorched earth purge of images added to DB in a custom time frame
+        image_server_purge.sql: scorched earth purge of images added to image DB in a custom time frame
         picturae_purge_script.sql: scorched earth purge of records added to DB in a custom time frame

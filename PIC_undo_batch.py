@@ -20,9 +20,7 @@ class PicturaeUndoBatch(Importer):
         sql = f"""SELECT AttachmentLocation FROM attachment WHERE 
                   TimestampCreated >= '{timestamp1}' AND TimestampCreated <= '{timestamp2}'; """
         list_of_attachments = self.specify_db_connection.get_records(query=sql)
-
         image_location = [record[0] for record in list_of_attachments]
-
         return image_location
 
     def batch_undo_timestamps(self, table, timestamp1, timestamp2):
@@ -141,7 +139,6 @@ class PicturaeUndoBatch(Importer):
         attachment_locations = self.get_attachment_location(timestamp1=start_time, timestamp2=end_time)
 
         for attachment in attachment_locations:
-            print(attachment)
             self.image_client.delete_from_image_server(attach_loc=attachment, collection='Botany')
 
 
