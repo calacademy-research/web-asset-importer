@@ -7,27 +7,32 @@ from datetime import timedelta
 import string_utils
 import sys
 from specify_db import SpecifyDb
+import logging
 
-class SqlCsvTools():
-    def __init__(self, config):
+
+class SqlCsvTools:
+    def __init__(self, config, logging_level=logging.INFO):
         self.config = config
-        self.connection = SpecifyDb(db_config_class=self.config)
+        self.specify_db_connection = SpecifyDb(db_config_class=self.config)
+        self.logger = logging.getLogger("SqlCsvTools")
+        self.logger.setLevel(logging_level)
+        self.specify_db_connection.connect()
     def sql_db_connection(self):
         """standard connector"""
-        return self.connection.connect()
+        return self.specify_db_connection.connect()
 
     def get_record(self, sql):
         """dbtools get_one_record"""
-        return self.connection.get_one_record(sql=sql)
+        return self.specify_db_connection.get_one_record(sql=sql)
 
     def get_cursor(self):
         """standard db cursor"""
-        return self.connection.get_cursor()
+        return self.specify_db_connection.get_cursor()
 
 
     def commit(self):
         """standard db commit"""
-        return self.connection.commit()
+        return self.specify_db_connection.commit()
 
 
     # static methods
@@ -89,9 +94,9 @@ class SqlCsvTools():
                             puts quotes around sql terms or not depending on data type
         """
         sql = ""
-        if match_type == "string":
+        if match_type == str:
             sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = "{match}";'''
-        elif match_type == "integer":
+        elif match_type == int:
             sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = {match};'''
 
         result = self.get_record(sql=sql)
@@ -120,7 +125,7 @@ class SqlCsvTools():
 
         return sql
 
-    def insert_table_record(self, logger_int, sql):
+    def insert_table_record(self, sql):
         """create_table_record:
                general code for the inserting of a new record into any table on database,
                creates connection, and runs sql query. cursor.execute with arg multi, to
@@ -133,18 +138,18 @@ class SqlCsvTools():
                           requires database ip, which sqlite does not have
         """
         cursor = self.get_cursor()
-        logger_int.info(f'running query: {sql}')
-        logger_int.debug(sql)
+        self.logger.info(f'running query: {sql}')
+        self.logger.debug(sql)
         try:
             cursor.execute(sql)
         except Exception as e:
             print(f"Exception thrown while processing sql: {sql}\n{e}\n", flush=True)
-            logger_int.error(traceback.format_exc())
+            self.logger.error(traceback.format_exc())
         try:
             self.commit()
 
         except Exception as e:
-            logger_int.error(f"sql debug: {e}")
+            self.logger.error(f"sql debug: {e}")
             sys.exit("terminating script")
 
         cursor.close()
@@ -196,7 +201,7 @@ class SqlCsvTools():
                 val_list: list of values with which to update above list of columns(order matters)
                 condition: condition sql string used to select sub-sect of records to update.
         """
-        update_string = f'''SET TimestampModified = "{time_utils.get_pst_time_now_string()}"'''
+        update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}",'''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''
@@ -212,7 +217,7 @@ class SqlCsvTools():
 
         return sql
 
-    def taxon_unmatch_insert(self, logger,  unmatched_taxa: pd.DataFrame):
+    def taxon_unmatch_insert(self, unmatched_taxa: pd.DataFrame):
         """taxon_unmatch_create: creates sql query for creating new records in taxa unmatch,
                                 from rows that did not pass TNRS successfully,
                                 either through spelling, or taxonomic errors.
@@ -220,7 +225,7 @@ class SqlCsvTools():
                 unmatched_taxa: a pandas dataframe with unmatched taxa terms filtered by score
         """
         unmatched_taxa = unmatched_taxa.applymap(string_utils.replace_apostrophes)
-        print("uploading unmatched taxa")
+        self.logger.info("uploading unmatched taxa")
         for index, row in unmatched_taxa.iterrows():
             catalognumber = unmatched_taxa.columns.get_loc("CatalogNumber")
 
@@ -230,7 +235,7 @@ class SqlCsvTools():
                                             id_col='CatalogNumber', key_col='CatalogNumber',
                                             match=row[catalognumber], match_type=int)
             if sql_result is None:
-                self.insert_table_record(logger_int=logger, sql=sql)
+                self.insert_table_record(sql=sql)
             else:
                 pass
 
@@ -287,13 +292,12 @@ class SqlCsvTools():
 
         return sql
 
-    def insert_taxa_added_record(self, taxon_list, logger_int, df: pd.DataFrame):
+    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame):
         """new_taxa_record: creates record level data for any new taxa added to the database,
                             populates useful table for qc and troubleshooting
         args:
             taxon_list: list of new taxa added to taxon tree during upload
             connection: connection instance for this sql, using self.specify_db_connection
-            logger_int: the logger instance for this class
             df: pandas dataframe, the record table uploaded to the database in question
             """
         taxa_frame = df[df['fullname'].isin(taxon_list)]
@@ -307,7 +311,7 @@ class SqlCsvTools():
             if barcode_result is None:
                 sql = self.create_new_tax_tab(row=row, df=taxa_frame, tab_name='picturaetaxa_added')
 
-                self.insert_table_record(logger_int=logger_int, sql=sql)
+                self.insert_table_record(sql=sql)
 
     def create_new_tax_tab(self, row, df: pd.DataFrame, tab_name: str):
         """create_new_tax: does a similar function as create_unmatch_tab,

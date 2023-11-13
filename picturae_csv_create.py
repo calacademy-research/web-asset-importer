@@ -17,7 +17,7 @@ starting_time_stamp = datetime.now()
 
 class CsvCreatePicturae(Importer):
     def __init__(self, date_string, logging_level):
-        super().__init__(picturae_config, "Botany")
+        super().__init__(db_config_class=picturae_config, collection_name="Botany")
 
         self.logger = logging.getLogger("CsvCreatePicturae")
         self.logger.setLevel(logging_level)
@@ -36,9 +36,9 @@ class CsvCreatePicturae(Importer):
 
         # setting up alternate csv tools connections
 
-        self.sql_csv_tools = SqlCsvTools(config=picturae_config)
+        self.sql_csv_tools = SqlCsvTools(config=picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=picdb_config)
+        self.batch_sql_tools = SqlCsvTools(config=picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # intializing parameters for database upload
@@ -410,7 +410,7 @@ class CsvCreatePicturae(Importer):
         SpecifyDb(db_config_class=picdb_config)
 
         if len(unmatched_taxa) > 0:
-            self.batch_sql_tools.taxon_unmatch_insert(logger=self.logger, unmatched_taxa=unmatched_taxa)
+            self.batch_sql_tools.taxon_unmatch_insert(unmatched_taxa=unmatched_taxa)
 
         # filtering out taxa with tnrs scores lower than .99 (basically exact match)
         resolved_taxon = resolved_taxon[resolved_taxon["overall_score"] >= .99]
