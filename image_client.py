@@ -150,24 +150,12 @@ class ImageClient:
             'search_type': 'filename',
             'token': self.generate_token(filename)
         }
+
         return self.decode_response(params)
 
-    # works for full filepath and original extension. "exact" does a sql "like" operation
-    def check_image_db_if_filepath_imported(self, collection, filepath, exact=False):
-        params = {
-            'file_string': filepath,
-            'coll': collection,
-            'exact': exact,
-            'search_type': 'path',
-            'token': self.generate_token(filepath)
-        }
-        return self.decode_response(params)
-
-    def check_specify_if_filepath_attached_to_collection_object_id(self, collection, filepath, collection_object_id):
-        pass
 
 
-    def decode_response(self,params):
+    def decode_response(self, params):
         url = self.build_url("getImageRecord")
         r = requests.get(url, params=params)
         if r.status_code == 404:

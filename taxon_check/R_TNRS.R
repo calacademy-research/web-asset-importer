@@ -49,7 +49,7 @@ process_taxon_resolve <- function(tax_frame){
   opts_json = gsub('\\]','',opts_json)
   
   # Combine the options and data into single JSON object
-  input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )x
+  input_json <- paste0('{"opts":', opts_json, ',"data":', data_json, '}' )
   
   results_json <- POST(url = url_tn,
                        add_headers('Content-Type' = 'application/json'),

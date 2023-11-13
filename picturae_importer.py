@@ -34,7 +34,8 @@ class PicturaeImporter(Importer):
         self.init_all_vars(date_string=date_string, paths=paths)
 
         # running csv create
-        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use, logging_level=self.logger.getEffectiveLevel())
+        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use,
+                                                logging_level=self.logger.getEffectiveLevel())
 
         self.records_dropped = csv_create_picturae.records_dropped
 
@@ -66,9 +67,9 @@ class PicturaeImporter(Importer):
 
         # setting up db sql_tools for each connection
 
-        self.sql_csv_tools = SqlCsvTools(config=picturae_config)
+        self.sql_csv_tools = SqlCsvTools(config=picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=picdb_config)
+        self.batch_sql_tools = SqlCsvTools(config=picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # full collector list is for populating existing and missing agents into collector table
@@ -107,7 +108,7 @@ class PicturaeImporter(Importer):
         sql = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
                                                        batch_md5=self.batch_md5, batch_size=batch_size)
 
-        self.batch_sql_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.batch_sql_tools.insert_table_record(sql=sql)
 
         condition = f'''WHERE TimestampCreated >= "{starting_time_stamp}" 
                         AND TimestampCreated <= "{ending_time_stamp}";'''
@@ -118,7 +119,7 @@ class PicturaeImporter(Importer):
             sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
                                                                val_list=[self.batch_md5], condition=condition)
 
-            self.batch_sql_tools.insert_table_record(sql=sql, logger_int=self.logger)
+            self.batch_sql_tools.insert_table_record(sql=sql)
 
 
     def exit_timestamp(self):
@@ -475,7 +476,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def create_agent_id(self):
@@ -525,7 +526,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
                                                              val_list=values)
 
-            self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def create_collecting_event(self):
@@ -577,7 +578,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def create_taxon(self):
@@ -634,7 +635,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql)
 
             logging.info(f"taxon: {taxon} created")
 
@@ -691,7 +692,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def create_determination(self):
@@ -749,7 +750,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql)
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
@@ -776,7 +777,7 @@ class PicturaeImporter(Importer):
             column_list = ['TimestampCreated',
                            'TimestampModified',
                            'Version',
-                          'IsPrimary',
+                           'IsPrimary',
                            'OrderNumber',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
@@ -801,7 +802,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql)
 
 
     def hide_unwanted_files(self):
@@ -922,7 +923,7 @@ class PicturaeImporter(Importer):
                  SET account_locked = 'Y'
                  WHERE user != '{picturae_config.USER}' AND host = '%';"""
 
-        self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql)
 
         # starting purge timer
         self.exit_timestamp()
@@ -932,8 +933,7 @@ class PicturaeImporter(Importer):
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
-            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa,
-                                                          logger_int=self.logger, df=self.record_full)
+            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full)
         # uploading attachments
 
         value_list = [len(self.new_taxa), self.records_dropped]
@@ -955,4 +955,4 @@ class PicturaeImporter(Importer):
                   SET account_locked = 'n'
                   WHERE user != '{picturae_config.USER}' AND host = '%';"""
 
-        self.sql_csv_tools.insert_table_record(logger_int=self.logger, sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql)

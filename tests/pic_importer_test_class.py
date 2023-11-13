@@ -4,7 +4,6 @@ from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
 import picturae_config
-from sql_csv_utils import SqlCsvTools
 
 class TestPicturaeImporter(PicturaeImporter):
     def __init__(self, date_string, paths):

@@ -5,6 +5,7 @@ import socket
 import os
 import re
 
+
 def ip_getter():
     """ip_getter:
        gets a copy of the host machine's absolute ip address
@@ -23,10 +24,9 @@ def set_direct():
             none
             """
     # get current directory
-    #current_directory = os.getcwd()
+    # current_directory = os.getcwd()
     # this is absolute path for running chron from bin
-    current_directory = "/Users/mdelaroca/Documents/sandbox_db/" \
-                        "specify-sandbox/specify-asset-importer"
+    current_directory = os.path.dirname(os.path.abspath(__file__))
     # set current directory
     os.chdir(current_directory)
 

@@ -1,4 +1,5 @@
 import os
+COLLECTION_NAME = 'collectionname'
 SPECIFY_DATABASE_HOST = 'db-institution.name'
 SPECIFY_DATABASE_PORT = 3306
 SPECIFY_DATABASE = 'redacted'
