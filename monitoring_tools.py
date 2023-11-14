@@ -238,13 +238,15 @@ class MonitoringTools:
                   WHERE TimestampCreated >= '{str(time_stamp)}';"""
 
         batch_size = self.sql_csv_tools.get_record(sql=sql)
-
-        self.add_batch_size(batch_size=batch_size)
-        msg = self.attach_html_images()
-        for email in self.config.mailing_list:
+        if batch_size > 0:
+            self.add_batch_size(batch_size=batch_size)
+            msg = self.attach_html_images()
             msg['From'] = "ibss-crontab@calacademy.org"
-            msg['To'] = email
             msg['Subject'] = subject
+            recipient_list = []
+            for email in self.config.mailing_list:
+                recipient_list.append(email)
+            msg['To'] = recipient_list
             # with smtplib.SMTP(port=self.config.smtp_port, host=self.config.smtp_server) as server:
             #     server.starttls()
             #     server.login(user=self.config.smtp_user, password=self.config.smtp_password)
