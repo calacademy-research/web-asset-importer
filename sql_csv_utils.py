@@ -138,8 +138,7 @@ class SqlCsvTools:
                           requires database ip, which sqlite does not have
         """
         cursor = self.get_cursor()
-        self.logger.info(f'running query: {sql}')
-        self.logger.debug(sql)
+        self.logger.debug(f"running query{sql}")
         try:
             cursor.execute(sql)
         except Exception as e:
