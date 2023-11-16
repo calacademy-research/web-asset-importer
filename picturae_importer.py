@@ -113,6 +113,7 @@ class PicturaeImporter(Importer):
         condition = f'''WHERE TimestampCreated >= "{starting_time_stamp}" 
                         AND TimestampCreated <= "{ending_time_stamp}";'''
 
+
         error_tabs = ['taxa_unmatch', 'picturaetaxa_added']
         for tab in error_tabs:
 
@@ -221,34 +222,34 @@ class PicturaeImporter(Importer):
                                 after checking conditions established to prevent
                                 overwriting data functions
         """
-        for index, row in self.record_full.iterrows():
-            if not row['image_valid']:
-                raise ValueError(f"image {row['image_path']} is not valid ")
+        for row in self.record_full.itertuples(index=False):
+            if not row.image_valid:
+                raise ValueError(f"image {row.image_path} is not valid ")
 
-            elif not row['is_barcode_match']:
-                raise ValueError(f"image barcode {row['image_path']} does not match "
-                                 f"{row['CatalogNumber']}")
+            elif not row.is_barcode_match:
+                raise ValueError(f"image barcode {row.image_path} does not match "
+                                 f"{row.CatalogNumber}")
 
-            elif row['barcode_present'] and row['image_present']:
-                self.logger.warning(f"record {row['CatalogNumber']} and image {row['image_path']}"
+            elif row.barcode_present and row.image_present:
+                self.logger.warning(f"record {row.CatalogNumber} and image {row.image_path}"
                                     f" already in database")
 
-            elif row['barcode_present'] and not row['image_present']:
-                self.logger.warning(f"record {row['CatalogNumber']} "
+            elif row.barcode_present and not row.image_present:
+                self.logger.warning(f"record {row.CatalogNumber} "
                                     f"already in database, appending image")
-                self.image_list.append(row['image_path'])
+                self.image_list.append(row.image_path)
 
-            elif not row['barcode_present'] and row['image_present']:
-                self.logger.warning(f"image {row['image_path']} "
+            elif not row.barcode_present and row.image_present:
+                self.logger.warning(f"image {row.image_path} "
                                     f"already in database, appending record")
-                self.barcode_list.append(row['CatalogNumber'])
+                self.barcode_list.append(row.CatalogNumber)
                 # image path is added any-ways as the image client checks regardless
                 # for image duplication, this way it will still create the attachment rows.
-                self.image_list.append(row['image_path'])
+                self.image_list.append(row.image_path)
 
             else:
-                self.image_list.append(row['image_path'])
-                self.barcode_list.append(row['CatalogNumber'])
+                self.image_list.append(row.image_path)
+                self.barcode_list.append(row.CatalogNumber)
 
             self.barcode_list = list(set(self.barcode_list))
             self.image_list = list(set(self.image_list))
@@ -317,38 +318,30 @@ class PicturaeImporter(Importer):
                 row: a row from a botany specimen csv dataframe containing the required columns
 
         """
-        column_list = ['CatalogNumber', 'verbatim_date', 'start_date',
-                       'end_date', 'collector_number', 'locality', 'fullname', 'taxname',
-                       'gen_spec', 'qualifier', 'name_matched', 'Genus', 'Family', 'Hybrid', 'accepted_author',
-                       'first_intra', 'county', 'state', 'country']
-        # print(self.full_name)
-        index_list = []
-        for column in column_list:
-            barcode_index = self.record_full.columns.get_loc(column)
-            index_list.append(barcode_index)
-        self.barcode = row[index_list[0]].zfill(9)
-        self.verbatim_date = row[index_list[1]]
-        self.start_date = row[index_list[2]]
-        self.end_date = row[index_list[3]]
-        self.collector_number = row[index_list[4]]
-        self.locality = row[index_list[5]]
-        self.full_name = row[index_list[6]]
-        self.tax_name = row[index_list[7]]
-        self.gen_spec = row[index_list[8]]
-        self.qualifier = row[index_list[9]]
-        self.name_matched = row[index_list[10]]
-        self.genus = row[index_list[11]]
-        self.family_name = row[index_list[12]]
-        self.is_hybrid = row[index_list[13]]
-        self.author = row[index_list[14]]
-        self.first_intra = row[index_list[15]]
+
+        self.barcode = row.CatalogNumber.zfill(9)
+        self.verbatim_date = row.verbatim_date
+        self.start_date = row.start_date
+        self.end_date = row.end_date
+        self.collector_number = row.collector_number
+        self.locality = row.locality
+        self.full_name = row.fullname
+        self.tax_name = row.taxname
+        self.gen_spec = row.gen_spec
+        self.qualifier = row.qualifier
+        self.name_matched = row.name_matched
+        self.genus = row.Genus
+        self.family_name = row.Family
+        self.is_hybrid = row.Hybrid
+        self.author = row.accepted_author
+        self.first_intra = row.first_intra
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
 
-        self.geography_string = str(row[index_list[16]]) + ", " + \
-                                str(row[index_list[17]]) + ", " + str(row[index_list[18]])
+        self.geography_string = str(row.county) + ", " + \
+                                str(row.state) + ", " + str(row.country)
 
         self.GeographyID = self.sql_csv_tools.get_one_match(tab_name='geography', id_col='GeographyID',
                                                             key_col='FullName', match=self.geography_string)
@@ -860,7 +853,7 @@ class PicturaeImporter(Importer):
 
         self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
 
-        for index, row in self.record_full.iterrows():
+        for row in self.record_full.itertuples(index=False):
             self.populate_fields(row)
             self.create_agent_list(row)
             self.populate_taxon()
