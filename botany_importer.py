@@ -10,7 +10,6 @@ from dir_tools import DirTools
 from uuid import uuid4
 from time_utils import get_pst_time_now_string
 from monitoring_tools import MonitoringTools
-from gen_import_utils import generate_token
 # I:\botany\PLANT FAMILIES
 #
 # I:\botany\TYPE IMAGES
@@ -55,15 +54,13 @@ class BotanyImporter(Importer):
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
 
-
-
-
     def process_loaded_files(self):
         for barcode in self.barcode_map.keys():
             filename_list = []
             for cur_filepath in self.barcode_map[barcode]:
                 filename_list.append(cur_filepath)
             self.process_barcode(barcode, filename_list)
+
 
     def process_barcode(self, barcode, filepath_list):
         if barcode is None:
@@ -115,9 +112,6 @@ class BotanyImporter(Importer):
             self.barcode_map[barcode] = [full_path]
         else:
             self.barcode_map[barcode].append(full_path)
-
-
-
 
 
     def create_skeleton(self, barcode):
