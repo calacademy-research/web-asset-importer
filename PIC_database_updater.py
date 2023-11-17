@@ -60,7 +60,6 @@ class UpdateDbFields:
 
         self.sql_csv_tools.insert_table_record(sql=sql, logger_int=self.logger)
 
-
     def update_herbarium_code(self, barcode, herb_code):
         """function to update herbarium abbreviation code in Modifier column e.g CAS , DS etc...
         args:

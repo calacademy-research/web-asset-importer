@@ -5,10 +5,10 @@ import shutil
 import logging
 import pandas as pd
 from uuid import uuid4
-from tests.pic_importer_test_class_lite import TestPicturaeImporterlite
+from tests.pic_importer_test_class_lite import AltPicturaeImporterlite
 from tests.testing_tools import TestingTools
 from gen_import_utils import unique_ordered_list
-os.chdir("./image_client")
+
 
 
 class Testtaxontrees(unittest.TestCase, TestingTools):
@@ -20,7 +20,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
 
     def setUp(self):
-        self.test_picturae_importer_lite = TestPicturaeImporterlite(paths=self.md5_hash, date_string=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite(paths=self.md5_hash, date_string=self.md5_hash)
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 

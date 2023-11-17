@@ -1,11 +1,9 @@
 import unittest
 import shutil
 import os
-from tests.pic_csv_test_class import TestCsvCreatePicturae
+from tests.pic_csv_test_class import AltCsvCreatePicturae
 import picturae_config
 from tests.testing_tools import TestingTools
-
-os.chdir("./image_client")
 
 class DirectoryTests(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
@@ -18,7 +16,7 @@ class DirectoryTests(unittest.TestCase, TestingTools):
         """setUP: unittest setup function creates empty csvs,
                   and folders for given test path"""
         # initializing
-        self.test_csv_create_picturae = TestCsvCreatePicturae(date_string=self.md5_hash)
+        self.test_csv_create_picturae = AltCsvCreatePicturae(date_string=self.md5_hash)
 
         if self._testMethodName == "test_missing_folder_raise_error":
             pass
