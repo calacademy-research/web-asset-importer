@@ -1,9 +1,5 @@
 """This is an unittest file for the botany_importer.py"""
 import os
-import re
-import logging
-import filetype
-from unittest.mock import Mock
 from mock import patch
 from botany_importer import BotanyImporter
 import unittest

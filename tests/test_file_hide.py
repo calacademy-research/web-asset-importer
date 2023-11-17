@@ -1,10 +1,9 @@
 import unittest
 import os
 from tests.testing_tools import TestingTools
-from tests.pic_importer_test_class import TestPicturaeImporter
+from tests.pic_importer_test_class import AltPicturaeImporter
 import shutil
 
-os.chdir("./image_client")
 class HideFilesTest(unittest.TestCase,TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,7 +20,7 @@ class HideFilesTest(unittest.TestCase,TestingTools):
         self.expected_image_path = f"picturae_img/PIC_{self.md5_hash}/CAS{123456}.JPG"
 
         # initializing
-        self.test_picturae_importer = TestPicturaeImporter(date_string=self.md5_hash, paths=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash, paths=self.md5_hash)
 
         self.test_picturae_importer.image_list = [f"picturae_img/PIC_{self.md5_hash}/CAS123456.JPG"]
 

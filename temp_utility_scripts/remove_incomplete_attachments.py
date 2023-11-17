@@ -13,11 +13,12 @@ class RemovePartialAttachments(Importer):
         self.logger.setLevel(logging.DEBUG)
         self.sql_csv_tools = SqlCsvTools(config=self.config)
 
-        self.attachment_tab = pd.read_csv('bot_attachments.csv')
+        self.attachment_tab = pd.read_csv('casbotany_attachment.csv')
 
         self.image_tab = pd.read_csv('image_db.csv')
-        self.remove_missing_collection_ob_attach()
-        self.remove_unattached_image_paths()
+        # self.remove_missing_collection_ob_attach()
+        # self.remove_unattached_image_paths()
+        self.check_success()
 
     def remove_missing_collection_ob_attach(self):
         """remove_missing_collection_ob_attach: removes all attachments and image_db paths
@@ -115,6 +116,14 @@ class RemovePartialAttachments(Importer):
         self.logger.warning(f"Number of barcodes processed: {len(barcode_test_count)}")
         self.logger.warning(f"Number filepaths deleted from image_server: {len(filepath_test_count)}")
         self.logger.warning(f"Number of attachments/collectionobjectattachments deleted: {len(attachment_id_test_count)}")
+
+
+    def check_success(self):
+        self.attachment_tab.rename(columns={'AttachmentLocation': 'internal_filename'}, inplace=True)
+
+        combine_tab = pd.merge(self.attachment_tab, self.image_tab, on="internal_filename", how='outer', indicator=True)
+
+        combine_tab = combine_tab[combine_tab['_merge'] == 'right_only']
 
 
 RemovePartialAttachments(config=picturae_config)

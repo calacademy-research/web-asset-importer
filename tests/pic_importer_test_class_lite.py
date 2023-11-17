@@ -5,14 +5,16 @@ from uuid import uuid4
 from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
-from .. import picturae_config
+import picturae_config
 
 
-class TestPicturaeImporterlite(PicturaeImporter):
+class AltPicturaeImporterlite(PicturaeImporter):
     def __init__(self, date_string, paths):
         Importer.__init__(self, db_config_class=picturae_config, collection_name="Botany")
         self.init_all_vars(date_string=date_string, paths=paths)
-        self.logger = logging.getLogger("TestPicturaeImporter")
+        self.logger = logging.getLogger("AltPicturaeImporter")
+        # keep name as sql_csv_tools since it needs to replace the internally called function
+        # sql_csv_tools in the parent class
         self.sql_csv_tools = SqlLiteTools(sql_db="tests/casbotany_lite.db")
 
     # patched populate_fields function to avoid having to pull from the geography tree, for taxon tree tests
