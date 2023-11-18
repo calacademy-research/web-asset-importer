@@ -12,7 +12,9 @@ class MonitoringTools:
         self.config = config
         self.logger = logging.getLogger("MonitoringTools")
         if config is not None:
-            self.sql_csv_tools = SqlCsvTools(config=self.config)
+            self.check_config_present()
+            self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
+
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
@@ -21,6 +23,12 @@ class MonitoringTools:
         with open(self.path, 'w') as file:
             pass
 
+    def check_config_present(self):
+        """checks if mandatory config terms present in config file for email"""
+        required_vars = ['SUMMARY_IMG', 'SUMMARY_TERMS', 'mailing_list']
+        for var in required_vars:
+            if not hasattr(self.config, var):
+                raise ValueError(f"Config is missing term '{var}'")
 
     def add_imagepath_to_html(self,image_path, barcode, success):
         """add_filepath_to_monitor_txt: adds single line to end of txt file,
@@ -226,7 +234,7 @@ class MonitoringTools:
 
 
     def send_monitoring_report(self, subject, time_stamp):
-        """send_monitoring_repot: completes the final steps after adding batch failure/success rates.
+        """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
@@ -253,3 +261,7 @@ class MonitoringTools:
             #     server.send_message(msg)
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)
+
+import botany_importer_config
+
+init = MonitoringTools(config=botany_importer_config)
