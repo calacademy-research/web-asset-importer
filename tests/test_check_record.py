@@ -1,6 +1,6 @@
 """tests to test the record_present, barcode_present and image_has_record functions."""
 import unittest
-from tests.pic_csv_test_class import TestCsvCreatePicturae
+from tests.pic_csv_test_class import AltCsvCreatePicturae
 import pandas as pd
 from tests.testing_tools import TestingTools
 
@@ -13,7 +13,7 @@ class DatabaseChecks(unittest.TestCase, TestingTools):
           that have a small subset of representative real column names,
         """
         # initializing
-        self.test_csv_create_picturae = TestCsvCreatePicturae(date_string=self.md5_hash)
+        self.test_csv_create_picturae = AltCsvCreatePicturae(date_string=self.md5_hash)
 
         # creating dummy dataset, one mistake 530923 != 530924 inserted on purpose
         # the test barcode that is set to return a false is 58719322,

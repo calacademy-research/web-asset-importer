@@ -2,7 +2,7 @@
 import unittest
 import shutil
 import os
-from tests.pic_csv_test_class import TestCsvCreatePicturae
+from tests.pic_csv_test_class import AltCsvCreatePicturae
 from tests.testing_tools import TestingTools
 
 class CsvReadMergeTests(unittest.TestCase, TestingTools):
@@ -20,7 +20,7 @@ class CsvReadMergeTests(unittest.TestCase, TestingTools):
           so that test merges and uploads can be performed.
           """
         # print("setup called!")
-        self.test_csv_create_picturae = TestCsvCreatePicturae(date_string=self.md5_hash)
+        self.test_csv_create_picturae = AltCsvCreatePicturae(date_string=self.md5_hash)
         # maybe create a separate function for setting up test directories
         path_type_list = ['folder', 'specimen']
         path_list = []

@@ -6,12 +6,12 @@ import numpy as np
 import pandas as pd
 import os
 from gen_import_utils import remove_two_index
-from tests.pic_importer_test_class import TestPicturaeImporter
+from tests.pic_importer_test_class_lite import AltPicturaeImporterlite
 from tests.testing_tools import TestingTools
 from uuid import uuid4
 import shutil
-
-os.chdir("./image_client")
+import time_utils
+from datetime import datetime
 
 class TestSqlInsert(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
@@ -21,12 +21,10 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
     def setUp(self):
         """setting up instance of PicturaeImporter"""
-        self.test_picturae_importer = TestPicturaeImporter(date_string=self.md5_hash,
-                                                           paths=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash,
+                                                                   paths=self.md5_hash)
 
-        self.sql_csv_tools = self.test_picturae_importer.sql_csv_tools
-
-        self.specify_db_connection = self.test_picturae_importer.specify_db_connection
+        self.sqlite_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
@@ -44,12 +42,12 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         """testing if create_sql_string
            creates the correct multi-value sql string for insert statements"""
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name="codetab", val_list=[4, 5, "on mt"],
+        sql = self.sqlite_csv_tools.create_insert_statement(tab_name="codetab", val_list=[4, 5, "on mt"],
                                                          col_list=['code4', 'code5', 'local'])
 
         self.assertEqual(sql, f'''INSERT INTO codetab (code4, code5, local) VALUES(4, 5, 'on mt');''')
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name="cattab",
+        sql = self.sqlite_csv_tools.create_insert_statement(tab_name="cattab",
                                                          val_list=[1, 2, 3, "cat"],
                                                          col_list=['tax1', 'tax2', 'tax3', 'feline1'])
 
@@ -69,60 +67,89 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         for term in test_values:
             self.assertTrue(not pd.isna(term) and term not in [None, np.nan, ''])
 
+    def test_insert_table_record(self):
+
+        self.collecting_event_id = 123456
+        self.barcode = 45678
+        self.starting_time_stamp = datetime.now()
+        self.collection_ob_guid = uuid4()
+        self.created_by_agent = 98765
+        table = 'collectionobject'
+
+        column_list = ['TimestampCreated',
+                       'TimestampModified',
+                       'CollectingEventID',
+                       'CatalogNumber',
+                       'GUID',
+                       'CollectionID',
+                       'CollectionMemberID'
+                       ]
+
+        value_list = [f"{time_utils.get_pst_time_now_string()}",
+                      f"{time_utils.get_pst_time_now_string()}",
+                      f"{self.collecting_event_id}",
+                      f"{self.barcode}",
+                      f"{self.collection_ob_guid}",
+                      4,
+                      4]
+
+        # removing na values from both lists
+        value_list, column_list = remove_two_index(value_list, column_list)
+
+        sql = self.sqlite_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+                                                            val_list=value_list)
+
+        self.sqlite_csv_tools.insert_table_record(sql=sql)
+
+        collection_ob_guid = self.sqlite_csv_tools.get_one_match(id_col="GUID", tab_name="collectionobject",
+                                                                 key_col="CatalogNumber",
+                                                                 match=self.barcode,
+                                                                 match_type=int)
+
+        catalog_number = self.sqlite_csv_tools.get_one_match(id_col="CatalogNumber", tab_name="collectionobject",
+                                                             key_col="GUID",
+                                                             match=self.collection_ob_guid,
+                                                             match_type=str)
+
+        # asserting that station field number is in right column
+
+        self.assertEqual(str(self.collection_ob_guid), collection_ob_guid)
+
+        self.assertEqual(str(self.barcode), catalog_number)
+
+
+
     def test_create_locality(self):
         """testing create_locality function by
            recreating insert protocol for locality table, but with sqlite DB"""
 
-        self.test_picturae_importer.locality_guid = uuid4()
-        self.test_picturae_importer.locality = f"2 miles from eastern side of Mt.Fake + {self.md5_hash}"
-        self.test_picturae_importer.GeographyID = 256
-        self.test_picturae_importer.create_by_agent = 999987
+        self.test_picturae_importer_lite.locality_guid = uuid4()
+        self.test_picturae_importer_lite.locality = f"2 miles from eastern side of Mt.Fake + {self.md5_hash}"
+        self.test_picturae_importer_lite.GeographyID = 256
+        self.test_picturae_importer_lite.create_by_agent = 999987
 
-        self.test_picturae_importer.create_locality_record()
+        self.test_picturae_importer_lite.create_locality_record()
 
-        data_base_locality = self.sql_csv_tools.get_one_match(id_col="LocalityID", tab_name="locality",
-                                                              key_col="LocalityName",
-                                                              match=self.test_picturae_importer.locality,
-                                                              match_type=str)
+        data_base_locality = self.sqlite_csv_tools.get_one_match(id_col="LocalityID", tab_name="locality",
+                                                                 key_col="LocalityName",
+                                                                 match=self.test_picturae_importer_lite.locality,
+                                                                 match_type=str)
 
         self.assertFalse(data_base_locality is None)
 
         # checking whether geocode present
 
-        data_base_geo_code = self.sql_csv_tools.get_one_match(id_col="GeographyID", tab_name="locality",
-                                                              key_col="LocalityName",
-                                                              match=self.test_picturae_importer.locality,
-                                                              match_type=str)
+        data_base_geo_code = self.sqlite_csv_tools.get_one_match(id_col="GeographyID", tab_name="locality",
+                                                                 key_col="LocalityName",
+                                                                 match=self.test_picturae_importer_lite.locality,
+                                                                 match_type=str)
 
-        self.assertEqual(data_base_geo_code, self.test_picturae_importer.GeographyID)
+        self.assertEqual(data_base_geo_code, self.test_picturae_importer_lite.GeographyID)
 
-    def test_collection_object(self):
-        """test insert of collection object"""
-        self.test_picturae_importer.barcode = 99999998
-        self.test_picturae_importer.collection_ob_guid = uuid4()
-        self.test_picturae_importer.created_by_agent = 999987
-
-        self.test_picturae_importer.create_collection_object()
-
-        collection_ob_guid = self.sql_csv_tools.get_one_match(id_col="GUID", tab_name="collectionobject",
-                                                               key_col="CatalogNumber",
-                                                               match=self.test_picturae_importer.barcode,
-                                                               match_type=int)
-
-        catalog_number = self.sql_csv_tools.get_one_match(id_col="CatalogNumber", tab_name="collectionobject",
-                                                          key_col="GUID",
-                                                          match=self.test_picturae_importer.collection_ob_guid,
-                                                          match_type=int)
-
-        # asserting that station field number is in right column
-
-        self.assertEqual(str(self.test_picturae_importer.collection_ob_guid), collection_ob_guid)
-
-        self.assertEqual(str(self.test_picturae_importer.barcode), catalog_number)
 
     def tearDown(self):
         """deleting instance of PicturaeImporter"""
-        del self.test_picturae_importer
+        del self.test_picturae_importer_lite
         shutil.copyfile("tests/casbotany_backup.db", "tests/casbotany_lite.db")
         os.remove("tests/casbotany_backup.db")
 
