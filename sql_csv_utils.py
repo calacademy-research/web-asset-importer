@@ -10,6 +10,9 @@ from specify_db import SpecifyDb
 import logging
 
 
+class DatabaseConnectionError(Exception):
+    pass
+
 class SqlCsvTools:
     def __init__(self, config, logging_level=logging.INFO):
         self.config = config
@@ -24,7 +27,7 @@ class SqlCsvTools:
             self.specify_db_connection.connect()
             self.logger.info("sql_csv_tools connection established")
         except Exception as e:
-            raise ValueError(f"Database connection error: {e}")
+            raise DatabaseConnectionError from e
 
     def sql_db_connection(self):
         """standard connector"""
@@ -360,4 +363,6 @@ class SqlCsvTools:
 
         return sql
 
+import picturae_config
 
+SqlCsvTools(picturae_config)
