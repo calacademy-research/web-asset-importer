@@ -29,6 +29,7 @@ class PicturaeImporter(Importer):
 
     def __init__(self, paths, date_string=None):
         super().__init__(picturae_config, "Botany")
+
         self.logger = logging.getLogger("PicturaeImporter")
 
         self.init_all_vars(date_string=date_string, paths=paths)
@@ -643,7 +644,6 @@ class PicturaeImporter(Importer):
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                                     id_col='CollectingEventID',
                                                                     key_col='GUID', match=self.collecting_event_guid)
-
         table = 'collectionobject'
 
         column_list = ['TimestampCreated',

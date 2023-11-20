@@ -2,10 +2,8 @@
 import unittest
 import os
 import pandas as pd
-from tests.pic_csv_test_class import TestCsvCreatePicturae
+from tests.pic_csv_test_class import AltCsvCreatePicturae
 from tests.testing_tools import TestingTools
-
-os.chdir("./image_client")
 
 class ColNamesTest(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
@@ -14,7 +12,7 @@ class ColNamesTest(unittest.TestCase, TestingTools):
     def setUp(self):
         """creates dummy dataset with representative column names"""
         # initializing class
-        self.test_csv_create_picturae = TestCsvCreatePicturae(date_string=self.md5_hash)
+        self.test_csv_create_picturae = AltCsvCreatePicturae(date_string=self.md5_hash)
         # creating dummy dataset
         numb_range = list(range(1, 101))
         column_names = ['application_batch', 'csv_batch', 'object_type', 'folder_barcode',

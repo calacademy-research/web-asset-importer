@@ -1,11 +1,9 @@
 """tests for the taxon_concat and taxon_check_real function (using tnrs)"""
-import os
 import pandas as pd
 import unittest
-from tests.pic_csv_test_class import TestCsvCreatePicturae
+from tests.pic_csv_test_class import AltCsvCreatePicturae
 from tests.testing_tools import TestingTools
 
-os.chdir("./image_client")
 class ConcatTaxonTests(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -13,11 +11,12 @@ class ConcatTaxonTests(unittest.TestCase, TestingTools):
     def setUp(self):
         """creates fake taxon columns in
            dummy dataset to test out taxon_concat string output"""
-        self.test_csv_create_picturae = TestCsvCreatePicturae(date_string=self.md5_hash)
+        self.test_csv_create_picturae = AltCsvCreatePicturae(date_string=self.md5_hash)
 
         # jose Gonzalez is a real agent,
         # to make sure true matches are not added to list.
         data = {'CatalogNumber': [12345, 12346, 12347, 12348],
+                'taxon_id': [None, None, None, None],
                 'Genus': ['x Serapicamptis', 'Castilleja', 'Rafflesia', 'Castilloja'],
                 'Species': [pd.NA, 'miniata', 'arnoldi', 'Moniata'],
                 'Rank 1': [pd.NA, 'subsp.', 'var.', pd.NA],
@@ -52,13 +51,14 @@ class ConcatTaxonTests(unittest.TestCase, TestingTools):
         """test the tnrs name resolution service in the check_taxon_real function"""
 
         self.test_csv_create_picturae.record_full[['gen_spec', 'fullname',
-                                            'first_intra',
-                                            'taxname', 'hybrid_base']] = \
-            self.test_csv_create_picturae.record_full.apply(self.test_csv_create_picturae.taxon_concat, axis=1, result_type='expand')
+                                                   'first_intra',
+                                                   'taxname', 'hybrid_base']] = \
+            self.test_csv_create_picturae.record_full.apply(self.test_csv_create_picturae.taxon_concat, axis=1,
+                                                            result_type='expand')
 
-        self.test_csv_create_picturae.taxon_check_real()
+        self.test_csv_create_picturae.taxon_check_tnrs()
         # assert statements
-        self.assertEqual(len(self.test_csv_create_picturae.record_full.columns), 15)
+        self.assertEqual(len(self.test_csv_create_picturae.record_full.columns), 16)
 
         # 2 rows left as the genus level hybrid Serapicamptis and the mispelled "Castilloja" should fail
 
