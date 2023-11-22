@@ -1,5 +1,3 @@
-import botany_importer_config
-
 from importer import Importer
 import time_utils
 from datetime import datetime
@@ -28,12 +26,10 @@ class BotanyImporter(Importer):
         self.logger = logging.getLogger('Client.BotanyImporter')
         super().__init__(config, "Botany")
         # limit is for debugging
+        self.botany_importer_config = config
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
-
         self.logger.debug("Botany import mode")
-
-
 
         # FILENAME = "bio_importer.bin"
         # if not os.path.exists(FILENAME):
@@ -45,7 +41,7 @@ class BotanyImporter(Importer):
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=botany_importer_config)
+            self.monitoring_tools = MonitoringTools(config=self.botany_importer_config)
             self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
@@ -53,6 +49,7 @@ class BotanyImporter(Importer):
         if not full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
+
 
     def process_loaded_files(self):
         for barcode in self.barcode_map.keys():
@@ -92,12 +89,10 @@ class BotanyImporter(Importer):
 
     def build_filename_map(self, full_path):
         full_path = full_path.lower()
-
         if not self.check_for_valid_image(full_path):
             return
-
         filename = os.path.basename(full_path)
-        matched = re.match(botany_importer_config.BOTANY_REGEX, filename.lower())
+        matched = re.match(self.botany_importer_config['BOTANY_REGEX'], filename.lower())
         is_match = bool(matched)
         if not is_match:
             self.logger.debug(f"Rejected; no match: {filename}")

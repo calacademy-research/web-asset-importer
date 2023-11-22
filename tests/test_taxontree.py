@@ -170,10 +170,10 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
         # checking parent id
 
-            parent_id= self.sql_csv_tools.get_one_match(id_col="ParentID", tab_name="taxon",
+            parent_id = self.sql_csv_tools.get_one_match(id_col="ParentID", tab_name="taxon",
                                                         key_col="FullName",
                                                         match=full_name[index],
-                                                           match_type=str)
+                                                        match_type=str)
 
             parent_name = self.sql_csv_tools.get_one_match(id_col="FullName", tab_name="taxon",
                                                            key_col="ParentID",

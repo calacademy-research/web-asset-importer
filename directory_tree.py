@@ -1,7 +1,8 @@
 import os, pickle
 from anytree import Node, RenderTree
-import iz_importer_config
+from gen_import_utils import read_json_config
 
+iz_importer_config = read_json_config(collection="IZ")
 
 class DirectoryTree():
 
@@ -96,7 +97,7 @@ class DirectoryTree():
 if __name__ == '__main__':
     DIR = "/Volumes/images/izg/IZ/"
     print(f"Joe test: {DIR}")
-    ring = DirectoryTree(iz_importer_config.IZ_CORE_SCAN_FOLDERS)
+    ring = DirectoryTree(iz_importer_config['IZ_CORE_SCAN_FOLDERS'])
     ring.print_tree()
     #
     # def search_file(self, filename):

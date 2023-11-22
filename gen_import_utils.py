@@ -1,14 +1,15 @@
 """Docstring: This is a utility file, outlining various useful functions to be used
    for csv and image import related tasks.
 """
-
+import json
 from datetime import datetime
 import sys
 import numpy as np
 import pandas as pd
-import os
+import json
 import hmac
 import settings
+import os
 
 # import list tools
 
@@ -25,6 +26,36 @@ def unique_ordered_list(input_list):
         if element not in unique_elements:
             unique_elements.append(element)
     return unique_elements
+
+
+def set_slashes(path_string):
+    """sets slashes in json to work on either ubuntu or windows"""
+    if "\\" in path_string:
+        path_string = path_string.replace('\\', f'{os.path.sep}')
+    else:  # If the path contains forward slashes (Unix-like path)
+        path_string = path_string.replace('/', f'{os.path.sep}')
+    return path_string
+
+
+def replace_slashes_in_dict(json):
+    """applys the set slashes function to a json type dictionary"""
+    for key, value in json.items():
+        if isinstance(value, str):
+            json[key] = set_slashes(value)
+        elif isinstance(value, list):
+            json[key] = [replace_slashes_in_dict(item) if isinstance(item, dict)
+                         else set_slashes(item) for item in value]
+        elif isinstance(value, dict):
+            replace_slashes_in_dict(value)
+
+
+def read_json_config(collection):
+    """reads in json file and selects correct collection setting"""
+    with open('config_collections.json') as file:
+        config = json.load(file)
+        config = config[collection]
+        replace_slashes_in_dict(config)
+    return config
 
 
 def remove_two_index(value_list, column_list):
