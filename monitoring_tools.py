@@ -8,6 +8,7 @@ import smtplib
 
 class MonitoringTools:
     def __init__(self, config):
+        print()
         self.path = "import_monitoring.html"
         self.config = config
         self.logger = logging.getLogger("MonitoringTools")
