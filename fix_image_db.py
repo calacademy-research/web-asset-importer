@@ -2,20 +2,21 @@
 #!/usr/bin/env python
 # synchronizes from specify to the image database to fix an import error.
 # keeping in case we ever get image DB corruption again...
-import ich_importer_config
 from image_db import ImageDb
 import os.path
 from datetime import datetime
-
+from gen_import_utils import read_json_config
 
 from db_utils import DbUtils, InvalidFilenameError, DatabaseInconsistentError
 
+ich_importer_config = read_json_config(collection='ICH')
+
 specify_db_connection = DbUtils(
-    ich_importer_config.USER,
-    ich_importer_config.PASSWORD,
-    ich_importer_config.SPECIFY_DATABASE_PORT,
-    ich_importer_config.SPECIFY_DATABASE_HOST,
-    ich_importer_config.SPECIFY_DATABASE)
+    ich_importer_config['USER'],
+    ich_importer_config['PASSWORD'],
+    ich_importer_config['SPECIFY_DATABASE_PORT'],
+    ich_importer_config['SPECIFY_DATABASE_HOST'],
+    ich_importer_config['SPECIFY_DATABASE'])
 image_db = ImageDb()
 
 sql = "select AttachmentLocation, origFilename, Remarks from attachment"

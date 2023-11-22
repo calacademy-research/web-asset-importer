@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-import botany_importer_config
-import picturae_config
+from gen_import_utils import read_json_config
 from gen_import_utils import get_max_subdirectory_date
 import os
 import logging
@@ -62,31 +61,33 @@ def main(args):
         image_client = ImageClient()
     elif args.subcommand == 'import':
         if args.collection == "Botany":
+            bot_config = read_json_config(collection="Botany")
             # get paths here
             paths = []
-            for cur_dir in botany_importer_config.BOTANY_SCAN_FOLDERS:
-                paths.append(os.path.join(botany_importer_config.PREFIX,
-                                          botany_importer_config.BOTANY_PREFIX,
+            for cur_dir in bot_config['BOTANY_SCAN_FOLDERS']:
+                paths.append(os.path.join(bot_config['PREFIX'],
+                                          bot_config['BOTANY_PREFIX'],
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
             full_import = args.full_import
-            BotanyImporter(paths=paths, config=botany_importer_config, full_import=full_import)
+            BotanyImporter(paths=paths, config=bot_config, full_import=full_import)
         elif args.collection == 'Botany_PIC':
+            pic_config = read_json_config(collection='Botany_PIC')
             date_override = args.date
             # default is to get date of most recent folder in csv folder
             if date_override is None:
                 date_override = get_max_subdirectory_date("image_client/picturae_csv")
             # otherwise replace dates with most args.date
-            picturae_config.PIC_SCAN_FOLDERS = [f"PIC_{date_override}"]
-            picturae_config.date_str = date_override
+            pic_config['PIC_SCAN_FOLDERS'] = [f"PIC_{date_override}"]
+            pic_config['date_str'] = date_override
             paths = []
-            for cur_dir in picturae_config.PIC_SCAN_FOLDERS:
-                paths.append(os.path.join(picturae_config.PREFIX,
-                                          picturae_config.PIC_PREFIX,
+            for cur_dir in pic_config['PIC_SCAN_FOLDERS']:
+                paths.append(os.path.join(pic_config['PREFIX'],
+                                          pic_config['BOTANY_PREFIX'],
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
 
-            PicturaeImporter(paths=paths, date_string=date_override)
+            PicturaeImporter(paths=paths, config=pic_config, date_string=date_override)
 
 
         elif args.collection == "Ichthyology":

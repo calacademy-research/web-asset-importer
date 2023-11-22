@@ -1,13 +1,12 @@
 import logging
 from specify_db import SpecifyDb
 from attachment_utils import AttachmentUtils
-import botany_importer_config
 from image_client import ImageClient
-
-
+from gen_import_utils import read_json_config
 class BotanyPurger():
     def __init__(self):
         self.logger = logging.getLogger('Client.purger')
+        botany_importer_config = read_json_config(collection="Botany")
         self.specify_db = SpecifyDb(botany_importer_config)
         self.attachment_utils = AttachmentUtils(self.specify_db)
         self.logger.debug(f"BotanyPurger setup complete")
