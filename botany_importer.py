@@ -1,5 +1,5 @@
-import botany_importer_config
 
+import botany_importer_config
 from importer import Importer
 import time_utils
 from datetime import datetime
@@ -45,7 +45,7 @@ class BotanyImporter(Importer):
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=botany_importer_config)
+            self.monitoring_tools = MonitoringTools(config=config)
             self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()

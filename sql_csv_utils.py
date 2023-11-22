@@ -362,7 +362,3 @@ class SqlCsvTools:
                                            val_list=val_list)
 
         return sql
-
-import picturae_config
-
-SqlCsvTools(picturae_config)
