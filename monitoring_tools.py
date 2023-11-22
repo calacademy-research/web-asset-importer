@@ -245,7 +245,7 @@ class MonitoringTools:
         sql = f"""SELECT COUNT(*)
                   FROM attachment
                   WHERE TimestampCreated >= '{str(time_stamp)}';"""
-
+        self.sql_csv_tools.ensure_db_connection()
         batch_size = self.sql_csv_tools.get_record(sql=sql)
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)

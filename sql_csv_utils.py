@@ -29,6 +29,19 @@ class SqlCsvTools:
         except Exception as e:
             raise DatabaseConnectionError from e
 
+    def ensure_db_connection(self):
+        """Ensure that the database connection is functional. Recreate if an error is raised."""
+        try:
+            # Attempt to connect to the database
+            self.specify_db_connection.connect()
+            self.logger.info("Database connection established")
+        except Exception as e:
+            # If an error is raised, recreate the database connection
+            self.logger.warning("Database connection error. Recreating connection...")
+            self.specify_db_connection = SpecifyDb(db_config_class=self.config)
+            self.specify_db_connection.connect()
+            self.logger.info("Database connection recreated")
+
     def sql_db_connection(self):
         """standard connector"""
         return self.specify_db_connection.connect()
