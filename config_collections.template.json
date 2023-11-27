@@ -1,6 +1,6 @@
 {
   "Botany_PIC": {
-    "SPECIFY_DATABASE_HOST": "10.1.12.122",
+    "SPECIFY_DATABASE_HOST": "db.institution.org",
     "SPECIFY_DATABASE_PORT": 3306,
     "SPECIFY_DATABASE": "redacted",
     "USER": "redacted",
@@ -16,13 +16,9 @@
     "SUMMARY_TERMS": ["Number of Taxa Added", "Number of Taxa Dropped by TNRS"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
     "MAILING_LIST": ["list of emails to send report to"],
-    "smtp_port": 587,
-    "smtp_server": "smtp.gmail.com",
-    "smtp_user": "youremail@gmail.com",
-    "smtp_password": "generated app password"
   },
   "picbatch": {
-    "SPECIFY_DATABASE_HOST": "db.institution.org",
+    "SPECIFY_DATABASE_HOST":"db.institution.org" ,
     "SPECIFY_DATABASE_PORT": 3306,
     "SPECIFY_DATABASE": "redacted",
     "USER": "redacted",
@@ -42,11 +38,8 @@
     "BOTANY_SCAN_FOLDERS": ["botany/TYPE IMAGES", "botany/PLANT FAMILIES"],
     "SUMMARY_TERMS": ["list of summary stats to add"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
-    "MAILING_LIST": ["list of emails to send report to"],
-    "smtp_port": 587,
-    "smtp_server": "smtp.gmail.com",
-    "smtp_user": "youremail@gmail.com",
-    "smtp_password": "generated app password"},
+    "MAILING_LIST": ["list of emails to send report to"]
+  },
   "IZ": {
     "SPECIFY_DATABASE_HOST": "db.insitution.org",
     "SPECIFY_DATABASE_PORT": 3306,
@@ -69,10 +62,6 @@
     "SUMMARY_TERMS": ["list of summary stats to add"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
     "MAILING_LIST": ["list of emails to send report to"],
-    "smtp_port": 587,
-    "smtp_server": "smtp.gmail.com",
-    "smtp_user": "youremail@gmail.com",
-    "smtp_password": "generated app password"
   },
   "ICH": {
     "SPECIFY_DATABASE_HOST": "db.insitution.org",
@@ -87,9 +76,12 @@
     "ICH_SCAN_FOLDERS": ["AutomaticSpecifyImport"],
     "SUMMARY_TERMS": ["list of summary stats to add"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
-    "MAILING_LIST": ["list of emails to send report to"],
-    "smtp_port": 587,
+    "MAILING_LIST": ["list of emails to send report to"]
+  },
+
+  "SMTP": {"smtp_port": 587,
     "smtp_server": "smtp.gmail.com",
     "smtp_user": "youremail@gmail.com",
-    "smtp_password": "generated app password"}
+    "smtp_password": "generated app password"
+  }
 }

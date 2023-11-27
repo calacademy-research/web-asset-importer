@@ -1,4 +1,4 @@
-
+from gen_import_utils import read_json_config
 import logging
 import pandas as pd
 import time_utils
@@ -6,10 +6,13 @@ from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
 import smtplib
+
+
 class MonitoringTools:
     def __init__(self, config):
         self.path = "import_monitoring.html"
         self.config = config
+        self.smtp_config = read_json_config(collection="SMTP")
         self.logger = logging.getLogger("MonitoringTools")
         if not pd.isna(config) and config != {}:
             self.check_config_present()
@@ -256,10 +259,10 @@ class MonitoringTools:
             for email in self.config['MAILING_LIST']:
                 recipient_list.append(email)
             msg['To'] = recipient_list
-            # with smtplib.SMTP(port=self.config['smtp_port'], host=self.config['smtp_server']) as server:
-            #     server.starttls()
-            #     server.login(user=self.config['smtp_user'], password=self.config['smtp_password'])
-            #     server.send_message(msg)
-            with smtplib.SMTP('localhost') as server:
+            with smtplib.SMTP(port=self.smtp_config['smtp_port'], host=self.smtp_config['smtp_server']) as server:
+                server.starttls()
+                server.login(user=self.smtp_config['smtp_user'], password=self.smtp_config['smtp_password'])
                 server.send_message(msg)
+            # with smtplib.SMTP('localhost') as server:
+            #     server.send_message(msg)
 
