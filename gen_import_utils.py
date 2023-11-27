@@ -1,7 +1,6 @@
 """Docstring: This is a utility file, outlining various useful functions to be used
    for csv and image import related tasks.
 """
-import json
 from datetime import datetime
 import sys
 import numpy as np
