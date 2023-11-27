@@ -3,7 +3,6 @@
     Used as part of picturae_project for upload post-imaging, to create records to be updated post OCR and transcription
 """
 import atexit
-import picturae_config
 from uuid import uuid4
 from gen_import_utils import *
 import logging
@@ -14,10 +13,10 @@ from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
 from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
-import picdb_config
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
+from gen_import_utils import read_json_config
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -27,8 +26,13 @@ class PicturaeImporter(Importer):
            along with attached images
     """
 
-    def __init__(self, paths, date_string=None):
-        super().__init__(picturae_config, "Botany")
+    def __init__(self, paths, config, date_string=None):
+
+        self.picturae_config = config
+
+        super().__init__(self.picturae_config, "Botany")
+
+        self.picdb_config = read_json_config('picbatch')
 
         self.logger = logging.getLogger("PicturaeImporter")
 
@@ -36,6 +40,7 @@ class PicturaeImporter(Importer):
 
         # running csv create
         csv_create_picturae = CsvCreatePicturae(date_string=self.date_use,
+                                                config=self.picturae_config,
                                                 logging_level=self.logger.getEffectiveLevel())
 
         self.records_dropped = csv_create_picturae.records_dropped
@@ -62,15 +67,15 @@ class PicturaeImporter(Importer):
 
         # setting up alternate db connection for batch database
 
-        self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+        self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
 
-        self.monitoring_tools = MonitoringToolsDir(config=picturae_config, batch_md5=self.batch_md5)
+        self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config, batch_md5=self.batch_md5)
 
         # setting up db sql_tools for each connection
 
-        self.sql_csv_tools = SqlCsvTools(config=picturae_config, logging_level=self.logger.getEffectiveLevel())
+        self.sql_csv_tools = SqlCsvTools(config=self.picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=picdb_config, logging_level=self.logger.getEffectiveLevel())
+        self.batch_sql_tools = SqlCsvTools(config=self.picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # full collector list is for populating existing and missing agents into collector table
@@ -96,7 +101,7 @@ class PicturaeImporter(Importer):
         for param in init_list:
             setattr(self, param, None)
 
-        self.created_by_agent = picturae_config.AGENT_ID
+        self.created_by_agent = self.picturae_config['AGENT_ID']
 
         self.paths = paths
 
@@ -886,8 +891,8 @@ class PicturaeImporter(Importer):
         """
         try:
             self.hide_unwanted_files()
-
-            BotanyImporter(paths=self.paths, config=picturae_config, full_import=True)
+            print("stop 1")
+            BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
 
             self.unhide_files()
         except Exception as e:
@@ -914,7 +919,7 @@ class PicturaeImporter(Importer):
 
         sql = f"""UPDATE mysql.user
                  SET account_locked = 'Y'
-                 WHERE user != '{picturae_config.USER}' AND host = '%';"""
+                 WHERE user != '{self.picturae_config['USER']}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -946,6 +951,6 @@ class PicturaeImporter(Importer):
 
         sql = f"""UPDATE mysql.user
                   SET account_locked = 'n'
-                  WHERE user != '{picturae_config.USER}' AND host = '%';"""
+                  WHERE user != '{self.picturae_config['USER']}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(sql=sql)

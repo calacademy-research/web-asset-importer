@@ -1,5 +1,4 @@
-
-import iz_importer_config
+from gen_import_utils import read_json_config
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
@@ -25,6 +24,7 @@ class IzImporter(Importer):
 
     def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
+        self.iz_importer_config = read_json_config(collection="IZ")
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
@@ -33,8 +33,8 @@ class IzImporter(Importer):
         self.logger = logging.getLogger('Client.IzImporter')
         self.logger.setLevel(logging.DEBUG)
 
-        self.collection_name = iz_importer_config.COLLECTION_NAME
-        super().__init__(iz_importer_config, "Invertebrate Zoology")
+        self.collection_name = self.iz_importer_config['COLLECTION_NAME']
+        super().__init__(self.iz_importer_config, "Invertebrate Zoology")
 
         # dir_tools = DirTools(self.build_filename_map)
 
@@ -43,21 +43,25 @@ class IzImporter(Importer):
 
         self.logger.debug("IZ import mode")
 
-        self.cur_conjunction_match = iz_importer_config.FILENAME_CONJUNCTION_MATCH + iz_importer_config.IMAGE_SUFFIX
-        self.cur_filename_match = iz_importer_config.FILENAME_MATCH + iz_importer_config.IMAGE_SUFFIX
-        self.cur_directory_match = iz_importer_config.FILENAME_MATCH
-        self.cur_directory_conjunction_match = iz_importer_config.FILENAME_CONJUNCTION_MATCH
 
-        self.cur_casiz_match = iz_importer_config.CASIZ_MATCH
+        self.cur_directory_conjunction_match = self.iz_importer_config['CASIZ_MATCH'] + \
+                                     f' (and|or) ' \
+                                     f'({self.iz_importer_config["CASIZ_PREFIX"]})?({self.iz_importer_config["CASIZ_NUMBER"]})'
+
+        self.cur_directory_match = self.iz_importer_config['CASIZ_MATCH'] + self.iz_importer_config['IMAGE_SUFFIX']
+        self.cur_conjunction_match = self.cur_directory_conjunction_match + self.iz_importer_config['IMAGE_SUFFIX']
+        self.cur_filename_match = self.cur_directory_match + self.iz_importer_config['IMAGE_SUFFIX']
+
+        self.cur_casiz_match = self.iz_importer_config['CASIZ_MATCH']
         self.cur_extract_casiz = self.extract_casiz
-        self.directory_tree_core = DirectoryTree(iz_importer_config.IZ_SCAN_FOLDERS)
+        self.directory_tree_core = DirectoryTree(self.iz_importer_config['IZ_SCAN_FOLDERS'])
         self.directory_tree_core.process_files(self.build_filename_map)
         # placeholder for filename now
 
         print("Starting to process loaded core files...")
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(iz_importer_config)
+            self.monitoring_tools = MonitoringTools(self.iz_importer_config)
             self.monitoring_tools.create_monitoring_report()
 
 
@@ -68,7 +72,7 @@ class IzImporter(Importer):
 
         if not full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                                                        time_stamp=starting_time_stamp)
+                                                         time_stamp=starting_time_stamp)
 
 
 
@@ -153,13 +157,13 @@ class IzImporter(Importer):
         return
 
     def extract_casiz_single(self, candidate_string):
-        ints = re.findall(iz_importer_config.CASIZ_NUMBER, candidate_string)
+        ints = re.findall(self.iz_importer_config['CASIZ_NUMBER'], candidate_string)
         if len(ints) > 0:
             return ints[0]
         return None
 
     def extract_casiz(self, candidate_string):
-        ints = re.findall(iz_importer_config.CASIZ_MATCH, candidate_string)
+        ints = re.findall(self.iz_importer_config['CASIZ_MATCH'], candidate_string)
         if len(ints) > 0:
             return ints[0][1]
         return None
@@ -274,7 +278,7 @@ class IzImporter(Importer):
 
     def include_by_extension(self, filepath: str) -> bool:
 
-        pattern = re.compile(f'^.*{iz_importer_config.IMAGE_EXTENSION}')
+        pattern = re.compile(f'^.*{self.iz_importer_config["IMAGE_SUFFIX"]}')
 
         return bool(pattern.match(filepath))
 

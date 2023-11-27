@@ -2,13 +2,14 @@
     database.
     NOTE: only use this process if your upload process includes a LOCK user command
           to prevent other changes to the database during upload"""
-import picturae_config
 from importer import Importer
 from specify_db import SpecifyDb
-import picdb_config
 import traceback
+from gen_import_utils import read_json_config
 class PicturaeUndoBatch(Importer):
     def __init__(self, MD5):
+        picturae_config = read_json_config(collection="Botany_PIC")
+        picdb_config = read_json_config(collection="picbatch")
         super().__init__(picturae_config, "Botany")
         self.purge_code = MD5
         self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)

@@ -21,8 +21,8 @@ def set_direct():
     """get_direct: changes directory to
        current file location directory
        returns:
-            none
-            """
+        none
+    """
     # get current directory
     # current_directory = os.getcwd()
     # this is absolute path for running chron from bin
@@ -63,11 +63,7 @@ def master_run():
 
     ip_replace('server_host_settings.py')
 
-    ip_replace('picturae_config.py')
-
-    ip_replace('botany_importer_config.py')
-
-    ip_replace('picdb_config.py')
+    ip_replace('config_collections.json')
 
 # running master function
 master_run()

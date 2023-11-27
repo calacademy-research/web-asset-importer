@@ -1,4 +1,4 @@
-import ich_importer_config
+from gen_import_utils import read_json_config
 from importer import Importer
 import os
 import re
@@ -19,14 +19,15 @@ class IchthyologyImporter(Importer):
     def __init__(self,  full_import):
         self.logger = logging.getLogger('Client.IchthyologyImporter')
 
+        ich_importer_config = read_json_config(collection="ICH")
         super().__init__(ich_importer_config, "Ichthyology")
         self.catalog_number_map = {}
 
         dir_tools = DirTools(self.build_filename_map)
 
 
-        for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
-            cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
+        for cur_dir in ich_importer_config['ICH_SCAN_FOLDERS']:
+            cur_dir = os.path.join(ich_importer_config['IMAGE_DIRECTORY_PREFIX'], ich_importer_config['SCAN_DIR'], cur_dir)
             print(f"Scanning: {cur_dir}")
             dir_tools.process_files_or_directories_recursive(cur_dir)
 
@@ -44,7 +45,7 @@ class IchthyologyImporter(Importer):
         if not full_import:
 
             self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
-                                                             time_stamp=starting_time_stamp)
+                                                         time_stamp=starting_time_stamp)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
