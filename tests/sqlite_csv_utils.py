@@ -1,11 +1,11 @@
 """derived class of SqlCsvTools in order to use sqlite protocols instead of
    standard database protocols"""
 import sqlite3
-import picturae_config
 from sql_csv_utils import SqlCsvTools
-import logging
+from gen_import_utils import read_json_config
 class SqlLiteTools(SqlCsvTools):
     def __init__(self, sql_db):
+        picturae_config = read_json_config(collection="Botany_PIC")
         super().__init__(config=picturae_config)
         self.sqlite_db = sql_db
         self.connection = self.sql_db_connection()

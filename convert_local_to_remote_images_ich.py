@@ -5,12 +5,8 @@
 # 5/4/22 Joe R.
 
 from db_utils import DbUtils, InvalidFilenameError, DatabaseInconsistentError
-import ich_importer_config
 from attachment_utils import AttachmentUtils
-
-class UploadFailureException(Exception):
-    pass
-
+from gen_import_utils import read_json_config
 import logging
 import os
 import filetype
@@ -25,7 +21,8 @@ image_client = None
 
 COLLECTION = 'Ichthyology'
 
-
+class UploadFailureException(Exception):
+    pass
 
 
 def process_attachment_record(attachment_record):
@@ -78,12 +75,14 @@ def update_attachment_record(attachment_record_id,linux_path,url, location):
 def iterate_existing_attachments():
     global specify_db_connection, attachment_utils, image_client
 
+    ich_importer_config = read_json_config(collection="ICH")
+
     specify_db_connection = DbUtils(
-        ich_importer_config.USER,
-        ich_importer_config.PASSWORD,
-        ich_importer_config.SPECIFY_DATABASE_PORT,
-        ich_importer_config.SPECIFY_DATABASE_HOST,
-        ich_importer_config.SPECIFY_DATABASE)
+        ich_importer_config['USER'],
+        ich_importer_config['PASSWORD'],
+        ich_importer_config['SPECIFY_DATABASE_PORT'],
+        ich_importer_config['SPECIFY_DATABASE_HOST'],
+        ich_importer_config['SPECIFY_DATABASE'])
     attachment_utils = AttachmentUtils(specify_db_connection)
     image_client = ImageClient()
 

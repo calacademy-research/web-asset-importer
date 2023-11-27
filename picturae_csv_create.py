@@ -3,22 +3,22 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
-import picturae_config
 from taxon_parse_utils import *
 from gen_import_utils import *
 from string_utils import *
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
-import picdb_config
 import logging
+from gen_import_utils import read_json_config
 starting_time_stamp = datetime.now()
 
 
 class CsvCreatePicturae(Importer):
-    def __init__(self, date_string, logging_level):
-        super().__init__(db_config_class=picturae_config, collection_name="Botany")
-
+    def __init__(self, date_string, config, logging_level):
+        self.picturae_config = config
+        self.picdb_config = read_json_config(collection="picbatch")
+        super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
         self.logger = logging.getLogger("CsvCreatePicturae")
         self.logger.setLevel(logging_level)
         self.init_all_vars(date_string)
@@ -32,13 +32,13 @@ class CsvCreatePicturae(Importer):
 
         # setting up alternate db connection for batch database
 
-        self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+        self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
 
         # setting up alternate csv tools connections
 
-        self.sql_csv_tools = SqlCsvTools(config=picturae_config, logging_level=self.logger.getEffectiveLevel())
+        self.sql_csv_tools = SqlCsvTools(config=self.picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=picdb_config, logging_level=self.logger.getEffectiveLevel())
+        self.batch_sql_tools = SqlCsvTools(config=self.picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # intializing parameters for database upload
@@ -65,16 +65,16 @@ class CsvCreatePicturae(Importer):
 
         to_current_directory()
 
-        dir_path = picturae_config.DATA_FOLDER + f"{self.date_use}"
+        dir_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}"
 
         dir_sub = os.path.isdir(dir_path)
 
         if dir_sub is True:
-            folder_path = picturae_config.DATA_FOLDER + f"{self.date_use}" + picturae_config.CSV_FOLD + \
-                          f"{self.date_use}" + ").csv"
+            folder_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
+                          self.picturae_config['CSV_FOLD'] + f"{self.date_use}" + ").csv"
 
-            specimen_path = picturae_config.DATA_FOLDER + f"{self.date_use}" + picturae_config.CSV_SPEC + \
-                            f"{self.date_use}" + ").csv"
+            specimen_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
+                            self.picturae_config['CSV_SPEC'] + f"{self.date_use}" + ").csv"
 
             if os.path.exists(folder_path):
                 print("Folder csv exists!")
@@ -407,7 +407,7 @@ class CsvCreatePicturae(Importer):
         unmatched_taxa = resolved_taxon[resolved_taxon["overall_score"] < .99]
 
         # writing unmatched taxa to db table taxa_unmatch
-        SpecifyDb(db_config_class=picdb_config)
+        SpecifyDb(db_config_class=self.picdb_config)
 
         if len(unmatched_taxa) > 0:
             self.batch_sql_tools.taxon_unmatch_insert(unmatched_taxa=unmatched_taxa)
@@ -504,7 +504,8 @@ class CsvCreatePicturae(Importer):
 #     """testing function to run just the first piece o
 #           f the upload process"""
 #     # logger = logging.getLogger("full_run")
-#     CsvCreatePicturae(date_string="2023-09-07", logging_level='DEBUG')
+#     test_config = read_json_config(collection="Botany_PIC")
+#     CsvCreatePicturae(date_string="2023-09-07", logging_level='DEBUG', config=test_config)
 #
 #
 # full_run()

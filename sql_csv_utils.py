@@ -373,5 +373,4 @@ class SqlCsvTools:
 
         sql = self.create_insert_statement(tab_name=tab_name, col_list=col_list,
                                            val_list=val_list)
-
         return sql
