@@ -10,6 +10,7 @@ import smtplib
 
 class MonitoringTools:
     def __init__(self, config):
+        print()
         self.path = "import_monitoring.html"
         self.config = config
         self.smtp_config = read_json_config(collection="SMTP")
@@ -248,7 +249,7 @@ class MonitoringTools:
         sql = f"""SELECT COUNT(*)
                   FROM attachment
                   WHERE TimestampCreated >= '{str(time_stamp)}';"""
-
+        self.sql_csv_tools.ensure_db_connection()
         batch_size = self.sql_csv_tools.get_record(sql=sql)
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
@@ -259,10 +260,9 @@ class MonitoringTools:
             for email in self.config['MAILING_LIST']:
                 recipient_list.append(email)
             msg['To'] = recipient_list
-            with smtplib.SMTP(port=self.smtp_config['smtp_port'], host=self.smtp_config['smtp_server']) as server:
-                server.starttls()
-                server.login(user=self.smtp_config['smtp_user'], password=self.smtp_config['smtp_password'])
-                server.send_message(msg)
-            # with smtplib.SMTP('localhost') as server:
+            # with smtplib.SMTP(port=self.smtp_config['smtp_port'], host=self.smtp_config['smtp_server']) as server:
+            #     server.starttls()
+            #     server.login(user=self.smtp_config['smtp_user'], password=self.smtp_config['smtp_password'])
             #     server.send_message(msg)
-
+            with smtplib.SMTP('localhost') as server:
+                server.send_message(msg)
