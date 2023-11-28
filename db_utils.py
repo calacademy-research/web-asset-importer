@@ -68,12 +68,14 @@ class DbUtils:
             self.logger.info("Db connected")
         else:
             try:
-                self.cnx.ping(reconnect=True, attempts=1, delay=1)
                 self.attempts += 1
-            except:
-                if self.attempts == 1:
+                self.cnx.ping(reconnect=True, attempts=1, delay=1)
+            except Exception as e:
+                if self.attempts > 1:
+                    self.logger.error(f"exiting program: {e}")
                     sys.exit(1)
                 else:
+                    self.logger.warning("connection not responsive, attempting to reset connection")
                     self.reset_connection()
             # self.logger.debug(f"Already connected db {self.database_host}...")
 
@@ -83,7 +85,6 @@ class DbUtils:
     def get_one_record(self, sql):
 
         cursor = self.get_cursor(buffered=True)
-        self
         try:
             cursor.execute(sql)
             retval = cursor.fetchone()
