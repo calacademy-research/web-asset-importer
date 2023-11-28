@@ -1,5 +1,4 @@
 
-import botany_importer_config
 from importer import Importer
 import time_utils
 from datetime import datetime

@@ -26,9 +26,8 @@ class DbUtils:
         self.database_host = database_host
         self.database_name = database_name
         self.logger = logging.getLogger('Client.dbutils')
-
         self.cnx = None
-        self.connect()
+
 
     def reset_connection(self):
 
@@ -38,6 +37,7 @@ class DbUtils:
                 self.cnx.close()
             except Exception:
                 pass
+        self.cnx = None
         self.connect()
 
     def connect(self):
@@ -67,15 +67,20 @@ class DbUtils:
 
             self.logger.info("Db connected")
         else:
-            pass
+            try:
+                self.cnx.ping(reconnect=True)
+            except Exception as e:
+                self.logger.warning(f"connection not responsive with Exception as {e}, "
+                                    f"attempting to reset connection")
+                self.reset_connection()
             # self.logger.debug(f"Already connected db {self.database_host}...")
 
 
 
     # added buffered = true so will work properly with forloops
     def get_one_record(self, sql):
-        self.connect()
-        cursor = self.cnx.cursor(buffered=True)
+
+        cursor = self.get_cursor(buffered=True)
         try:
             cursor.execute(sql)
             retval = cursor.fetchone()
@@ -101,9 +106,11 @@ class DbUtils:
         cursor.close()
         return record_list
 
-    def get_cursor(self):
+    def get_cursor(self, buffered=False):
         self.connect()
-        return self.cnx.cursor()
+        cursor = self.cnx.cursor(buffered=buffered)
+        return cursor
+
 
     def execute(self, sql):
         cursor = self.get_cursor()
