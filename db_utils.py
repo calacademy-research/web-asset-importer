@@ -26,7 +26,7 @@ class DbUtils:
         self.database_host = database_host
         self.database_name = database_name
         self.logger = logging.getLogger('Client.dbutils')
-        self.attempts = 0
+        self.reset = False
         self.cnx = None
 
 
@@ -38,6 +38,7 @@ class DbUtils:
                 self.cnx.close()
             except Exception:
                 pass
+        self.reset = True
         self.connect()
 
     def connect(self):
@@ -68,15 +69,16 @@ class DbUtils:
             self.logger.info("Db connected")
         else:
             try:
-                self.attempts += 1
                 self.cnx.ping(reconnect=True, attempts=1, delay=1)
             except Exception as e:
-                if self.attempts > 1:
-                    self.logger.error(f"exiting program: {e}")
-                    sys.exit(1)
-                else:
-                    self.logger.warning("connection not responsive, attempting to reset connection")
+                if self.reset is False:
+                    self.logger.warning(f"connection not responsive with Exception as {e}, "
+                                        f"attempting to reset connection")
                     self.reset_connection()
+                else:
+                    self.logger.warning(f"connection not responsive with Exception as {e}. "
+                                        f"Max tries attempted, exiting program.")
+                    sys.exit(1)
             # self.logger.debug(f"Already connected db {self.database_host}...")
 
 
@@ -104,10 +106,18 @@ class DbUtils:
 
     def get_records(self, query):
         cursor = self.get_cursor()
-        try:
-            cursor.execute(query)
-        except Exception as e:
-            print(f"Exception thrown while processing sql: {query}\n{e}\n")
+        attempts = 0
+        while attempts <= 3:
+            try:
+                cursor.execute(query)
+                break
+            except Exception as e:
+                self.logger.error(f"Exception thrown while processing sql: {query}\n{e}\n")
+                attempts += 1
+        else:
+            self.logger.error("get_cursor failed after max attempts")
+            sys.exit(1)
+
         record_list = list(cursor.fetchall())
         self.logger.debug(f"get records SQL: {query}")
         cursor.close()
@@ -115,12 +125,19 @@ class DbUtils:
 
     def get_cursor(self, buffered=False):
         self.connect()
-        try:
-            cursor = self.cnx.cursor(buffered=buffered)
+        attempts = 0
+        while attempts <= 3:
+            try:
+                attempts += 1
+                cursor = self.cnx.cursor(buffered=buffered)
+                break
+            except Exception as e:
+                self.logger.error(f"self.cnx.cursor failed with error {e}")
+        else:
+            self.logger.error("get_records failed after max attempts")
+            sys.exit(1)
 
-            return cursor
-        except Exception as e:
-            self.logger.error(f"self.cnx.cursor failed with error {e}")
+        return cursor
 
 
     def execute(self, sql):
