@@ -1,4 +1,5 @@
 
+import botany_importer_config
 from importer import Importer
 import time_utils
 from datetime import datetime
@@ -43,6 +44,7 @@ class BotanyImporter(Importer):
 
         if not full_import:
             self.monitoring_tools = MonitoringTools(config=self.botany_importer_config)
+
             self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()
