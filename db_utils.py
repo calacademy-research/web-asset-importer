@@ -39,6 +39,7 @@ class DbUtils:
             except Exception:
                 pass
         self.reset = True
+        self.cnx = None
         self.connect()
 
     def connect(self):
@@ -69,7 +70,8 @@ class DbUtils:
             self.logger.info("Db connected")
         else:
             try:
-                self.cnx.ping(reconnect=True, attempts=1, delay=1)
+                self.cnx.ping(reconnect=True)
+                self.reset = False
             except Exception as e:
                 if self.reset is False:
                     self.logger.warning(f"connection not responsive with Exception as {e}, "
@@ -106,18 +108,7 @@ class DbUtils:
 
     def get_records(self, query):
         cursor = self.get_cursor()
-        attempts = 0
-        while attempts <= 3:
-            try:
-                cursor.execute(query)
-                break
-            except Exception as e:
-                self.logger.error(f"Exception thrown while processing sql: {query}\n{e}\n")
-                attempts += 1
-        else:
-            self.logger.error("get_cursor failed after max attempts")
-            sys.exit(1)
-
+        cursor.execute(query)
         record_list = list(cursor.fetchall())
         self.logger.debug(f"get records SQL: {query}")
         cursor.close()
@@ -125,18 +116,7 @@ class DbUtils:
 
     def get_cursor(self, buffered=False):
         self.connect()
-        attempts = 0
-        while attempts <= 3:
-            try:
-                attempts += 1
-                cursor = self.cnx.cursor(buffered=buffered)
-                break
-            except Exception as e:
-                self.logger.error(f"self.cnx.cursor failed with error {e}")
-        else:
-            self.logger.error("get_records failed after max attempts")
-            sys.exit(1)
-
+        cursor = self.cnx.cursor(buffered=buffered)
         return cursor
 
 
