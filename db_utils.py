@@ -26,9 +26,9 @@ class DbUtils:
         self.database_host = database_host
         self.database_name = database_name
         self.logger = logging.getLogger('Client.dbutils')
-
+        self.attempts = 0
         self.cnx = None
-        self.connect()
+
 
     def reset_connection(self):
 
@@ -67,15 +67,23 @@ class DbUtils:
 
             self.logger.info("Db connected")
         else:
-            pass
+            try:
+                self.cnx.ping(reconnect=True, attempts=1, delay=1)
+                self.attempts += 1
+            except:
+                if self.attempts == 1:
+                    sys.exit(1)
+                else:
+                    self.reset_connection()
             # self.logger.debug(f"Already connected db {self.database_host}...")
 
 
 
     # added buffered = true so will work properly with forloops
     def get_one_record(self, sql):
-        self.connect()
-        cursor = self.cnx.cursor(buffered=True)
+
+        cursor = self.get_cursor(buffered=True)
+        self
         try:
             cursor.execute(sql)
             retval = cursor.fetchone()
@@ -95,15 +103,24 @@ class DbUtils:
 
     def get_records(self, query):
         cursor = self.get_cursor()
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except Exception as e:
+            print(f"Exception thrown while processing sql: {query}\n{e}\n")
         record_list = list(cursor.fetchall())
         self.logger.debug(f"get records SQL: {query}")
         cursor.close()
         return record_list
 
-    def get_cursor(self):
+    def get_cursor(self, buffered=False):
         self.connect()
-        return self.cnx.cursor()
+        try:
+            cursor = self.cnx.cursor(buffered=buffered)
+
+            return cursor
+        except Exception as e:
+            self.logger.error(f"self.cnx.cursor failed with error {e}")
+
 
     def execute(self, sql):
         cursor = self.get_cursor()
