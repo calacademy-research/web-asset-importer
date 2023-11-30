@@ -84,7 +84,7 @@ def iterate_existing_attachments():
         ich_importer_config['SPECIFY_DATABASE_HOST'],
         ich_importer_config['SPECIFY_DATABASE'])
     attachment_utils = AttachmentUtils(specify_db_connection)
-    image_client = ImageClient()
+    image_client = ImageClient(config=ich_importer_config)
 
     sql = f"select AttachmentID,origFilename from attachment where AttachmentLocation is not NULL"
     cursor = specify_db_connection.get_cursor()

@@ -10,8 +10,7 @@ import smtplib
 
 class MonitoringTools:
     def __init__(self, config):
-        print()
-        self.path = "import_monitoring.html"
+        self.path = config['REPORT_PATH']
         self.config = config
         self.smtp_config = read_json_config(collection="SMTP")
         self.logger = logging.getLogger("MonitoringTools")
@@ -54,7 +53,7 @@ class MonitoringTools:
         html_content.insert(insert_position, monitor_line + '\n')
 
         # Write the updated HTML content back to the file
-        with open("import_monitoring.html", 'w') as file:
+        with open(self.path, 'w') as file:
             file.writelines(html_content)
 
 
@@ -156,7 +155,7 @@ class MonitoringTools:
 
 
     def add_batch_size(self, batch_size):
-        with open("import_monitoring.html", "r") as file:
+        with open(self.path, "r") as file:
             html_content = file.readlines()
 
         list_section = next((i for i, s in enumerate(html_content) if "<ul>" in s), None)
@@ -166,11 +165,11 @@ class MonitoringTools:
         html_content.insert(list_section+1, image_html + '\n')
 
         # Write the updated HTML content back to the file
-        with open("import_monitoring.html", 'w') as file:
+        with open(self.path, 'w') as file:
             file.writelines(html_content)
 
     def create_monitoring_report(self, value_list=None):
-        """creates customizable report template, and then sends it the form of an email
+        """creates customizable report template
             args:
                 value_list: the list of values to use for custom terms.
                 batch_size: the size of your upload batch.
@@ -193,7 +192,7 @@ class MonitoringTools:
                 cid: the cid code to use for the embedded image html
         """
 
-        with open("import_monitoring.html", "r") as file:
+        with open(self.path, "r") as file:
             html_content = file.readlines()
 
         image_section = next((i for i, s in enumerate(html_content) if "Summary Figures:" in s), None)
@@ -204,7 +203,7 @@ class MonitoringTools:
         html_content.insert(image_section+1, image_html + '\n')
 
         # Write the updated HTML content back to the file
-        with open("import_monitoring.html", 'w') as file:
+        with open(self.path, 'w') as file:
             file.writelines(html_content)
 
     def attach_html_images(self):
@@ -221,7 +220,7 @@ class MonitoringTools:
                 self.insert_cid_img(cid)
                 image_cids.append(cid)
 
-        with open("import_monitoring.html", "r") as file:
+        with open(self.path, "r") as file:
             html_content = file.read()
 
         msg.add_alternative(html_content, subtype='html')
@@ -232,7 +231,7 @@ class MonitoringTools:
                 with open(f'{image}', 'rb') as img:
                     msg.get_payload()[0].add_related(img.read(), 'image', 'jpeg', cid=cid)
 
-        with open("import_monitoring.html", "w") as file:
+        with open(self.path, "w") as file:
             file.write(msg.as_string())
 
         return msg

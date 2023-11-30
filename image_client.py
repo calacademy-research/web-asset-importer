@@ -23,11 +23,12 @@ class FileNotFoundException(Exception):
 
 
 class ImageClient:
-    def __init__(self):
+    def __init__(self, config=None):
         ptc_timezone = datetime.timezone(datetime.timedelta(hours=-7), name="PTC")
         self.datetime_now = datetime.datetime.now(ptc_timezone)
         self.update_time_delta()
-        self.monitoring_tools = MonitoringTools(config=None)
+        if config is not None:
+            self.monitoring_tools = MonitoringTools(config=config)
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
