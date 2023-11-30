@@ -10,7 +10,7 @@ class BotanyPurger():
         self.specify_db = SpecifyDb(botany_importer_config)
         self.attachment_utils = AttachmentUtils(self.specify_db)
         self.logger.debug(f"BotanyPurger setup complete")
-        self.image_client = ImageClient()
+        self.image_client = ImageClient(config=botany_importer_config)
 
     def purge(self):
 

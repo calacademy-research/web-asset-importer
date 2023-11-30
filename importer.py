@@ -36,7 +36,7 @@ class Importer:
         self.logger = logging.getLogger('Client.importer')
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
-        self.image_client = ImageClient()
+        self.image_client = ImageClient(config=db_config_class)
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
 
@@ -68,12 +68,13 @@ class Importer:
             raise ConvertException(f"Bad filename, can't convert {tiff_filepath}")
 
         jpg_dest = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
-
+        # 'exiftool', '-TagsFromFile', tiff_filepath, jpg_dest, '&&',
         proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
+
         output = proc.communicate(timeout=60)[0]
         onlyfiles = [f for f in listdir(TMP_JPG) if isfile(join(TMP_JPG, f))]
         if len(onlyfiles) == 0:
-            raise ConvertException(f"No files producted from conversion")
+            raise ConvertException(f"No files produced from conversion")
         files_dict = {}
         for file in onlyfiles:
             files_dict[file] = os.path.getsize(os.path.join(TMP_JPG, file))
