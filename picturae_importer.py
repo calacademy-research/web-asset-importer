@@ -69,7 +69,8 @@ class PicturaeImporter(Importer):
 
         self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
 
-        self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config, batch_md5=self.batch_md5)
+        self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
+                                                   batch_md5=self.batch_md5)
 
         # setting up db sql_tools for each connection
 
@@ -259,6 +260,7 @@ class PicturaeImporter(Importer):
 
             self.barcode_list = list(set(self.barcode_list))
             self.image_list = list(set(self.image_list))
+
 
 
     def create_agent_list(self, row):
@@ -813,11 +815,13 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
+
+        lower_list = [image_path.lower() for image_path in self.image_list]
         sla = os.path.sep
         folder_path = f'picturae_img/PIC_{self.date_use}{sla}'
         for file_name in os.listdir(folder_path):
             file_path = os.path.join(folder_path, file_name)
-            if file_path not in self.image_list:
+            if file_path.lower() not in lower_list:
                 new_file_name = f".hidden_{file_name}"
                 new_file_path = os.path.join(folder_path, new_file_name)
                 os.rename(file_path, new_file_path)
