@@ -1,3 +1,5 @@
+import json
+
 import requests, hmac
 import time
 import sys
@@ -153,6 +155,43 @@ class ImageClient:
         }
 
         return self.decode_response(params)
+
+    def update_exif_image_data(self, exif_ring, collection, filename):
+        data = {'filename': filename,
+                'coll': collection,
+                'exif_ring': json.dumps(exif_ring),
+                'token': self.generate_token(filename)
+                }
+
+        url = self.build_url("updatemetadata")
+
+        print(url)
+
+        r = requests.post(url, data=data)
+
+        if r.status_code != 200:
+            print(f"exif update aborted: {r.status_code}:{r.text}")
+
+        logging.debug(f"modifying exif data for {filename} complete")
+
+
+    def read_exif_image_data(self, collection, filename, datatype):
+        params = {'filename': filename,
+                'coll': collection,
+                'dt': datatype,
+                'search_type': 'filename',
+                'token': self.generate_token(filename)
+        }
+        url = self.build_url("getmetadata")
+
+        response = requests.get(url=url, params=params)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+
 
 
 

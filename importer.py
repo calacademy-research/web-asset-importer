@@ -17,6 +17,7 @@ from os import listdir
 from os.path import isfile, join
 import traceback
 import hashlib
+from metadata_tools import MetadataTools
 
 class ConvertException(Exception):
     pass
@@ -33,6 +34,7 @@ class MissingPathException(Exception):
 class Importer:
 
     def __init__(self, db_config_class, collection_name):
+        self.db_config_class = db_config_class
         self.logger = logging.getLogger('Client.importer')
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
@@ -68,7 +70,7 @@ class Importer:
             raise ConvertException(f"Bad filename, can't convert {tiff_filepath}")
 
         jpg_dest = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
-        # 'exiftool', '-TagsFromFile', tiff_filepath, jpg_dest, '&&',
+
         proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
@@ -78,7 +80,6 @@ class Importer:
         files_dict = {}
         for file in onlyfiles:
             files_dict[file] = os.path.getsize(os.path.join(TMP_JPG, file))
-
         sort_orders = sorted(files_dict.items(), key=lambda x: x[1], reverse=True)
         top = sort_orders[0][0]
         target = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
@@ -200,8 +201,6 @@ class Importer:
             self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")
 
             jpg_found, output = self.tiff_to_jpg(tif_found)
-            self.logger.info(f"Converted to: {jpg_found}")
-
             if not os.path.exists(jpg_found):
                 self.logger.error(f"  Conversion failure for {tif_found}; skipping.")
                 self.logger.debug(f"Imagemagik output: \n\n{output}\n\n")
@@ -213,16 +212,25 @@ class Importer:
         if os.path.getsize(jpg_found) < 1000:
             self.logger.info(f"This image is too small; {os.path.getsize(jpg_found)}, skipping.")
             return TooSmallException
+
         return deleteme
 
     def upload_filepath_to_image_database(self, filepath, redacted=False):
 
         deleteme = self.convert_image_if_required(filepath)
 
+
+
         if deleteme is not None:
             upload_me = deleteme
         else:
             upload_me = filepath
+
+
+        # attaching necessary exif data post-conversion
+        if self.db_config_class['EXIF_DECODER_RING']:
+            MetadataTools(path=upload_me, config=self.db_config_class)
+
 
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
