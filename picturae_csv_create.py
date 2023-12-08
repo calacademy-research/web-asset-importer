@@ -256,11 +256,14 @@ class CsvCreatePicturae(Importer):
                 if "var." in full_name or "subsp." in full_name or " f." in full_name or "subf." in full_name:
                     hybrid_base = full_name
                     full_name = " ".join(taxon_strings[:2])
-                else:
+                elif full_name != genus and full_name == gen_spec:
                     hybrid_base = full_name
                     full_name = taxon_strings[0]
-                    if full_name != genus:
-                        full_name = " ".join(taxon_strings[:2])
+                elif full_name == genus:
+                    hybrid_base = full_name
+                    full_name = full_name
+                else:
+                    self.logger.error('hybrid base not found')
 
             elif len(first_intra) != len(full_name):
                 if "var." in full_name or "subsp." in full_name or " f." in full_name or "subf." in full_name:
@@ -352,6 +355,14 @@ class CsvCreatePicturae(Importer):
 
 
     def check_taxa_against_database(self):
+        """check_taxa_against_database:
+                concatenates every taxonomic column together to get the full taxonomic name,
+                checks full taxonomic name against database and retrieves taxon_id if present
+                and `None` if absent from db. In TNRS, only taxonomic names with a `None`
+                result will be checked.
+                args:
+                    None"""
+
         col_list = ['Genus', 'Species', 'Rank 1', 'Epithet 1', 'Rank 2', 'Epithet 2']
 
         self.record_full['fulltaxon'] = ''

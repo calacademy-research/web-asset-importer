@@ -104,6 +104,45 @@ class SqlCsvTools:
         else:
             return result
 
+
+    def get_one_hybrid(self, match, fullname):
+        """get_one_hybrid:
+            used instead of get_one_record for hybrids to
+            match multi-term hybrids irrespective of order
+            args:
+                match = the hybrid term of a taxonomic name e.g Genus A x B,
+                        match - "A X B"
+        """
+        parts = match.split()
+        if len(parts) == 3:
+            sql = f'''SELECT TaxonID FROM taxon WHERE 
+                      LOWER(FullName) LIKE "%{parts[0]}%" 
+                      AND LOWER(FullName) LIKE "%{parts[1]}%"
+                      AND LOWER(FullName) LIKE "%{parts[2]}%";'''
+
+            result = self.specify_db_connection.get_records(query=sql)
+
+            if result:
+                taxon_id = result[0]
+            else:
+                taxon_id = None
+
+            return taxon_id
+
+        elif len(parts) < 3:
+            taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname,
+                                          match_type=str)
+
+            return taxon_id
+        else:
+            self.logger.error("hybrid tax name has more than 3 terms")
+
+            return None
+
+
+
+
+
     def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
         """populate_sql:
                 creates a custom select statement for get one record,
@@ -262,12 +301,16 @@ class SqlCsvTools:
             else:
                 pass
 
-    def taxon_get(self, name):
+    def taxon_get(self, name, hybrid=False, taxname=None):
 
-        result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                       match_type=str)
+        if hybrid is False:
+            result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                           match_type=str)
+            return result_id
+        else:
+            result_id = self.get_one_hybrid(match=taxname, fullname=name)
 
-        return result_id
+            return result_id
 
 
     def create_tnrs_unmatch_tab(self, row, df, tab_name: str):

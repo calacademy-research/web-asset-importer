@@ -1,5 +1,5 @@
 import unittest
-
+from gen_import_utils import read_json_config
 import pandas as pd
 import shutil
 from metadata_tools import MetadataTools
@@ -7,7 +7,8 @@ class TestMetadataTools(unittest.TestCase):
 
     def setUp(self):
         self.path = "tests/test_images/test_image.jpg"
-        self.md = MetadataTools(self.path)
+        self.config = read_json_config(collection="Botany_PIC")
+        self.md = MetadataTools(config=self.config, path=self.path)
         shutil.copyfile("tests/test_images/test_image.jpg", "tests/test_images/image_backup.jpg")
 
     def test_is_file_larger_than(self):
