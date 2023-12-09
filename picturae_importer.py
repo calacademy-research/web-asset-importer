@@ -367,7 +367,11 @@ class PicturaeImporter(Importer):
         """
         self.gen_spec_id = None
         self.taxon_list = []
-        self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
+        if self.is_hybrid is False:
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
+        else:
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
+                                                         taxname=self.tax_name, hybrid=True)
         # append taxon full name
         if self.taxon_id is None:
             self.taxon_list.append(self.full_name)

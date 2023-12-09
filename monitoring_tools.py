@@ -172,13 +172,9 @@ class MonitoringTools:
         """creates customizable report template
             args:
                 value_list: the list of values to use for custom terms.
-                batch_size: the size of your upload batch.
-                batch_md5: the md5 code of your upload batch
-                agent_number: the agent id or name of person who ran the import script.
-                config_file: the config file to use
                 """
         self.clear_txt()
-        if not self.config['SUMMARY_TERMS']:
+        if self.config['SUMMARY_TERMS']:
             custom_terms = self.create_summary_term_list(value_list=value_list)
             self.add_format_batch_report(custom_terms=custom_terms)
         else:
