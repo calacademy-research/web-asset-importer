@@ -8,16 +8,19 @@ import exifread
 import PIL
 from PIL import Image, ExifTags
 import subprocess
+from gen_import_utils import read_json_config
 
 class MetadataTools:
-
-    # Hangs on some files, don't know why, needs to be killed
     @timeout(20, os.strerror(errno.ETIMEDOUT))
-    def __init__(self, path):
+    def __init__(self, path, config):
+        self.config = config
+        self.exif_ring = config['EXIF_DECODER_RING']
         self.path = path
         self.logger = logging.getLogger('MetadataTools')
-
         self.logger.setLevel(logging.DEBUG)
+        self.process_exif_ring()
+
+
 
     def is_file_larger_than(self, size_in_mb: float) -> bool:
         """
@@ -71,7 +74,7 @@ class MetadataTools:
             exif_dict: dictionary of exif terms using exif codes, and new values to assign"""
 
         exif_tag = self.exif_code_to_tag(exif_code)
-        command = ['exiftool', f"-{exif_tag}={exif_value}", self.path]
+        command = ['exiftool', '-overwrite_original', f"-{exif_tag}={exif_value}", self.path]
         subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         self.logger.info("exif added succesfully")
 
@@ -102,7 +105,7 @@ class MetadataTools:
         """converts exif code into the string of the tag name
             args:
                 exif_code: the integer code of an exif tag to convert to TAG"""
-
+        exif_code = int(exif_code)
         tag_name = exifread.tags.EXIF_TAGS.get(exif_code, "Unknown Tag")
 
         if tag_name == "Unknown Tag":
@@ -120,20 +123,32 @@ class MetadataTools:
         if convert_tags is True:
             exif = {
                 PIL.ExifTags.TAGS[k]: v
-                for k, v in img._getexif().items()
+                for k, v in img.getexif().items()
                 if k in PIL.ExifTags.TAGS
             }
         else:
-            exif = img._getexif()
+            exif = img.getexif()
 
         img.close()
         return exif
 
+    def process_exif_ring(self):
+        """iterates through exif_ring dict keys and values to attach them to image"""
+        self.logger.info(f"processing exif ring for filepath: {self.path}")
+        for key, value in self.exif_ring.items():
+            key = int(key)
+            self.exif_attach_metadata(exif_code=key, exif_value=value)
 
-if __name__ == "__main__":
-    # print("Running tests...")
-    #
-    md = MetadataTools(path = 'tests/test_images/test_image.jpg')
 
-    print(md.exif_code_to_tag(exif_code=1243309534959))
+# if __name__ == "__main__":
+#     # print("Running tests...")
+#     #
+#     md = MetadataTools(path='picturae_img/PIC_2023-06-28/CAS999999981.TIF')
+#     md.process_exif_ring()
+#
+#     # md.iptc_attach_metadata(iptc_field="copyright notice", iptc_value="test_val")
+#     # print(md.read_iptc_metadata())
+#     print(md.read_exif_metadata(convert_tags=False))
+
+
 

@@ -35,7 +35,7 @@ file list:
 
                           taxa_unmatch : taxa which did not pass TNRS successfully
                           picturaetaxa_added: new taxa added to the database
-                          And creates and upload log:
+                          And creates and nb upload log:
                           picturae_batch: tracks each upload with timestamps and MD5 code,
                                            can be used for purging or troubleshooting.
 
