@@ -67,7 +67,7 @@ def remove_two_index(value_list, column_list):
         elif pd.isna(entry):
             continue
 
-        elif entry == '<NA>' or entry == '':
+        elif entry == '<NA>' or entry == '' or entry == 'None':
             continue
 
         new_value_list.append(entry)
@@ -142,3 +142,8 @@ def generate_token(timestamp, filename):
     mac = hmac.new(settings.KEY.encode(), timestamp.encode() + filename.encode(), digestmod='md5')
     print(f"Generated new token for {filename} at {timestamp}.")
     return ':'.join((mac.hexdigest(), timestamp))
+
+def get_row_value_or_default(row, column_name, default_value=None):
+    """used to return row values where column may or may not be present in dataframe"""
+    return row[column_name] if column_name in row else default_value
+

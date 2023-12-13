@@ -18,6 +18,7 @@ import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
 from gen_import_utils import read_json_config
 
+
 class PicturaeImporter(Importer):
     """DataOnboard:
            A class with methods designed to wrangle, verify,
@@ -899,7 +900,6 @@ class PicturaeImporter(Importer):
         """
         try:
             self.hide_unwanted_files()
-            print("stop 1")
             BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
 
             self.unhide_files()
@@ -920,8 +920,8 @@ class PicturaeImporter(Importer):
         # creating file list after conditions
         self.create_file_list()
 
-        # prompt
-        cont_prompter()
+        # prompt(uncomment for local or monitored imports)
+        # cont_prompter()
 
         # locking users out from the database
 
