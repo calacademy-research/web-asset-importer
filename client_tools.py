@@ -13,6 +13,7 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
+from PIC_database_updater import UpdateDbFields
 args = None
 logger = None
 
@@ -41,6 +42,7 @@ def parse_command_line():
     search_parser = subparsers.add_parser('search')
     import_parser = subparsers.add_parser('import')
     purge_parser = subparsers.add_parser('purge')
+    update_parser = subparsers.add_parser('update')
 
     search_parser.add_argument('term')
 
@@ -49,8 +51,12 @@ def parse_command_line():
     parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database', default=None)
 
     parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an '
-                                                                          'import that imports both data and images',
+                                                                           'import that imports both data and images',
                         default=False)
+
+    parser.add_argument('-uf', '--force_update', nargs="?", type=bool, help='Set to True if '
+                                                                            'you desire to overwrite '
+                                                                            'existing data when updating', default=False)
 
     return parser.parse_args()
 
@@ -105,6 +111,13 @@ def main(args):
         if args.collection == "Botany_PIC":
             md5_insert = args.md5
             PicturaeUndoBatch(MD5=md5_insert)
+    elif args.subcommand == 'update':
+        if args.collection == "Botany_PIC":
+            pic_config = read_json_config(collection="Botany_PIC")
+            date_override = args.date
+            force_update = args.force_update
+            UpdateDbFields(config=pic_config, date=date_override, force_update=force_update)
+
     else:
         print(f"Unknown command: {args.subcommand}")
 
