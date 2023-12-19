@@ -27,7 +27,6 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
-
         data = {'CatalogNumber': ["12345", "12346", "12347", "12348"],
                 'verbatim_date': ['May 5 , 1955', 'May 20 , 1980', 'March 20th, 1925', 'April 5th, 2008'],
                 'start_date': ['5/05/1955', '5/20/1980', '3/20/1925', '4/05/2008'],

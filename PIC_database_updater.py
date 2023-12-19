@@ -93,7 +93,7 @@ class UpdateDbFields:
             self.logger.info(f"Herbarium code already in collectionobject table at:{barcode}")
 
 
-    def update_coords(self, barcode, column_list, colname_list):
+    def update_coords(self, barcode, val_list, colname_list):
         """function used to update lat/long columns locality table
             args:
                 barcode: the barcode of the record you want ot update
@@ -116,7 +116,7 @@ class UpdateDbFields:
 
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                             val_list=column_list, condition=condition)
+                                                             val_list=val_list, condition=condition)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -354,18 +354,13 @@ class UpdateDbFields:
             if "Modifier" in self.update_frame:
                 self.update_herbarium_code(barcode=row['barcode'], herb_code=row['Modifier'])
 
-            # checking numeric coordinate values for update
-            if 'Longitude1' or 'Latitude2' in self.update_frame:
-                up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2'])
+            # checking lat/long values for update
+            if 'Longitude1' or 'Latitude2' or 'LatText1' or 'LatText2' or 'Datum' in self.update_frame:
+                up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2',
+                                                            'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text', 'Datum'])
 
-                self.update_coords(barcode=row['barcode'],  colname_list=up_list, column_list=row[up_list])
+                self.update_coords(barcode=row['barcode'],  colname_list=up_list, val_list=row[up_list])
 
-            # checking the string based coordinate values for update
-            if 'LatText1' or 'LatText2' or 'Datum' in self.update_frame:
-                up_list = self.make_update_list(check_list=['Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text', 'Datum'])
-
-                self.update_coords(barcode=row['barcode'], colname_list=up_list,
-                                   column_list=row[up_list])
             # checking the habitat string for update
             if 'Habitat' in self.update_frame:
                 self.update_habitat(barcode=row['barcode'],

@@ -72,3 +72,4 @@ class ConcatTaxonTests(unittest.TestCase, TestingTools):
     def tearDown(self):
         """deleting instance of PicturaeImporter"""
         del self.test_csv_create_picturae
+
