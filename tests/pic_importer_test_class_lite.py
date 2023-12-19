@@ -30,32 +30,38 @@ class AltPicturaeImporterlite(PicturaeImporter):
                 row: a row from a botany specimen csv dataframe containing the required columns
 
         """
-        column_list = ['CatalogNumber', 'verbatim_date', 'start_date',
-                       'end_date', 'collector_number', 'locality', 'fullname', 'taxname',
-                       'gen_spec', 'qualifier', 'name_matched', 'Genus', 'Family', 'Hybrid', 'accepted_author',
-                       'first_intra', 'county', 'state', 'country']
-        # print(self.full_name)
-        index_list = []
-        for column in column_list:
-            barcode_index = self.record_full.columns.get_loc(column)
-            index_list.append(barcode_index)
-        self.barcode = row[index_list[0]].zfill(9)
-        self.verbatim_date = row[index_list[1]]
-        self.start_date = row[index_list[2]]
-        self.end_date = row[index_list[3]]
-        self.collector_number = row[index_list[4]]
-        self.locality = row[index_list[5]]
-        self.full_name = row[index_list[6]]
-        self.tax_name = row[index_list[7]]
-        self.gen_spec = row[index_list[8]]
-        self.qualifier = row[index_list[9]]
-        self.name_matched = row[index_list[10]]
-        self.genus = row[index_list[11]]
-        self.family_name = row[index_list[12]]
-        self.is_hybrid = row[index_list[13]]
-        self.author = row[index_list[14]]
-        self.first_intra = row[index_list[15]]
+
+        self.barcode = row.CatalogNumber.zfill(9)
+        self.verbatim_date = row.verbatim_date
+        self.start_date = row.start_date
+        self.end_date = row.end_date
+        self.collector_number = row.collector_number
+        self.locality = row.locality
+        self.full_name = row.fullname
+        self.tax_name = row.taxname
+        self.gen_spec = row.gen_spec
+        self.qualifier = row.qualifier
+        self.name_matched = row.name_matched
+        self.genus = row.Genus
+        self.family_name = row.Family
+        self.is_hybrid = row.Hybrid
+        self.author = row.accepted_author
+        self.first_intra = row.first_intra
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
+
+    def populate_fields_without_taxonomy(self, row):
+
+        self.barcode = row.CatalogNumber.zfill(9)
+        self.verbatim_date = row.verbatim_date
+        self.start_date = row.start_date
+        self.end_date = row.end_date
+        self.collector_number = row.collector_number
+        self.locality = row.locality
+
+        guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
+        for guid_string in guid_list:
+            setattr(self, guid_string, uuid4())
+
