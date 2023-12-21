@@ -417,9 +417,6 @@ class CsvCreatePicturae(Importer):
 
         unmatched_taxa = resolved_taxon[resolved_taxon["overall_score"] < .99]
 
-        # writing unmatched taxa to db table taxa_unmatch
-        SpecifyDb(db_config_class=self.picdb_config)
-
         if len(unmatched_taxa) > 0:
             self.batch_sql_tools.taxon_unmatch_insert(unmatched_taxa=unmatched_taxa)
 

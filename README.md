@@ -38,11 +38,11 @@ python client_tools.py Botany import -t /images/botany/test.jpg
 
 collection/operation specific flags include:
 
-'-d' for date (yyyy-mm-dd) used for picturae import.
+'-d' for date (yyyy-mm-dd), used for picturae import batches.
 ```
 python client_tools.py -d 11-12-2023 Botany_PIC import
 ```
-'-uf' for forced update for skipping database checks in update.
+'-uf' for forced update, used for skipping database checks in update.
 ```
 python client_tools.py -uf True Botany_PIC update
 ```
@@ -51,7 +51,7 @@ python client_tools.py -uf True Botany_PIC update
 ```
 python client_tools.py -m "2c0d19fcc4a94043dfdd005f691828ba" Botany_PIC purge
 ```
-For more detail on collections import processes at the California Academy of Sciences, click [here](https://docs.google.com/document/d/1uHnZve2TuOR1bplnHgYHbpFlT8Ph6Hwvxqb3wfCO_SM/edit?usp=sharing):
+For more detail on our collections import processes at the California Academy of Sciences, click [here](https://docs.google.com/document/d/1uHnZve2TuOR1bplnHgYHbpFlT8Ph6Hwvxqb3wfCO_SM/edit?usp=sharing):
 
 
 ### Searching
