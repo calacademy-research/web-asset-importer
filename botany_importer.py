@@ -85,8 +85,8 @@ class BotanyImporter(Importer):
 
         self.import_to_imagedb_and_specify(filepath_list,
                                            collection_object_id,
-                                           95728,
-                                           force_redacted=force_redacted)
+                                           self.botany_importer_config['AGENT_ID'],
+                                           force_redacted)
 
 
 

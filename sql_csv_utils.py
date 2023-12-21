@@ -238,14 +238,18 @@ class SqlCsvTools:
                        "TimestampModified",
                        "StartTimeStamp",
                        "EndTimeStamp",
-                       "batch_size"
+                       "batch_size",
+                       "CreatedByAgentID",
+                       "ModifiedByAgentID"
                        ]
         value_list = [f"{batch_md5}",
                       f"{time_utils.get_pst_time_now_string()}",
                       f"{time_utils.get_pst_time_now_string()}",
                       f"{time_stamp_list[0]}",
                       f"{time_stamp_list[1]}",
-                      f"{batch_size}"
+                      f"{batch_size}",
+                      f"{self.config['AGENT_ID']}",
+                      f"{self.config['AGENT_ID']}"
                       ]
 
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -263,7 +267,8 @@ class SqlCsvTools:
                 val_list: list of values with which to update above list of columns(order matters)
                 condition: condition sql string used to select sub-sect of records to update.
         """
-        update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}",'''
+        update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}", 
+                            ModifiedByAgentID = "{self.config["AGENT_ID"]}",'''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''
@@ -340,7 +345,9 @@ class SqlCsvTools:
                     "unmatched_terms",
                     "author",
                     "overall_score",
-                    "CatalogNumber"]
+                    "CatalogNumber",
+                    "CreatedByAgentID",
+                    "ModifiedByAgentID"]
 
         val_list = [f"{row[fullname]}",
                     f"{time_utils.get_pst_time_now_string()}",
@@ -349,7 +356,9 @@ class SqlCsvTools:
                     f"{row[unmatched_terms]}",
                     f"{row[accepted_author]}",
                     f"{row[overall_score]}",
-                    f"{row[catalog_number]}"]
+                    f"{row[catalog_number]}",
+                    f"{self.config['AGENT_ID']}",
+                    f"{self.config['AGENT_ID']}"]
 
         val_list, col_list = remove_two_index(val_list, col_list)
 
@@ -401,7 +410,9 @@ class SqlCsvTools:
                     "CatalogNumber",
                     "family",
                     "name",
-                    "Hybrid"]
+                    "Hybrid",
+                    "CreatedByAgentID",
+                    "ModifiedByAgentID"]
 
 
         val_list = [f"{row[fullname]}",
@@ -410,7 +421,11 @@ class SqlCsvTools:
                     f"{row[catalog_number]}",
                     f"{row[family]}",
                     f"{row[taxname]}",
-                       row[hybrid]]
+                       row[hybrid],
+                    f"{self.config['AGENT_ID']}",
+                    f"{self.config['AGENT_ID']}"]
+
+
 
         val_list, col_list = remove_two_index(val_list, col_list)
 
