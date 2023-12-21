@@ -80,6 +80,7 @@ class BotanyImporter(Importer):
         # not done for modern samples, but historically this exists.
         # when removed the unittest
         filepath_list = self.clean_duplicate_basenames(filepath_list)
+        filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
 
         self.import_to_imagedb_and_specify(filepath_list,
