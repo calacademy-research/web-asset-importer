@@ -8,18 +8,20 @@ import traceback
 from gen_import_utils import read_json_config
 class PicturaeUndoBatch(Importer):
     def __init__(self, MD5):
-        picturae_config = read_json_config(collection="Botany_PIC")
-        picdb_config = read_json_config(collection="picbatch")
-        super().__init__(picturae_config, "Botany")
+        self.picturae_config = read_json_config(collection="Botany_PIC")
+        self.picdb_config = read_json_config(collection="picbatch")
+        super().__init__(self.picturae_config, "Botany")
         self.purge_code = MD5
-        self.batch_db_connection = SpecifyDb(db_config_class=picdb_config)
+        self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
+        self.data_deleted = False
         self.run_all(MD5=self.purge_code)
 
 
 
     def get_attachment_location(self, timestamp1, timestamp2):
-        sql = f"""SELECT AttachmentLocation FROM attachment WHERE 
-                  TimestampCreated >= '{timestamp1}' AND TimestampCreated <= '{timestamp2}'; """
+        sql = f'''SELECT AttachmentLocation FROM attachment WHERE 
+                  TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
+                  AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";;'''
         list_of_attachments = self.specify_db_connection.get_records(query=sql)
         image_location = [record[0] for record in list_of_attachments]
         return image_location
@@ -37,17 +39,22 @@ class PicturaeUndoBatch(Importer):
             self.logger.error(f"Connection Error: {e}")
 
         sql = f'''DELETE FROM {table} WHERE TimestampCreated >= 
-                  "{timestamp1}" AND TimestampCreated <= "{timestamp2}"'''
+                  "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
+                  AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";'''
+
         self.logger.info(f'running query: {sql}')
         self.logger.debug(sql)
         try:
             cursor.execute(sql)
+            deleted_count = cursor.rowcount
         except Exception as e:
             self.logger.error(f"Exception thrown while processing sql: {sql}\n{e}\n", flush=True)
             self.logger.error(traceback.format_exc())
 
         self.specify_db_connection.commit()
-
+        self.logger.info(f"{deleted_count} rows deleted from {table}")
+        if deleted_count > 0:
+            self.data_deleted = True
         cursor.close()
 
     def batch_tree_pruner(self, table, timestamp1, timestamp2):
@@ -69,7 +76,8 @@ class PicturaeUndoBatch(Importer):
         sql_temp = f'''CREATE TEMPORARY TABLE temp_leaf_nodes AS SELECT TaxonID FROM {table} WHERE TaxonID
                        NOT IN (SELECT DISTINCT ParentID FROM {table}
                        WHERE ParentID IS NOT NULL) 
-                       AND TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}";'''
+                       AND TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}"
+                       AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";'''
 
         sql_del = f'''DELETE FROM {table} WHERE TaxonID IN (SELECT TaxonID FROM temp_leaf_nodes);'''
 
@@ -84,8 +92,9 @@ class PicturaeUndoBatch(Importer):
             except Exception as e:
                 print(f"Exception thrown while processing sql: \n{e}\n", flush=True)
                 self.logger.error(traceback.format_exc())
-
-            if rows_affected == 0:
+            if rows_affected > 0:
+                self.data_deleted = True
+            elif rows_affected == 0:
                 break
         self.specify_db_connection.commit()
 
@@ -145,7 +154,7 @@ class PicturaeUndoBatch(Importer):
 
         table_list = ['collectionobjectattachment', 'attachment',
                       'determination', 'collectionobject', 'collector',
-                      'collectingevent', 'locality', 'agent']
+                      'collectingevent', 'localitydetail', 'locality', 'agent']
 
         for table in table_list:
             self.batch_undo_timestamps(table=table,
@@ -157,9 +166,11 @@ class PicturaeUndoBatch(Importer):
         self.batch_tree_pruner(table=table,
                                timestamp1=start_time,
                                timestamp2=end_time)
+
         # clearing picbatch records
-        for table in ['picturaetaxa_added', 'taxa_unmatch', 'picturae_batch']:
-            self.batch_log_clear(table=table, MD5=MD5)
+        if self.data_deleted is True:
+            for table in ['picturaetaxa_added', 'taxa_unmatch', 'picturae_batch']:
+                self.batch_log_clear(table=table, MD5=MD5)
 
 
     def run_all(self, MD5):

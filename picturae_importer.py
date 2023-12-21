@@ -66,10 +66,6 @@ class PicturaeImporter(Importer):
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
-        # setting up alternate db connection for batch database
-
-        self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
-
         self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
                                                    batch_md5=self.batch_md5)
 
