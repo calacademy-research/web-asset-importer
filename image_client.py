@@ -87,7 +87,7 @@ class ImageClient:
 
     def upload_to_image_server(self, full_path, redacted, collection, original_path=None):
         if full_path is None or redacted is None or collection is None:
-            errstring = f"Bad input falues to upload to image server: {full_path} {redacted} {collection}"
+            errstring = f"Bad input failures to upload to image server: {full_path} {redacted} {collection}"
             print(errstring, file=sys.stderr, flush=True)
             raise UploadFailureException(errstring)
         local_filename = full_path
@@ -118,7 +118,7 @@ class ImageClient:
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
             print(f"Image upload aborted: {r.status_code}:{r.text}")
-            self.monitoring_tools.add_imagepath_to_html(image_path=local_filename,
+            self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=False)
             raise UploadFailureException
@@ -135,7 +135,7 @@ class ImageClient:
             assert r.status_code == 200
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             print("adding to image")
-            self.monitoring_tools.add_imagepath_to_html(image_path=local_filename,
+            self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=True)
 
