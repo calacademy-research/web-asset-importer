@@ -188,6 +188,30 @@ class Importer:
                 unique_filepaths.append(filepath)
         return unique_filepaths
 
+    @staticmethod
+    def clean_duplicate_image_barcodes(filepath_list):
+        file_dict = {}
+        jpg_dict = {}
+        for filepath in filepath_list:
+            basename = os.path.basename(filepath)
+            barcode, file_extension = os.path.splitext(basename)
+
+            if barcode not in file_dict:
+                file_dict[barcode] = filepath
+
+                if file_extension.lower() in ['.jpg', '.jpeg']:
+                    jpg_dict[barcode] = filepath
+            else:
+                # If a duplicate is encountered, prioritize .jpg files
+                if file_extension.lower() in ['.jpg', '.jpeg']:
+                    jpg_dict[barcode] = filepath
+                    file_dict[barcode] = filepath
+                elif (file_extension.lower() in ['.tif', '.tiff']) and not file_dict[barcode].lower().endswith(
+                        ('.jpg', '.jpeg')):
+                    file_dict[barcode] = filepath
+
+        return list(file_dict.values())
+
     def convert_image_if_required(self, filepath):
         jpg_found = False
         tif_found = False
