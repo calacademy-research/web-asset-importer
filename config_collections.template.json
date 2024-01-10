@@ -16,14 +16,15 @@
     "REPORT_PATH": "path/to/htmlreport",
     "SUMMARY_TERMS": ["Number of Taxa Added", "Number of Taxa Dropped by TNRS"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
-    "MAILING_LIST": ["list of emails to send report to"],
+    "MAILING_LIST": ["list of emails to send report to"]
   },
   "picbatch": {
     "SPECIFY_DATABASE_HOST":"db.institution.org" ,
     "SPECIFY_DATABASE_PORT": 3306,
     "SPECIFY_DATABASE": "redacted",
     "USER": "redacted",
-    "PASSWORD": "redacted"
+    "PASSWORD": "redacted",
+    "AGENT_ID": 123456
   },
   "Botany":{
     "SPECIFY_DATABASE_HOST": "db.institution.org",
@@ -64,7 +65,7 @@
     "REPORT_PATH": "path/to/htmlreport",
     "SUMMARY_TERMS": ["list of summary stats to add"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
-    "MAILING_LIST": ["list of emails to send report to"],
+    "MAILING_LIST": ["list of emails to send report to"]
   },
   "ICH": {
     "SPECIFY_DATABASE_HOST": "db.insitution.org",

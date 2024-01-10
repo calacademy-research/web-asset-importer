@@ -11,6 +11,7 @@ from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import logging
 from gen_import_utils import read_json_config
+from taxon_tools.BOT_TNRS import process_taxon_resolve
 starting_time_stamp = datetime.now()
 
 
@@ -321,18 +322,16 @@ class CsvCreatePicturae(Importer):
                 self.record_full.loc[index, 'barcode_present'] = True
 
     def image_has_record(self):
-        """checks if image name/barcode already in attachments table"""
+        """checks if image name/barcode already in image_db"""
         self.record_full['image_present'] = None
         for index, row in self.record_full.iterrows():
             file_name = os.path.basename(row['image_path'])
             file_name = file_name.lower()
             # file_name = file_name.rsplit(".", 1)[0]
-            sql = f'''select origFilename from attachment
-                      where origFilename = "{file_name}";'''
-            db_name = self.specify_db_connection.get_one_record(sql)
-            if db_name is None:
+            imported = self.image_client.check_image_db_if_filename_imported(collection="Botany",
+                                                                  filename=file_name, exact=True)
+            if imported is False:
                 self.record_full.loc[index, 'image_present'] = False
-
             else:
                 self.record_full.loc[index, 'image_present'] = True
 
@@ -385,9 +384,6 @@ class CsvCreatePicturae(Importer):
            for hybrids as IPNI does not work well with hybrids
            """
 
-        from rpy2 import robjects
-        from rpy2.robjects import pandas2ri
-
         bar_tax = self.record_full[pd.isna(self.record_full['taxon_id'])]
 
         bar_tax = bar_tax[['CatalogNumber', 'fullname']]
@@ -396,20 +392,9 @@ class CsvCreatePicturae(Importer):
 
         bar_tax = bar_tax.drop(columns='taxon_id')
 
-        pandas2ri.activate()
 
-        r_dataframe_tax = pandas2ri.py2rpy(bar_tax)
+        resolved_taxon = process_taxon_resolve(bar_tax)
 
-        robjects.globalenv['r_dataframe_taxon'] = r_dataframe_tax
-
-        with open('taxon_check/R_TNRS.R', 'r') as file:
-            r_script = file.read()
-
-        robjects.r(r_script)
-
-        resolved_taxon = robjects.r['resolved_taxa']
-
-        resolved_taxon = robjects.conversion.rpy2py(resolved_taxon)
 
         resolved_taxon['overall_score'].fillna(0, inplace=True)
 
