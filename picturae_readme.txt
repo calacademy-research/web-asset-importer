@@ -8,13 +8,12 @@ setup:
            in web-asset-server directory run in terminal : 'bash image_client/PIC_dbcreate/run_picdb.sh'
            to create a docker container for the new db
            -then run the commented out sql commands manually
-      3. (optional) install R to enable r2py package to work properly
-      4. in order to run picturae_importer from the command line run with example date 2023-06-28 after option -d flag:
+      3. in order to run picturae_importer from the command line run with example date 2023-06-28 after option -d flag:
          "python client_tools.py -d 2023-06-28 Botany_PIC import"
 
         if no date argument picturae_import will use the image/ csv folder name with the latest date.
 
-      5. to undo uploads, look in picbatch db and retrieve from picturae_batch,
+      4. to undo uploads, look in picbatch db and retrieve from picturae_batch,
           the correct md5 associated with your upload time, call PIC_undo_batch.py from the command line
           by invoking client tools and the purge functionality (example as done from parent directory):
           "python client_tools.py -m "0d7903b24a616290cf4c449401068f51:2023-09-13 12:24:02.387138" Botany_PIC purge
@@ -65,9 +64,9 @@ file list:
 
 
     specify7_ipup : used to update ip addresses in config and settings files.
-    R files:
-        R_TNRS: a taxonomic name resolver in the taxon_check/ folder. Further details in .readme.txt
-                in the taxon_check/ folder
+
+    BOT_TNRS: a taxonomic name resolver in the taxon_check/ folder. Further details in .readme.txt
+            in the taxon_check/ folder
 
     SQL files:
         in test_csv_purge_sq/:

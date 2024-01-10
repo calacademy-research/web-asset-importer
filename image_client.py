@@ -165,8 +165,6 @@ class ImageClient:
 
         url = self.build_url("updatemetadata")
 
-        print(url)
-
         r = requests.post(url, data=data)
 
         if r.status_code != 200:
