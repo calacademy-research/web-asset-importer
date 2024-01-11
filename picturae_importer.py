@@ -17,6 +17,7 @@ import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
 from gen_import_utils import read_json_config
+from taxon_tools.BOT_TNRS import process_taxon_resolve
 
 
 class PicturaeImporter(Importer):
@@ -182,8 +183,8 @@ class PicturaeImporter(Importer):
         return def_tree, rank_id
 
 
-    def single_taxa_tnrs(self, taxon_name, barcode):
-        """single_taxa_tnrs: designed to take in one taxaname and
+    def taxa_author_tnrs(self, taxon_name, barcode):
+        """taxa_author_tnrs: designed to take in one taxaname and
            do a TNRS operation on it to get an author for iterative higher taxa.
 
            args:
@@ -193,27 +194,13 @@ class PicturaeImporter(Importer):
                          used to re-merge dataframes after TNRS and keep track of the record in R.
         """
 
-        from rpy2 import robjects
-        from rpy2.robjects import pandas2ri
-
         taxon_frame = {"CatalogNumber": [barcode], "fullname": [taxon_name]}
 
         taxon_frame = pd.DataFrame(taxon_frame)
 
-        pandas2ri.activate()
+        # running taxonomic names through TNRS
 
-        r_dataframe_tax = pandas2ri.py2rpy(taxon_frame)
-
-        robjects.globalenv['r_dataframe_taxon'] = r_dataframe_tax
-
-        with open('taxon_check/R_TNRS.R', 'r') as file:
-            r_script = file.read()
-
-        robjects.r(r_script)
-
-        resolved_taxon = robjects.r['resolved_taxa']
-
-        resolved_taxon = robjects.conversion.rpy2py(resolved_taxon)
+        resolved_taxon = process_taxon_resolve(taxon_frame)
 
         taxon_list = list(resolved_taxon['accepted_author'])
 
@@ -381,7 +368,7 @@ class PicturaeImporter(Importer):
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
                 self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec)
                 # check high taxa gen_spec for author
-                self.single_taxa_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
+                self.taxa_author_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
                 if self.gen_spec_id is None:
                     self.taxon_list.append(self.gen_spec)

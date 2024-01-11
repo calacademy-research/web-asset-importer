@@ -290,7 +290,7 @@ class Importer:
     def remove_imagedb_imported_filepaths_from_list(self, filepath_list):
         keep_filepaths = []
         for cur_filepath in filepath_list:
-            if not self.image_client.check_image_db_if_filepath_imported(self.collection_name,
+            if not self.image_client.check_image_db_if_filename_imported(self.collection_name,
                                                                          cur_filepath,
                                                                          exact=True):
                 keep_filepaths.append(cur_filepath)
