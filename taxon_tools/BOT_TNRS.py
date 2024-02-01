@@ -2,6 +2,37 @@ import requests
 import pandas as pd
 import json
 
+def iterate_taxon_resolve(taxon_frame):
+    """iterate_taxon_resolve: uses process taxon resolve, to take taxonomic names with missing
+        infraspecific rank, and re-process them with placeholder infraspecific rank var. and subsp."""
+
+    results = process_taxon_resolve(taxon_frame)
+
+    failed_results = results[results['overall_score'] <= .99].copy()
+
+    failed_results['fullname'] = failed_results['fullname'].replace({' var. ': ' subsp. ',
+                                                                     ' subsp. ': ' var. '}, regex=True)
+
+    failed_results = failed_results[['CatalogNumber', 'fullname']]
+
+    failed_results = process_taxon_resolve(failed_results)
+
+    results = pd.concat([results, failed_results], ignore_index=True)
+
+    # print(results)
+
+    new_index = results.groupby('CatalogNumber')['overall_score'].idxmax()
+
+    results = results.loc[new_index]
+
+    results = results.drop_duplicates(subset='CatalogNumber')
+
+    return results
+
+
+
+
+
 
 def process_taxon_resolve(taxon_frame):
     """process_taxon_resolve: uses TNRS or the taxonomic name resolution service
@@ -13,7 +44,6 @@ def process_taxon_resolve(taxon_frame):
             a dataframe containing spelling corrected taxonomic names, matched names ,and taxonomic authors.
             contains accuracy score from TNRS, for filtering based on quality of match.
     """
-    today_date = pd.Timestamp.now().strftime('%Y-%m-%d')
 
     url_tn = "https://tnrsapi.xyz/tnrs_api.php"
 
@@ -27,7 +57,7 @@ def process_taxon_resolve(taxon_frame):
 
     data_json = taxon_frame.to_json(orient='records')
 
-    sources = "wcvp"
+    sources = "wfo,wcvp"
     class_val = "wfo"
     mode = "resolve"
     match = "best"
@@ -74,12 +104,3 @@ def process_taxon_resolve(taxon_frame):
     results['overall_score'] = pd.to_numeric(results['overall_score'], errors='coerce')
 
     return results
-
-# test_taxon = {
-#     'CatalogNumber': [1234, 1235],
-#     'fullname': ['Sarapicamptis', 'Quercus']
-# }
-#
-# test_frame = pd.DataFrame(test_taxon)
-# processed_tax = process_taxon_resolve(test_frame)
-# print(processed_tax)
