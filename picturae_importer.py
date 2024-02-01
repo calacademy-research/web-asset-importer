@@ -859,7 +859,7 @@ class PicturaeImporter(Importer):
             if self.taxon_id is None:
                 self.create_taxon()
 
-            if self.locality_id is None:
+            if self.locality_id is None and not pd.isna(self.locality):
                 self.create_locality_record()
 
             if len(self.new_collector_list) > 0:
