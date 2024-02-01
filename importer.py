@@ -141,6 +141,7 @@ class Importer:
                                                 agent_id=agent_id,
                                                 copyright=copyright,
                                                 is_public=is_public)
+
         attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
 
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
