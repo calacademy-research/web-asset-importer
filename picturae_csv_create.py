@@ -11,7 +11,7 @@ from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import logging
 from gen_import_utils import read_json_config
-from taxon_tools.BOT_TNRS import process_taxon_resolve
+from taxon_tools.BOT_TNRS import iterate_taxon_resolve
 starting_time_stamp = datetime.now()
 
 
@@ -287,6 +287,18 @@ class CsvCreatePicturae(Importer):
         for col_string in date_col_list:
             self.record_full[col_string] = pd.to_datetime(self.record_full[col_string],
                                                           format='%m/%d/%Y').dt.strftime('%Y-%m-%d')
+
+        # filling in missing subtaxa ranks for first infraspecific rank
+
+        self.record_full['missing_rank'] = pd.isna(self.record_full[f'Rank 1']) & pd.notna(
+                                           self.record_full[f'Epithet 1'])
+
+        self.record_full['missing_rank'] = self.record_full['missing_rank'].astype(bool)
+
+        self.record_full[f'Rank 1'] = self.record_full[f'Rank 1'].fillna(
+                                      self.record_full[f'Epithet 1'].apply(lambda x:
+                                                                           "subsp." if pd.notna(x) else ""))
+
         # parsing taxon columns
         self.record_full[['gen_spec', 'fullname',
                           'first_intra',
@@ -303,6 +315,8 @@ class CsvCreatePicturae(Importer):
         self.record_full['Hybrid'] = self.record_full['Hybrid'].apply(str_to_bool)
 
         self.record_full = self.record_full.replace(['', None, 'nan', np.nan], pd.NA)
+
+
 
     def barcode_has_record(self):
         """check if barcode / catalog number already in collectionobject table"""
@@ -326,8 +340,7 @@ class CsvCreatePicturae(Importer):
         self.record_full['image_present'] = None
         for index, row in self.record_full.iterrows():
             file_name = os.path.basename(row['image_path'])
-            file_name = file_name.lower()
-            # file_name = file_name.rsplit(".", 1)[0]
+            file_name = file_name.lower()            # file_name = file_name.rsplit(".", 1)[0]
             imported = self.image_client.check_image_db_if_filename_imported(collection="Botany",
                                                                   filename=file_name, exact=True)
             if imported is False:
@@ -393,7 +406,7 @@ class CsvCreatePicturae(Importer):
         bar_tax = bar_tax.drop(columns='taxon_id')
 
 
-        resolved_taxon = process_taxon_resolve(bar_tax)
+        resolved_taxon = iterate_taxon_resolve(bar_tax)
 
 
         resolved_taxon['overall_score'].fillna(0, inplace=True)
@@ -434,6 +447,15 @@ class CsvCreatePicturae(Importer):
         if self.records_dropped > 0:
             self.logger.info(f"{self.records_dropped} rows dropped due to taxon errors")
 
+        self.cleanup_tnrs()
+
+
+    def cleanup_tnrs(self):
+        """cleanup_tnrs: operations to re-consolidate rows with hybrids parsed for tnrs,
+            and rows with missing rank parsed for tnrs.
+            Separates qualifiers into new column as well.
+        """
+
         # re-consolidating hybrid column to fullname and removing hybrid_base column
         hybrid_mask = self.record_full['hybrid_base'].notna()
 
@@ -441,11 +463,34 @@ class CsvCreatePicturae(Importer):
 
         self.record_full = self.record_full.drop(columns=['hybrid_base'])
 
+        # consolidating taxonomy with replaced rank
+
+        self.record_full['missing_rank'] = self.record_full['missing_rank'].replace({'True': True,
+                                                                                     'False': False}).astype(bool)
+
+        rank_mask = (self.record_full['missing_rank'] == True) & \
+                    (self.record_full['fullname'] != self.record_full['name_matched']) & \
+                    (pd.notna(self.record_full['name_matched']))
+
+        self.record_full.loc[rank_mask, 'fullname'] = self.record_full.loc[rank_mask, 'name_matched']
+
+        self.record_full.loc[rank_mask, 'first_intra'] = \
+            self.record_full.loc[rank_mask, 'first_intra'].str.replace(" subsp. ", " var. ",
+                                                                       regex=False)
+
+        self.record_full.loc[rank_mask, 'fulltaxon'] = \
+            self.record_full.loc[rank_mask, 'fulltaxon'].str.replace(" subsp. ", " var. ")
+
         # executing qualifier separator function
         self.record_full = separate_qualifiers(self.record_full, tax_col='fullname')
 
-        self.record_full['gen_spec'] = self.record_full['gen_spec'].apply(remove_qualifiers)
+        # pulling new tax IDs for corrected missing ranks
 
+        self.record_full.loc[rank_mask, 'taxon_id'] = self.record_full.loc[rank_mask, 'fullname'].apply(
+            self.sql_csv_tools.taxon_get)
+
+
+        self.record_full['gen_spec'] = self.record_full['gen_spec'].apply(remove_qualifiers)
 
 
 
@@ -456,6 +501,8 @@ class CsvCreatePicturae(Importer):
         file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
 
         self.record_full.to_csv(file_path, index=False)
+
+        print(self.record_full)
 
         print(f'DataFrame has been saved to csv as: {file_path}')
 
@@ -498,7 +545,7 @@ class CsvCreatePicturae(Importer):
 #           f the upload process"""
 #     # logger = logging.getLogger("full_run")
 #     test_config = read_json_config(collection="Botany_PIC")
-#     CsvCreatePicturae(date_string="2023-09-07", logging_level='DEBUG', config=test_config)
+#     CsvCreatePicturae(date_string="2023-06-28", logging_level='DEBUG', config=test_config)
 #
 #
 # full_run()

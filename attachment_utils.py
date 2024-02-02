@@ -64,7 +64,7 @@ class AttachmentUtils:
                                           timestampmodified, title, type, version, visibility, AttachmentImageAttributeID,
                                           CreatedByAgentID, CreatorID, ModifiedByAgentID, VisibilitySetByID)
                 VALUES ('{storename}', NULL, NULL, NULL, 
-                        '{copyright}', NULL, NULL,   '{time_utils.get_pst_date_time_from_datetime(time_utils.get_pst_time(file_created_datetime))}', '{guid}', {is_public}, NULL, 
+                        '{copyright}', NULL, NULL, '{time_utils.get_pst_date_time_from_datetime(time_utils.get_pst_time(file_created_datetime))}', '{guid}', {is_public}, NULL, 
                         NULL, NULL, '{image_type}','{original_filename}', '{url}', 4, 
                         0, NULL, NULL, 41, '{time_utils.get_pst_time_now_string()}',
                         '{time_utils.get_pst_time_now_string()}', '{".".join(basename.split(".")[:-1])}', NULL, 0, NULL, NULL, 
