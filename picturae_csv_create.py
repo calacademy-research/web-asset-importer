@@ -511,6 +511,8 @@ class CsvCreatePicturae(Importer):
 
         self.record_full.to_csv(file_path, index=False)
 
+        print(self.record_full)
+
         print(f'DataFrame has been saved to csv as: {file_path}')
 
     def run_all(self):
