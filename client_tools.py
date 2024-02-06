@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from gen_import_utils import read_json_config
-from gen_import_utils import get_max_subdirectory_date
+from gen_import_utils import read_json_config, get_max_subdirectory_date, picturae_paths_list
 import os
 import logging
 import collection_definitions
@@ -46,13 +45,17 @@ def parse_command_line():
 
     search_parser.add_argument('term')
 
-    parser.add_argument('-d', '--date', nargs="?", help='date to use', default=None)
+    parser.add_argument('-d', '--date', nargs="?", help='batch date in the form YYYYMMDD, the date which the batch was imaged.', default=None)
 
     parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database', default=None)
 
     parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an '
                                                                            'import that imports both data and images',
                         default=False)
+    parser.add_argument('-e', '--existing_barcodes', nargs="?", type=bool, help="if True, skips creating skeleton"
+                                                                                "record and creating new image record"
+                                                                                "for images without collection objects",
+                                                                            default=False)
 
     parser.add_argument('-uf', '--force_update', nargs="?", type=bool, help='Set to True if '
                                                                             'you desire to overwrite '
@@ -79,21 +82,24 @@ def main(args):
             BotanyImporter(paths=paths, config=bot_config, full_import=full_import)
         elif args.collection == 'Botany_PIC':
             pic_config = read_json_config(collection='Botany_PIC')
-            date_override = args.date
-            # default is to get date of most recent folder in csv folder
-            if date_override is None:
-                date_override = get_max_subdirectory_date("image_client/picturae_csv")
-            # otherwise replace dates with most args.date
-            pic_config['PIC_SCAN_FOLDERS'] = [f"PIC_{date_override}"]
-            pic_config['date_str'] = date_override
-            paths = []
-            for cur_dir in pic_config['PIC_SCAN_FOLDERS']:
-                paths.append(os.path.join(pic_config['PREFIX'],
-                                          pic_config['BOTANY_PREFIX'],
-                                          cur_dir))
-                print(f"Scanning: {cur_dir}")
+            existing_barcodes = args.existing_barcodes
+            if existing_barcodes:
+                paths = []
+                full_import = args.full_import
 
-            PicturaeImporter(paths=paths, config=pic_config, date_string=date_override)
+                paths.append(os.path.join(pic_config['PREFIX'],
+                                     pic_config['BOTANY_PREFIX']))
+
+                BotanyImporter(paths=paths, config=pic_config, full_import=full_import,
+                               existing_barcodes=existing_barcodes)
+            else:
+                date_override = args.date
+                # default is to get date of most recent folder in csv folder
+                if date_override is None:
+                    date_override = get_max_subdirectory_date("/picturae_csv")
+                # otherwise replace dates with most args.date
+                paths = picturae_paths_list(config=pic_config, date=date_override)
+                PicturaeImporter(paths=paths, config=pic_config, date_string=date_override)
 
 
         elif args.collection == "Ichthyology":

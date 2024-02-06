@@ -6,6 +6,7 @@
 from taxon_parse_utils import *
 from gen_import_utils import *
 from string_utils import *
+from os import path
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
@@ -16,7 +17,8 @@ starting_time_stamp = datetime.now()
 
 
 class CsvCreatePicturae(Importer):
-    def __init__(self, date_string, config, logging_level):
+    def __init__(self, date_string, config, paths, logging_level):
+        self.paths = paths
         self.picturae_config = config
         self.picdb_config = read_json_config(collection="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
@@ -30,6 +32,8 @@ class CsvCreatePicturae(Importer):
         """init_all_vars:to use for testing and decluttering init function,
                             initializes all class level variables  """
         self.date_use = date_string
+
+        self.path_prefix = self.paths[0]
 
         # setting up alternate db connection for batch database
 
@@ -96,7 +100,7 @@ class CsvCreatePicturae(Importer):
             folder_string: denotes whether specimen or folder level data with "folder" or "specimen"
         """
 
-        folder_path = 'picturae_csv/' + str(self.date_use) + '/picturae_' + str(csv_level) + '(' + \
+        folder_path = f'picturae_csv{path.sep}' + str(self.date_use) + f'{path.sep}picturae_' + str(csv_level) + '(' + \
                       str(self.date_use) + ').csv'
 
         folder_csv = pd.read_csv(folder_path)
@@ -337,16 +341,16 @@ class CsvCreatePicturae(Importer):
 
     def image_has_record(self):
         """checks if image name/barcode already in image_db"""
-        self.record_full['image_present'] = None
+        self.record_full['image_present_db'] = None
         for index, row in self.record_full.iterrows():
             file_name = os.path.basename(row['image_path'])
             file_name = file_name.lower()            # file_name = file_name.rsplit(".", 1)[0]
             imported = self.image_client.check_image_db_if_filename_imported(collection="Botany",
                                                                   filename=file_name, exact=True)
             if imported is False:
-                self.record_full.loc[index, 'image_present'] = False
+                self.record_full.loc[index, 'image_present_db'] = False
             else:
-                self.record_full.loc[index, 'image_present'] = True
+                self.record_full.loc[index, 'image_present_db'] = True
 
     def check_barcode_match(self):
         """checks if filepath barcode matches catalog number barcode
@@ -363,7 +367,12 @@ class CsvCreatePicturae(Importer):
     def check_if_images_present(self):
         """checks that each image exists, creating boolean column for later use"""
 
-        self.record_full['image_valid'] = self.record_full['image_path'].apply(lambda path: os.path.exists(path))
+        # truncating image_path column
+        self.record_full['image_path'] = self.record_full['image_path'].apply(
+                                         lambda path_img: extract_last_folders(path_img, 2))
+
+        self.record_full['image_valid'] = self.record_full['image_path'].apply(
+                                          lambda path_img: os.path.exists(f"{self.path_prefix}{path.sep}{path_img}"))
 
 
     def check_taxa_against_database(self):
@@ -498,7 +507,7 @@ class CsvCreatePicturae(Importer):
         """write_upload_csv: writes a copy of csv to PIC upload
             allows for manual review before uploading.
         """
-        file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
+        file_path = f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
 
         self.record_full.to_csv(file_path, index=False)
 
@@ -543,7 +552,14 @@ class CsvCreatePicturae(Importer):
 #           f the upload process"""
 #     # logger = logging.getLogger("full_run")
 #     test_config = read_json_config(collection="Botany_PIC")
-#     CsvCreatePicturae(date_string="2023-06-28", logging_level='DEBUG', config=test_config)
+#
+#     date_override = "20230628"
+#
+#     from gen_import_utils import picturae_paths_list
+#
+#     paths = picturae_paths_list(config=test_config, date=date_override)
+#
+#     CsvCreatePicturae(date_string=date_override, logging_level='DEBUG', config=test_config, paths=paths)
 #
 #
 # full_run()

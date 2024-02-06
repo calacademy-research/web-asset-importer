@@ -23,11 +23,12 @@ starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
-    def __init__(self, paths, config, full_import):
+    def __init__(self, paths, config, full_import, existing_barcodes=False):
         self.logger = logging.getLogger('Client.BotanyImporter')
         super().__init__(config, "Botany")
         # limit is for debugging
         self.botany_importer_config = config
+        self.existing_barcodes = existing_barcodes
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
         self.logger.debug("Botany import mode")
@@ -48,6 +49,7 @@ class BotanyImporter(Importer):
 
         self.process_loaded_files()
 
+
         if not full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
@@ -58,6 +60,7 @@ class BotanyImporter(Importer):
             filename_list = []
             for cur_filepath in self.barcode_map[barcode]:
                 filename_list.append(cur_filepath)
+
             self.process_barcode(barcode, filename_list)
 
 
@@ -70,7 +73,7 @@ class BotanyImporter(Importer):
         collection_object_id = self.specify_db_connection.get_one_record(sql)
         self.logger.debug(f"retrieving id for: {collection_object_id}")
         force_redacted = False
-        if collection_object_id is None:
+        if collection_object_id is None and not self.existing_barcodes:
             self.logger.debug(f"No record found for catalog number {barcode}, creating skeleton.")
             self.create_skeleton(barcode)
             force_redacted = True
@@ -83,10 +86,12 @@ class BotanyImporter(Importer):
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
 
-        self.import_to_imagedb_and_specify(filepath_list,
-                                           collection_object_id,
-                                           self.botany_importer_config['AGENT_ID'],
-                                           force_redacted)
+        if not self.existing_barcodes or (self.existing_barcodes and collection_object_id is not None):
+
+            self.import_to_imagedb_and_specify(filepath_list,
+                                               collection_object_id,
+                                               self.botany_importer_config['AGENT_ID'],
+                                               force_redacted)
 
 
 
