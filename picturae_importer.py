@@ -13,6 +13,7 @@ from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
 from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
+from os import path
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
@@ -43,6 +44,7 @@ class PicturaeImporter(Importer):
         # running csv create
         csv_create_picturae = CsvCreatePicturae(date_string=self.date_use,
                                                 config=self.picturae_config,
+                                                paths=paths,
                                                 logging_level=self.logger.getEffectiveLevel())
 
         self.records_dropped = csv_create_picturae.records_dropped
@@ -63,7 +65,7 @@ class PicturaeImporter(Importer):
                 paths: the paths string recieved from the init params"""
         self.date_use = date_string
 
-        self.file_path = f"PIC_upload/PIC_record_{self.date_use}.csv"
+        self.file_path = f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
@@ -214,6 +216,7 @@ class PicturaeImporter(Importer):
                                 overwriting data functions
         """
         for row in self.record_full.itertuples(index=False):
+            image_path = self.paths[0] + str(row.image_path)
             if not row.image_valid:
                 raise ValueError(f"image {row.image_path} is not valid ")
 
@@ -221,25 +224,24 @@ class PicturaeImporter(Importer):
                 raise ValueError(f"image barcode {row.image_path} does not match "
                                  f"{row.CatalogNumber}")
 
-            elif row.barcode_present and row.image_present:
+            elif row.barcode_present and row.image_present_db:
                 self.logger.warning(f"record {row.CatalogNumber} and image {row.image_path}"
                                     f" already in database")
 
-            elif row.barcode_present and not row.image_present:
+            elif row.barcode_present and not row.image_present_db:
                 self.logger.warning(f"record {row.CatalogNumber} "
                                     f"already in database, appending image")
-                self.image_list.append(row.image_path)
+                self.image_list.append(image_path)
 
-            elif not row.barcode_present and row.image_present:
+            elif not row.barcode_present and row.image_present_db:
                 self.logger.warning(f"image {row.image_path} "
                                     f"already in database, appending record")
                 self.barcode_list.append(row.CatalogNumber)
                 # image path is added any-ways as the image client checks regardless
-                # for image duplication, this way it will still create the attachment rows.
-                self.image_list.append(row.image_path)
+                # for image duplication, this way it will still create the attachment row
 
             else:
-                self.image_list.append(row.image_path)
+                self.image_list.append(image_path)
                 self.barcode_list.append(row.CatalogNumber)
 
             self.barcode_list = list(set(self.barcode_list))
@@ -792,7 +794,7 @@ class PicturaeImporter(Importer):
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
-
+ # continue working from here to figure out how to list subfolders.
     def hide_unwanted_files(self):
         """hide_unwanted_files:
                function to hide files inside of images folder,
@@ -805,14 +807,15 @@ class PicturaeImporter(Importer):
         """
 
         lower_list = [image_path.lower() for image_path in self.image_list]
-        sla = os.path.sep
-        folder_path = f'picturae_img/PIC_{self.date_use}{sla}'
-        for file_name in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, file_name)
-            if file_path.lower() not in lower_list:
-                new_file_name = f".hidden_{file_name}"
-                new_file_path = os.path.join(folder_path, new_file_name)
-                os.rename(file_path, new_file_path)
+        folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
+        for folder_path in folder_paths:
+            for file_name in os.listdir(folder_path):
+                file_path = os.path.join(folder_path, file_name)
+
+                if file_path.lower() not in lower_list:
+                    new_file_name = f".hidden_{file_name}"
+                    new_file_path = os.path.join(folder_path, new_file_name)
+                    os.rename(file_path, new_file_path)
 
 
     def unhide_files(self):
@@ -824,15 +827,16 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-        sla = os.path.sep
-        folder_path = f'picturae_img/PIC_{self.date_use}{sla}'
-        prefix = ".hidden_"  # The prefix added during hiding
-        for file_name in os.listdir(folder_path):
-            if file_name.startswith(prefix):
-                old_file_name = file_name[len(prefix):]
-                old_file_path = os.path.join(folder_path, old_file_name)
-                new_file_path = os.path.join(folder_path, file_name)
-                os.rename(new_file_path, old_file_path)
+        lower_list = [image_path.lower() for image_path in self.image_list]
+        folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
+        for folder_path in folder_paths:
+            prefix = ".hidden_"  # The prefix added during hiding
+            for file_name in os.listdir(folder_path):
+                if file_name.startswith(prefix):
+                    old_file_name = file_name[len(prefix):]
+                    old_file_path = os.path.join(folder_path, old_file_name)
+                    new_file_path = os.path.join(folder_path, file_name)
+                    os.rename(new_file_path, old_file_path)
 
 
     def upload_records(self):
@@ -884,10 +888,11 @@ class PicturaeImporter(Importer):
         try:
             self.hide_unwanted_files()
             BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
-
             self.unhide_files()
         except Exception as e:
+            self.unhide_files()
             self.logger.error(f"{e}")
+
 
     def run_all_methods(self):
         """run_all_methods:

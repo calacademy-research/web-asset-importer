@@ -31,7 +31,7 @@ class TestingTools:
                     writer.writerow([specimen_bar, folder_barcode, jpg_path])
             print(f"Fake dataset {path} with {num_records} records created successfully")
 
-    def create_test_images(self, barcode_list: list, date_string: str, color: str):
+    def create_test_images(self, barcode_list: list, color: str, expected_dir: str):
         """create_test_images:
                 creates a number of standard test images in a range of barcodes,
                 and with a specific date string
@@ -45,7 +45,7 @@ class TestingTools:
 
         barcode_list = barcode_list
         for barcode in barcode_list:
-            expected_image_path = f"picturae_img/PIC_{date_string}/CAS{barcode}.JPG"
+            expected_image_path = expected_dir + f"/CAS{barcode}.JPG"
             os.makedirs(os.path.dirname(expected_image_path), exist_ok=True)
             print(f"Created directory: {os.path.dirname(expected_image_path)}")
             image.save(expected_image_path)

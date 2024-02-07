@@ -14,20 +14,23 @@ class HideFilesTest(unittest.TestCase,TestingTools):
            images with sample barcodes"""
         # create test directories
 
-        self.create_test_images(barcode_list=[123456, 123457, 123458],
-                                date_string=self.md5_hash, color='red')
+        self.expected_folder = f"../storage_01/picturae/2080/12/12/CP1_{self.md5_hash}_BATCH_0001"
 
-        self.expected_image_path = f"picturae_img/PIC_{self.md5_hash}/CAS{123456}.JPG"
+        self.create_test_images(barcode_list=[123456, 123457, 123458],
+                                color='red', expected_dir=self.expected_folder)
+
+        self.expected_image_path = f"../storage_01/picturae/2080/12/12/CP1_{self.md5_hash}" \
+                                   f"_BATCH_0001/CAS{123456}.JPG"
 
         # initializing
         self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash, paths=self.md5_hash)
 
-        self.test_picturae_importer.image_list = [f"picturae_img/PIC_{self.md5_hash}/CAS123456.JPG"]
+        self.test_picturae_importer.image_list = [self.expected_image_path]
 
     def test_file_hide(self):
         """testing whether file_hide hides files not in barcode list"""
         self.test_picturae_importer.hide_unwanted_files()
-        files = os.listdir(f"picturae_img/PIC_{self.md5_hash}")
+        files = os.listdir(self.expected_folder)
         self.assertTrue('CAS123456.JPG' in files)
         self.assertTrue('.hidden_CAS123457.JPG')
 
@@ -35,7 +38,7 @@ class HideFilesTest(unittest.TestCase,TestingTools):
         """testing whether files are correctly unhidden after running hide_unwanted_files"""
         self.test_picturae_importer.hide_unwanted_files()
         self.test_picturae_importer.unhide_files()
-        files = os.listdir(f"picturae_img/PIC_{self.md5_hash}")
+        files = os.listdir(self.expected_folder)
         self.assertEqual(set(files), {'CAS123456.JPG', 'CAS123457.JPG', 'CAS123458.JPG'})
 
     def tearDown(self):
