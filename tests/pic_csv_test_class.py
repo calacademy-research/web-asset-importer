@@ -6,6 +6,7 @@ class AltCsvCreatePicturae(CsvCreatePicturae):
     def __init__(self, date_string):
         self.picturae_config = read_json_config(collection="Botany_PIC")
         Importer.__init__(self, db_config_class=self.picturae_config, collection_name="Botany")
+        self.paths = ["test/path/folder"]
         self.picdb_config = read_json_config(collection="picbatch")
         self.init_all_vars(date_string)
 
