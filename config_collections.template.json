@@ -16,7 +16,8 @@
     "REPORT_PATH": "path/to/htmlreport",
     "SUMMARY_TERMS": ["Number of Taxa Added", "Number of Taxa Dropped by TNRS"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
-    "MAILING_LIST": ["list of emails to send report to"]
+    "MAILING_LIST": ["list of emails to send reports to"],
+    "DEP_MAILING_LIST": ["list of emails to send alternate reports to"]
   },
   "picbatch": {
     "SPECIFY_DATABASE_HOST":"db.institution.org" ,

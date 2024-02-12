@@ -3,6 +3,8 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
+import pandas as pd
+
 from taxon_parse_utils import *
 from gen_import_utils import *
 from string_utils import *
@@ -13,6 +15,7 @@ from specify_db import SpecifyDb
 import logging
 from gen_import_utils import read_json_config
 from taxon_tools.BOT_TNRS import iterate_taxon_resolve
+from monitoring_tools import MonitoringTools
 starting_time_stamp = datetime.now()
 
 
@@ -93,6 +96,7 @@ class CsvCreatePicturae(Importer):
         else:
             raise ValueError(f"subdirectory for {self.date_use} not present")
 
+
     def csv_read_path(self, csv_level: str):
         """csv_read_path:
                 reads in csv data for given date self.date_use
@@ -100,12 +104,38 @@ class CsvCreatePicturae(Importer):
             folder_string: denotes whether specimen or folder level data with "folder" or "specimen"
         """
 
-        folder_path = f'picturae_csv{path.sep}' + str(self.date_use) + f'{path.sep}picturae_' + str(csv_level) + '(' + \
-                      str(self.date_use) + ').csv'
+        csv_path = f'picturae_csv{path.sep}' + str(self.date_use) + f'{path.sep}picturae_' + str(csv_level) + \
+                   f'({str(self.date_use)}).csv'
 
-        folder_csv = pd.read_csv(folder_path)
+        import_csv = pd.read_csv(csv_path)
 
-        return folder_csv
+        return import_csv
+
+
+    # note: change to merging on folder barcode once real data recieved
+
+    def linking_csv_clean(self):
+        """linking_csv_clean: function used to reformat the picturae linking csvs inta a useable format,
+                                to link the specimen and folder csvs."""
+        csv_path = f'picturae_csv{path.sep}' + str(self.date_use) + f'{path.sep}picturae_merge' + \
+                   f'({str(self.date_use)}).csv'
+
+        column_names = ['type', 'folder', 'specimen_barcode', 'Family', 'barcode2', 'timestamp', 'image_path']
+
+        merge_csv = pd.read_csv(csv_path, header=None)
+
+        merge_csv.columns = column_names
+
+        drop_columns = ['barcode2', 'timestamp', 'image_path', 'Family', 'type']
+
+        merge_csv.drop(columns=drop_columns, inplace=True)
+
+        merge_csv = merge_csv[~merge_csv['barcode'].str.contains("Cover")]
+
+        return merge_csv
+
+
+
 
     def csv_merge(self):
         """csv_merge:
@@ -116,6 +146,28 @@ class CsvCreatePicturae(Importer):
         """
         fold_csv = self.csv_read_path(csv_level="folder")
         spec_csv = self.csv_read_path(csv_level="specimen")
+
+        ## uncomment when real data recieved
+        # merge_csv = self.linking_csv_clean()
+        # spec_csv = pd.merge(merge_csv, spec_csv, on='specimen_barcode')
+        #
+        # merge_len = len(spec_csv)
+        #
+        # spec_csv.drop_duplicates(inplace=True)
+        #
+        # unique_len = len(spec_csv)
+        #
+        # if merge_len > unique_len:
+        #     raise ValueError(f"merge produced {merge_len - unique_len} duplicate records")
+
+
+        # is_duplicate = spec_csv['Notes'].str.contains('\d', regex=True)
+        #
+        # spec_csv.loc[is_duplicate, 'CatalogNumber'] = spec_csv.loc[is_duplicate, 'Notes'].apply(remove_non_numerics)
+
+
+
+
 
         # checking if columns to merge contain same data
         if (set(fold_csv['specimen_barcode']) == set(spec_csv['specimen_barcode'])) is True:
@@ -191,6 +243,31 @@ class CsvCreatePicturae(Importer):
                     }
 
         self.record_full.rename(columns=col_dict, inplace=True)
+
+
+
+    def flag_missing_rank(self):
+
+        missing_rank = (self.record_full['Rank 1'].isna()) & (self.record_full['Rank 2'].isna()) & \
+                       (~self.record_full['Epithet 1'].isna()) & (~self.record_full['Epithet 2'].isna())
+
+        missing_rank_csv = self.record_full.loc[missing_rank]
+
+        if len(missing_rank_csv) > 0 :
+
+            missing_rank_csv = missing_rank_csv['folder_barcode']
+
+            missing_rank_csv.drop_duplicates(inplace=True)
+
+            self.monitoring_tools = MonitoringTools(config=self.picturae_config)
+
+            self.monitoring_tools.send_missing_rank_report(batch_num="CP1_123456_BATCH_001",
+                                                           time_stamp=starting_time_stamp, rank_csv=missing_rank_csv)
+            raise ValueError('Taxonomic name with 2 missing ranks')
+        else:
+            self.logger.info('missing_rank empty: No corrections needed')
+
+
 
     def taxon_concat(self, row):
         """taxon_concat:
@@ -519,10 +596,14 @@ class CsvCreatePicturae(Importer):
         to_current_directory()
         # verifying file presence
         self.file_present()
+        # # modifying linking csv
+        # self.linking_csv_clean()
         # merging csv files
         self.csv_merge()
         # renaming columns
         self.csv_colnames()
+        # flagging taxa with multiple missing ranks
+        self.flag_missing_rank()
         # cleaning data
         self.col_clean()
 

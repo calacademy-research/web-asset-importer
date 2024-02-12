@@ -5,6 +5,7 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
+from jinja2 import Template
 import smtplib
 
 
@@ -153,6 +154,37 @@ class MonitoringTools:
         self.add_line_between(line_num=0, string=report)
 
 
+    def add_missing_rank_report(self, missing_rank_csv):
+
+        rank_report = """
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Report</title>
+</head>
+<body>
+    <h1>Report</h1>
+    <p>Number of Rows: {{ num_rows }}</p>
+    <p>List of Unique Folder IDs:</p>
+    <ul>
+    {% for folder_id in folder_csv %}
+        <li>{{ folder_id }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
+"""
+        template = Template(rank_report)
+
+        html_output = template.render(num_rows=len(missing_rank_csv), folder_csv=missing_rank_csv)
+
+        with open('html_reports/rank_report.html', 'w') as file:
+            file.write(html_output)
+
+
+
+
+
 
     def add_batch_size(self, batch_size):
         with open(self.path, "r") as file:
@@ -233,6 +265,30 @@ class MonitoringTools:
         return msg
 
 
+    def send_missing_rank_report(self, batch_num, time_stamp, rank_csv):
+        self.add_missing_rank_report(missing_rank_csv=rank_csv)
+        with open('html_reports/rank_report.html', 'r') as file:
+            rank_report = file.read()
+        msg = EmailMessage()
+        msg.add_alternative(rank_report)
+        msg['From'] = "ibss-central@calacademy.org"
+        msg['Subject'] = f"missing sub taxa ranks: {batch_num} at {time_stamp}"
+        recipient_list = []
+        for email in self.config['DEP_MAILING_LIST']:
+            recipient_list.append(email)
+        msg['To'] = recipient_list
+
+        # with smtplib.SMTP(port=self.smtp_config['smtp_port'], host=self.smtp_config['smtp_server']) as server:
+        #     server.starttls()
+        #     server.login(user=self.smtp_config['smtp_user'], password=self.smtp_config['smtp_password'])
+        #     server.send_message(msg)
+
+        with smtplib.SMTP('localhost') as server:
+            server.send_message(msg)
+
+
+
+
     def send_monitoring_report(self, subject, time_stamp):
         """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
@@ -249,7 +305,7 @@ class MonitoringTools:
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
             msg = self.attach_html_images()
-            msg['From'] = "ibss-crontab@calacademy.org"
+            msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
             recipient_list = []
             for email in self.config['MAILING_LIST']:

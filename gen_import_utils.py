@@ -9,6 +9,7 @@ import json
 import hmac
 import settings
 import os
+import csv
 
 # import list tools
 
@@ -51,6 +52,7 @@ def extract_last_folders(path, number: int):
     """truncates a path string to keep only the last n elements of a path"""
     path_components = path.split('/')
     return '/'.join(path_components[-number:])
+
 
 def picturae_paths_list(config, date):
     """parses date arg into picturae image folder structure with prefixes"""
