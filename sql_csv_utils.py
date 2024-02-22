@@ -267,8 +267,10 @@ class SqlCsvTools:
                 val_list: list of values with which to update above list of columns(order matters)
                 condition: condition sql string used to select sub-sect of records to update.
         """
+        val_list, col_list = remove_two_index(value_list=val_list, column_list=col_list)
+
         update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}", 
-                            ModifiedByAgentID = "{self.config["AGENT_ID"]}",'''
+                            ModifiedByAgentID = "{self.config["AGENT_ID"]}", TimestampModified = '{time_utils.get_pst_time_now_string()}','''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''

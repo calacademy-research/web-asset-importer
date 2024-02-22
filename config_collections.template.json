@@ -72,7 +72,7 @@
     "SPECIFY_DATABASE_HOST": "db.insitution.org",
     "SPECIFY_DATABASE_PORT": 3306,
     "SPECIFY_DATABASE": "casich",
-    "USER": "redacrted",
+    "USER": "redacted",
     "PASSWORD": "redacted",
     "AGENT_ID": 123456,
     "COLLECTION_NAME": "Ichthyology",
@@ -83,11 +83,5 @@
     "SUMMARY_TERMS": ["list of summary stats to add"],
     "SUMMARY_IMG": ["list of graph/image filepaths to add to report"],
     "MAILING_LIST": ["list of emails to send report to"]
-  },
-
-  "SMTP": {"smtp_port": 587,
-    "smtp_server": "smtp.gmail.com",
-    "smtp_user": "youremail@gmail.com",
-    "smtp_password": "generated app password"
   }
 }

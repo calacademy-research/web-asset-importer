@@ -340,8 +340,8 @@ class PicturaeImporter(Importer):
         self.GeographyID = self.sql_csv_tools.get_one_match(tab_name='geography', id_col='GeographyID',
                                                             key_col='FullName', match=self.geography_string)
 
-        self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col='LocalityID',
-                                                            key_col='LocalityName', match=self.locality)
+        # self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col='LocalityID',
+        #                                                     key_col='LocalityName', match=self.locality)
 
 
     def populate_taxon(self):
@@ -863,8 +863,8 @@ class PicturaeImporter(Importer):
             if self.taxon_id is None:
                 self.create_taxon()
 
-            if self.locality_id is None and not pd.isna(self.locality):
-                self.create_locality_record()
+            # if self.locality_id is None and not pd.isna(self.locality):
+            self.create_locality_record()
 
             if len(self.new_collector_list) > 0:
                 self.create_agent_id()

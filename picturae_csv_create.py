@@ -3,8 +3,10 @@
    Uses TNRS (Taxonomic Name Resolution Service) in taxon_check/test_TNRS.R
    to catch spelling mistakes, mis-transcribed taxa.
    Source for taxon names at IPNI (International Plant Names Index): https://www.ipni.org/ """
-import pandas as pd
+import argparse
 
+import pandas as pd
+import shutil
 from taxon_parse_utils import *
 from gen_import_utils import *
 from string_utils import *
@@ -20,8 +22,8 @@ starting_time_stamp = datetime.now()
 
 
 class CsvCreatePicturae(Importer):
-    def __init__(self, date_string, config, paths, logging_level):
-        self.paths = paths
+    def __init__(self, date_string, config, logging_level):
+        # self.paths = paths
         self.picturae_config = config
         self.picdb_config = read_json_config(collection="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
@@ -36,7 +38,7 @@ class CsvCreatePicturae(Importer):
                             initializes all class level variables  """
         self.date_use = date_string
 
-        self.path_prefix = self.paths[0]
+        self.path_prefix = picturae_paths_list(config=self.picturae_config, date=self.date_use)
 
         # setting up alternate db connection for batch database
 
@@ -83,6 +85,7 @@ class CsvCreatePicturae(Importer):
 
             specimen_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
                             self.picturae_config['CSV_SPEC'] + f"{self.date_use}" + ").csv"
+
 
             if os.path.exists(folder_path):
                 print("Folder csv exists!")
@@ -162,8 +165,11 @@ class CsvCreatePicturae(Importer):
 
 
         # is_duplicate = spec_csv['Notes'].str.contains('\d', regex=True)
-        #
+        # spec_cs['is_duplicate'] = is_duplicate
         # spec_csv.loc[is_duplicate, 'CatalogNumber'] = spec_csv.loc[is_duplicate, 'Notes'].apply(remove_non_numerics)
+
+
+
 
 
 
@@ -195,6 +201,25 @@ class CsvCreatePicturae(Importer):
 
         else:
             raise ValueError("Barcode Columns do not match!")
+
+
+    def duplicate_images(self):
+
+        for index, row in self.record_full[self.record_full['is_duplicate']].iterrows():
+            source_path = row['jpg_path']
+            # Extract the directory path to keep the new file in the same directory
+            directory = os.path.dirname(source_path)
+            # Create a new file name with the barcode and the original file extension
+            new_file_name = f"{row['barcode']}{os.path.splitext(source_path)[1]}"
+            destination_path = os.path.join(directory, new_file_name)
+
+
+            # Copy the file to the new location with the new name
+            shutil.copy(source_path, destination_path)
+
+            row['jpg_path'] = destination_path
+
+            print(f"Copied {source_path} to {destination_path}")
 
     def csv_colnames(self):
         """csv_colnames: function to be used to rename columns to DB standards.
@@ -254,7 +279,6 @@ class CsvCreatePicturae(Importer):
         missing_rank_csv = self.record_full.loc[missing_rank]
 
         if len(missing_rank_csv) > 0 :
-
             missing_rank_csv = missing_rank_csv['folder_barcode']
 
             missing_rank_csv.drop_duplicates(inplace=True)
@@ -263,6 +287,7 @@ class CsvCreatePicturae(Importer):
 
             self.monitoring_tools.send_missing_rank_report(batch_num="CP1_123456_BATCH_001",
                                                            time_stamp=starting_time_stamp, rank_csv=missing_rank_csv)
+
             raise ValueError('Taxonomic name with 2 missing ranks')
         else:
             self.logger.info('missing_rank empty: No corrections needed')
@@ -634,13 +659,9 @@ class CsvCreatePicturae(Importer):
 #     # logger = logging.getLogger("full_run")
 #     test_config = read_json_config(collection="Botany_PIC")
 #
-#     date_override = "20230628"
+#     date_override = "20230907"
 #
-#     from gen_import_utils import picturae_paths_list
-#
-#     paths = picturae_paths_list(config=test_config, date=date_override)
-#
-#     CsvCreatePicturae(date_string=date_override, logging_level='DEBUG', config=test_config, paths=paths)
+#     CsvCreatePicturae(date_string=date_override, logging_level='DEBUG', config=test_config)
 #
 #
 # full_run()

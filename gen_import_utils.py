@@ -9,6 +9,7 @@ import json
 import hmac
 import settings
 import os
+from string_utils import remove_non_numerics
 import csv
 
 # import list tools
@@ -56,6 +57,8 @@ def extract_last_folders(path, number: int):
 
 def picturae_paths_list(config, date):
     """parses date arg into picturae image folder structure with prefixes"""
+    date = remove_non_numerics(date)
+
     date_folders = f"{int(date) // 10000}{os.path.sep}" \
                    f"{str(int(date) // 100 % 100).zfill(2)}{os.path.sep}" \
                    f"{str(int(date) % 100).zfill(2)}{os.path.sep}"
@@ -90,14 +93,14 @@ def remove_two_index(value_list, column_list):
         elif pd.isna(entry):
             continue
 
-        elif entry == '<NA>' or entry == '' or entry == 'None':
+        elif entry == '<NA>' or entry == '' or entry == 'None' or \
+                entry is None or entry == 'nan':
             continue
 
         new_value_list.append(entry)
         new_column_list.append(column)
 
     return new_value_list, new_column_list
-
 
 # import process/directory tools
 def to_current_directory():
@@ -169,4 +172,3 @@ def generate_token(timestamp, filename):
 def get_row_value_or_default(row, column_name, default_value=None):
     """used to return row values where column may or may not be present in dataframe"""
     return row[column_name] if column_name in row else default_value
-

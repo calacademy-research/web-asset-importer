@@ -12,7 +12,8 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
-from PIC_database_updater import UpdateDbFields
+from PIC_database_updater import UpdatePICFields
+from BOT_database_updater import UpdateBotDbFields
 args = None
 logger = None
 
@@ -122,7 +123,12 @@ def main(args):
             pic_config = read_json_config(collection="Botany_PIC")
             date_override = args.date
             force_update = args.force_update
-            UpdateDbFields(config=pic_config, date=date_override, force_update=force_update)
+            UpdatePICFields(config=pic_config, date=date_override, force_update=force_update)
+        if args.collection == 'Botany':
+            bot_config = read_json_config(collection="Botany")
+            date_override = args.date
+            force_update = args.force_update
+            UpdateBotDbFields(config=bot_config, date=date_override, force_update=force_update)
 
     else:
         print(f"Unknown command: {args.subcommand}")
