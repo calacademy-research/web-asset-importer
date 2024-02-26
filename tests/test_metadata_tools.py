@@ -1,5 +1,4 @@
 import unittest
-from gen_import_utils import read_json_config
 import pandas as pd
 import shutil
 from metadata_tools import MetadataTools
@@ -7,8 +6,7 @@ class TestMetadataTools(unittest.TestCase):
 
     def setUp(self):
         self.path = "tests/test_images/test_image.jpg"
-        self.config = read_json_config(collection="Botany_PIC")
-        self.md = MetadataTools(config=self.config, path=self.path)
+        self.md = MetadataTools(path=self.path)
         shutil.copyfile("tests/test_images/test_image.jpg", "tests/test_images/image_backup.jpg")
 
     def test_is_file_larger_than(self):
@@ -58,6 +56,20 @@ class TestMetadataTools(unittest.TestCase):
         self.assertEqual("Samsung", exif_dict['Make'])
         self.assertEqual("15.2.3", exif_dict['Software'])
         self.assertEqual(3, exif_dict['Orientation'])
+
+    def test_iptc_exif_overwrite(self):
+        """tests that a given iptc variable is not overwritten
+           by writing to exif and vice versa
+        """
+        self.md.exif_attach_metadata(exif_code=33432, exif_value="CalAcademy")
+        self.md.iptc_attach_metadata(iptc_field='copyright notice', iptc_value="CalAcademy2")
+        exif_dict = self.md.read_exif_metadata(convert_tags=False)
+
+        self.assertEqual(exif_dict[33432], "CalAcademy")
+        self.md.exif_attach_metadata(exif_code=33432, exif_value="CalAcademy")
+        iptc_dict = self.md.read_iptc_metadata()
+        self.assertEqual(b"CalAcademy2", iptc_dict['copyright notice'])
+
 
     def tearDown(self):
         del self.md

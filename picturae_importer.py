@@ -13,11 +13,11 @@ from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
 from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
+from importer_config import initialize_collection_config
 from os import path
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
-from gen_import_utils import read_json_config
 from taxon_tools.BOT_TNRS import process_taxon_resolve
 
 
@@ -35,7 +35,7 @@ class PicturaeImporter(Importer):
 
         super().__init__(self.picturae_config, "Botany")
 
-        self.picdb_config = read_json_config('picbatch')
+        self.picdb_config = initialize_collection_config(collection='picbatch')
 
         self.logger = logging.getLogger("PicturaeImporter")
 
@@ -63,6 +63,8 @@ class PicturaeImporter(Importer):
             args:
                 date_string: the date input recieved from init params
                 paths: the paths string recieved from the init params"""
+
+        print(paths)
         self.date_use = date_string
 
         self.file_path = f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
@@ -898,8 +900,6 @@ class PicturaeImporter(Importer):
         """run_all_methods:
                         self-explanatory function, will run all methods in class in sequential manner"""
         # code to create test images for test image uploads
-        # create_test_images(list(range(999999981, 999999985)), date_string=self.date_use)
-
         # setting directory
         to_current_directory()
 

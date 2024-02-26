@@ -4,7 +4,7 @@ import logging
 from importer import Importer
 from gen_import_utils import cont_prompter
 from string_utils import remove_non_numerics
-from gen_import_utils import read_json_config
+from importer_config import initialize_collection_config
 class RemovePartialAttachments(Importer):
     def __init__(self, config):
         super().__init__(db_config_class=config, collection_name="Botany")

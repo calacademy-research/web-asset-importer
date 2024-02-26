@@ -63,7 +63,7 @@ def master_run():
 
     ip_replace('server_host_settings.py')
 
-    ip_replace('config_collections.json')
+    ip_replace('importer_config.py')
 
 # running master function
 master_run()

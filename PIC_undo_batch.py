@@ -5,11 +5,11 @@
 from importer import Importer
 from specify_db import SpecifyDb
 import traceback
-from gen_import_utils import read_json_config
+from importer_config import initialize_collection_config
 class PicturaeUndoBatch(Importer):
     def __init__(self, MD5):
-        self.picturae_config = read_json_config(collection="Botany_PIC")
-        self.picdb_config = read_json_config(collection="picbatch")
+        self.picturae_config = initialize_collection_config(collection="Botany_PIC")
+        self.picdb_config = initialize_collection_config(collection="picbatch")
         super().__init__(self.picturae_config, "Botany")
         self.purge_code = MD5
         self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)

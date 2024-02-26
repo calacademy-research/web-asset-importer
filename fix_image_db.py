@@ -5,11 +5,11 @@
 from image_db import ImageDb
 import os.path
 from datetime import datetime
-from gen_import_utils import read_json_config
+from importer_config import initialize_collection_config
 
 from db_utils import DbUtils, InvalidFilenameError, DatabaseInconsistentError
 
-ich_importer_config = read_json_config(collection='ICH')
+ich_importer_config = initialize_collection_config(collection='ICH')
 
 specify_db_connection = DbUtils(
     ich_importer_config['USER'],

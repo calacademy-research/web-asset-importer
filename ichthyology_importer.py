@@ -1,8 +1,9 @@
-from gen_import_utils import read_json_config
+
 from importer import Importer
 import os
 import re
 import logging
+from importer_config import initialize_collection_config
 from dir_tools import DirTools
 from monitoring_tools import MonitoringTools
 from time_utils import get_pst_time_now_string
@@ -19,7 +20,8 @@ class IchthyologyImporter(Importer):
     def __init__(self,  full_import):
         self.logger = logging.getLogger('Client.IchthyologyImporter')
 
-        ich_importer_config = read_json_config(collection="ICH")
+        ich_importer_config = initialize_collection_config("Ichthyology")
+
         super().__init__(ich_importer_config, "Ichthyology")
         self.catalog_number_map = {}
 

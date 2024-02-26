@@ -1,4 +1,4 @@
-from gen_import_utils import read_json_config
+
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
@@ -9,7 +9,7 @@ from metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
 import traceback
 from time_utils import get_pst_time_now_string
-
+from importer_config import initialize_collection_config
 CASIZ_FILE_LOG = "file_log.tsv"
 
 starting_time_stamp = datetime.now()
@@ -24,7 +24,7 @@ class IzImporter(Importer):
 
     def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
-        self.iz_importer_config = read_json_config(collection="IZ")
+        self.iz_importer_config = initialize_collection_config(collection="IZ")
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
@@ -44,13 +44,10 @@ class IzImporter(Importer):
         self.logger.debug("IZ import mode")
 
 
-        self.cur_directory_conjunction_match = self.iz_importer_config['CASIZ_MATCH'] + \
-                                     f' (and|or) ' \
-                                     f'({self.iz_importer_config["CASIZ_PREFIX"]})?({self.iz_importer_config["CASIZ_NUMBER"]})'
+        self.cur_conjunction_match = self.iz_importer_config['FILENAME_CONJUNCTION_MATCH'] + \
+                                     self.iz_importer_config['IMAGE_SUFFIX']
 
-        self.cur_directory_match = self.iz_importer_config['CASIZ_MATCH'] + self.iz_importer_config['IMAGE_SUFFIX']
-        self.cur_conjunction_match = self.cur_directory_conjunction_match + self.iz_importer_config['IMAGE_SUFFIX']
-        self.cur_filename_match = self.cur_directory_match + self.iz_importer_config['IMAGE_SUFFIX']
+        self.cur_filename_match = self.iz_importer_config['FILENAME_MATCH'] + self.iz_importer_config['IMAGE_SUFFIX']
 
         self.cur_casiz_match = self.iz_importer_config['CASIZ_MATCH']
         self.cur_extract_casiz = self.extract_casiz
@@ -179,9 +176,12 @@ class IzImporter(Importer):
             copyright = os.path.splitext(copyright)[0]
         return copyright
 
+
+    # review new exif methods before running to
+    # verify which method you actually want to use, and what data type it returns
     def attempt_exif_extraction(self, full_path):
         try:
-            return MetadataTools(full_path)
+            return MetadataTools.read_exif_metadata(full_path)
         except Exception as e:
             print(f"Exception: {e}")
             traceback.print_exc()

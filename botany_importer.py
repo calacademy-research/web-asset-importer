@@ -28,6 +28,7 @@ class BotanyImporter(Importer):
         super().__init__(config, "Botany")
         # limit is for debugging
         self.botany_importer_config = config
+        # print(self.botany_importer_config)
         self.existing_barcodes = existing_barcodes
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
@@ -37,6 +38,7 @@ class BotanyImporter(Importer):
         # if not os.path.exists(FILENAME):
         for cur_dir in paths:
             dir_tools.process_files_or_directories_recursive(cur_dir)
+
         #     outfile = open(FILENAME, 'wb')
         #     pickle.dump(self.barcode_map, outfile)
         # else:
@@ -56,11 +58,11 @@ class BotanyImporter(Importer):
 
 
     def process_loaded_files(self):
+        print(f"barcode_map: {self.barcode_map}")
         for barcode in self.barcode_map.keys():
             filename_list = []
             for cur_filepath in self.barcode_map[barcode]:
                 filename_list.append(cur_filepath)
-
             self.process_barcode(barcode, filename_list)
 
 
@@ -100,8 +102,9 @@ class BotanyImporter(Importer):
         if not self.check_for_valid_image(full_path):
             return
         filename = os.path.basename(full_path)
-        matched = re.match(self.botany_importer_config['BOTANY_REGEX'], filename.lower())
+        matched = re.match(self.botany_importer_config['IMAGE_SUFFIX'], filename.lower())
         is_match = bool(matched)
+        print(is_match)
         if not is_match:
             self.logger.debug(f"Rejected; no match: {filename}")
             return

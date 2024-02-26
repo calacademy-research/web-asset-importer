@@ -63,19 +63,19 @@ def picturae_paths_list(config, date):
     paths = []
     for cur_dir in config['PIC_SCAN_FOLDERS']:
         full_dir = os.path.join(config['PREFIX'],
-                                config['BOTANY_PREFIX'],
+                                config['COLLECTION_PREFIX'],
                                 cur_dir)
         paths.append(full_dir)
         print(f"Scanning: {cur_dir}")
     return paths
 
-def read_json_config(collection):
-    """reads in json file and selects correct collection setting"""
-    with open('config_collections.json') as file:
-        config = json.load(file)
-        config = config[collection]
-        replace_slashes_in_dict(config)
-    return config
+def read_nested_json(key, json_file):
+    """reads in nested json within a parent json based on key"""
+    with open(f'{json_file}') as file:
+        json_dict = json.load(file)
+        json_value = json_dict[key]
+        replace_slashes_in_dict(json_value)
+    return json_value
 
 
 def remove_two_index(value_list, column_list):

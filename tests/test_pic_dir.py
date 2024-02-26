@@ -3,13 +3,13 @@ import shutil
 import os
 from tests.pic_csv_test_class import AltCsvCreatePicturae
 from tests.testing_tools import TestingTools
-from gen_import_utils import read_json_config
+from importer_config import initialize_collection_config
 
 class DirectoryTests(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.md5_hash = self.generate_random_md5()
-        self.picturae_config = read_json_config(collection="Botany_PIC")
+        self.picturae_config = initialize_collection_config(collection="Botany_PIC")
 
     """WorkingDirectoryTests: a series of unit tests to verify
         correct working directory, subdirectories."""
