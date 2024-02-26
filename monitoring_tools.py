@@ -254,5 +254,6 @@ class MonitoringTools:
                 recipient_list.append(email)
             msg['To'] = recipient_list
 
+
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)

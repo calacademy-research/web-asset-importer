@@ -1,7 +1,7 @@
 from image_db import ImageDb
 from attachment_utils import AttachmentUtils
 from db_utils import DbUtils
-from importer_config import initialize_collection_config
+from importer_config import get_config
 import traceback
 import logging
 import sys
@@ -12,8 +12,8 @@ botany_importer = None
 attachment_utils: Optional[AttachmentUtils] = None
 
 def import_configs():
-    botany_importer_config = initialize_collection_config(collection='Botany')
-    ich_importer_config = initialize_collection_config(collection='ICH')
+    botany_importer_config = get_config(section_name='Botany')
+    ich_importer_config = get_config(section_name='ICH')
     return botany_importer_config, ich_importer_config
 
 def get_specify_state(internal_filename):

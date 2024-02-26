@@ -58,7 +58,6 @@ class BotanyImporter(Importer):
 
 
     def process_loaded_files(self):
-        print(f"barcode_map: {self.barcode_map}")
         for barcode in self.barcode_map.keys():
             filename_list = []
             for cur_filepath in self.barcode_map[barcode]:
@@ -104,7 +103,6 @@ class BotanyImporter(Importer):
         filename = os.path.basename(full_path)
         matched = re.match(self.botany_importer_config['IMAGE_SUFFIX'], filename.lower())
         is_match = bool(matched)
-        print(is_match)
         if not is_match:
             self.logger.debug(f"Rejected; no match: {filename}")
             return

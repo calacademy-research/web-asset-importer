@@ -156,7 +156,7 @@ class ImageClient:
 
         return self.decode_response(params)
 
-    def update_4_image_data(self, exif_dict, collection, filename):
+    def write_image_metadata(self, exif_dict, collection, filename):
         data = {'filename': filename,
                 'coll': collection,
                 'exif_dict': json.dumps(exif_dict),

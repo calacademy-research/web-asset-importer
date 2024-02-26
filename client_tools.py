@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from gen_import_utils import get_max_subdirectory_date, picturae_paths_list
-from importer_config import initialize_collection_config
+from importer_config import get_config
 import os
 import logging
 import collection_definitions
@@ -71,7 +71,7 @@ def main(args):
         image_client = ImageClient()
     elif args.subcommand == 'import':
         if args.collection == "Botany":
-            bot_config = initialize_collection_config(collection="Botany")
+            bot_config = get_config(section_name="Botany")
             # get paths here
             paths = []
             for cur_dir in bot_config['BOTANY_SCAN_FOLDERS']:
@@ -82,7 +82,7 @@ def main(args):
             full_import = args.full_import
             BotanyImporter(paths=paths, config=bot_config, full_import=full_import)
         elif args.collection == 'Botany_PIC':
-            pic_config = initialize_collection_config(collection="Botany_PIC")
+            pic_config = get_config(section_name="Botany_PIC")
             existing_barcodes = args.existing_barcodes
             if existing_barcodes:
                 paths = []
@@ -120,7 +120,7 @@ def main(args):
             PicturaeUndoBatch(MD5=md5_insert)
     elif args.subcommand == 'update':
         if args.collection == "Botany_PIC":
-            pic_config = initialize_collection_config(collection="picbatch")
+            pic_config = get_config(section_name="Botany_PIC")
             date_override = args.date
             force_update = args.force_update
             UpdateDbFields(config=pic_config, date=date_override, force_update=force_update)

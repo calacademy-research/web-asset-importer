@@ -5,14 +5,14 @@ from uuid import uuid4
 from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
-from importer_config import initialize_collection_config
+from importer_config import get_config
 
 class AltPicturaeImporterlite(PicturaeImporter):
     def __init__(self, date_string, paths):
-        self.picturae_config = initialize_collection_config(collection="Botany_PIC")
+        self.picturae_config = get_config(section_name="Botany_PIC")
         Importer.__init__(self, db_config_class=self.picturae_config, collection_name="Botany")
 
-        self.picdb_config = initialize_collection_config(collection="picbatch")
+        self.picdb_config = get_config(section_name="picbatch")
         self.init_all_vars(date_string=date_string, paths=paths)
         self.logger = logging.getLogger("AltPicturaeImporter")
         # keep name as sql_csv_tools since it needs to replace the internally called function

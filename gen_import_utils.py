@@ -69,13 +69,14 @@ def picturae_paths_list(config, date):
         print(f"Scanning: {cur_dir}")
     return paths
 
-def read_nested_json(key, json_file):
-    """reads in nested json within a parent json based on key"""
+def read_json(json_file, key=None):
+    """reads in json, with optional key"""
     with open(f'{json_file}') as file:
         json_dict = json.load(file)
-        json_value = json_dict[key]
-        replace_slashes_in_dict(json_value)
-    return json_value
+        if key:
+            json_dict = json_dict[key]
+        replace_slashes_in_dict(json_dict)
+    return json_dict
 
 
 def remove_two_index(value_list, column_list):

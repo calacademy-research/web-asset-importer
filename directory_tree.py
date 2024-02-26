@@ -1,8 +1,8 @@
 import os, pickle
 from anytree import Node, RenderTree
-from importer_config import initialize_collection_config
+from importer_config import get_config
 
-iz_importer_config = initialize_collection_config(collection="IZ")
+iz_importer_config = get_config(section_name="IZ")
 
 class DirectoryTree():
 

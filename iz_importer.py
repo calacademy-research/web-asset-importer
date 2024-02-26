@@ -9,7 +9,7 @@ from metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
 import traceback
 from time_utils import get_pst_time_now_string
-from importer_config import initialize_collection_config
+from importer_config import get_config
 CASIZ_FILE_LOG = "file_log.tsv"
 
 starting_time_stamp = datetime.now()
@@ -24,7 +24,7 @@ class IzImporter(Importer):
 
     def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
-        self.iz_importer_config = initialize_collection_config(collection="IZ")
+        self.iz_importer_config = get_config(section_name="IZ")
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
@@ -179,14 +179,14 @@ class IzImporter(Importer):
 
     # review new exif methods before running to
     # verify which method you actually want to use, and what data type it returns
-    def attempt_exif_extraction(self, full_path):
-        try:
-            return MetadataTools.read_exif_metadata(full_path)
-        except Exception as e:
-            print(f"Exception: {e}")
-            traceback.print_exc()
-
-            return None
+    # def attempt_exif_extraction(self, full_path):
+    #     try:
+    #         return MetadataTools.read_exif_metadata(full_path)
+    #     except Exception as e:
+    #         print(f"Exception: {e}")
+    #         traceback.print_exc()
+    #
+    #         return None
 
     def attempt_exif_match(self, full_path):
         if self.exif_tools is None:

@@ -6,7 +6,7 @@
 
 from db_utils import DbUtils, InvalidFilenameError, DatabaseInconsistentError
 from attachment_utils import AttachmentUtils
-from importer_config import initialize_collection_config
+from importer_config import get_config
 import logging
 import os
 import filetype
@@ -75,7 +75,7 @@ def update_attachment_record(attachment_record_id,linux_path,url, location):
 def iterate_existing_attachments():
     global specify_db_connection, attachment_utils, image_client
 
-    ich_importer_config = initialize_collection_config(collection="ICH")
+    ich_importer_config = get_config(section_name="ICH")
 
     specify_db_connection = DbUtils(
         ich_importer_config['USER'],

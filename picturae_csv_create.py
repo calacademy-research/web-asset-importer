@@ -11,7 +11,7 @@ from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import logging
-from importer_config import initialize_collection_config
+from importer_config import get_config
 from taxon_tools.BOT_TNRS import iterate_taxon_resolve
 starting_time_stamp = datetime.now()
 
@@ -20,7 +20,7 @@ class CsvCreatePicturae(Importer):
     def __init__(self, date_string, config, paths, logging_level):
         self.paths = paths
         self.picturae_config = config
-        self.picdb_config = initialize_collection_config(collection="picbatch")
+        self.picdb_config = get_config(section_name="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
         self.logger = logging.getLogger("CsvCreatePicturae")
         self.logger.setLevel(logging_level)

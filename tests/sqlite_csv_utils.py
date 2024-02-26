@@ -2,10 +2,10 @@
    standard database protocols"""
 import sqlite3
 from sql_csv_utils import SqlCsvTools
-from importer_config import initialize_collection_config
+from importer_config import get_config
 class SqlLiteTools(SqlCsvTools):
     def __init__(self, sql_db):
-        picturae_config = initialize_collection_config(collection="Botany_PIC")
+        picturae_config = get_config(section_name="Botany_PIC")
         super().__init__(config=picturae_config)
         self.sqlite_db = sql_db
         self.connection = self.sql_db_connection()

@@ -13,7 +13,7 @@ from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
 from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
-from importer_config import initialize_collection_config
+from importer_config import get_config
 from os import path
 import time_utils
 import logging.handlers
@@ -35,7 +35,7 @@ class PicturaeImporter(Importer):
 
         super().__init__(self.picturae_config, "Botany")
 
-        self.picdb_config = initialize_collection_config(collection='picbatch')
+        self.picdb_config = get_config(section_name='picbatch')
 
         self.logger = logging.getLogger("PicturaeImporter")
 
