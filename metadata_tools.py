@@ -14,11 +14,11 @@ class MetadataTools:
     @timeout(20, os.strerror(errno.ETIMEDOUT))
     def __init__(self, path, config):
         self.config = config
-        self.exif_ring = config['EXIF_DECODER_RING']
+        # self.exif_ring = config.EXIF_DECODER_RING
         self.path = path
         self.logger = logging.getLogger('MetadataTools')
         self.logger.setLevel(logging.DEBUG)
-        self.process_exif_ring()
+        # self.process_exif_ring()
 
 
 
@@ -75,8 +75,8 @@ class MetadataTools:
 
         exif_tag = self.exif_code_to_tag(exif_code)
         command = ['exiftool', '-overwrite_original', f"-{exif_tag}={exif_value}", self.path]
-        subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.logger.info("exif added succesfully")
+        # subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.logger.info(f"exif added successfully. Tag/value: {exif_tag}={exif_value} file: {self.path}")
 
 
     # still doesn't work yet, but close
@@ -119,7 +119,11 @@ class MetadataTools:
                 path: path to image
                 convert_tags: True to convert tags to string, False keep exif codes
         """
-        img = Image.open(self.path)
+        try:
+            img = Image.open(self.path)
+        except PIL.UnidentifiedImageError as e:
+            logging.warning(f"Unable to open {self.path}")
+            return None
         if convert_tags is True:
             exif = {
                 PIL.ExifTags.TAGS[k]: v
@@ -132,12 +136,17 @@ class MetadataTools:
         img.close()
         return exif
 
-    def process_exif_ring(self):
-        """iterates through exif_ring dict keys and values to attach them to image"""
-        self.logger.info(f"processing exif ring for filepath: {self.path}")
-        for key, value in self.exif_ring.items():
-            key = int(key)
-            self.exif_attach_metadata(exif_code=key, exif_value=value)
+    # Joe destructive. Best to change exif data on pushed
+    # images not source ones. In any case, we'd never want to overwrite on init -
+    # only in cases where it makes sense.
+
+
+    # def process_exif_ring(self):
+    #     """iterates through exif_ring dict keys and values to attach them to image"""
+    #     self.logger.info(f"processing exif ring for filepath: {self.path}")
+    #     for key, value in self.exif_ring.items():
+    #         key = int(key)
+    #         self.exif_attach_metadata(exif_code=key, exif_value=value)
 
 
 # if __name__ == "__main__":

@@ -9,10 +9,12 @@ from metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
 import traceback
 from time_utils import get_pst_time_now_string
+import iz_importer_config
 
 CASIZ_FILE_LOG = "file_log.tsv"
 
 starting_time_stamp = datetime.now()
+
 
 #  EXIF takes first priority Directory takes second. File name takes 3rd.
 
@@ -24,7 +26,9 @@ class IzImporter(Importer):
 
     def __init__(self, full_import):
         logging.getLogger('PIL').setLevel(logging.ERROR)
-        self.iz_importer_config = read_json_config(collection="IZ")
+        # self.iz_importer_config = read_json_config(collection="IZ")
+        self.iz_importer_config = iz_importer_config
+        self.iz_importer_config_old = read_json_config(collection="IZ")
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
@@ -33,8 +37,8 @@ class IzImporter(Importer):
         self.logger = logging.getLogger('Client.IzImporter')
         self.logger.setLevel(logging.DEBUG)
 
-        self.collection_name = self.iz_importer_config['COLLECTION_NAME']
-        super().__init__(self.iz_importer_config, "Invertebrate Zoology")
+        self.collection_name = self.iz_importer_config.COLLECTION_NAME
+        super().__init__(self.iz_importer_config_old, "Invertebrate Zoology")
 
         # dir_tools = DirTools(self.build_filename_map)
 
@@ -43,38 +47,30 @@ class IzImporter(Importer):
 
         self.logger.debug("IZ import mode")
 
+        self.conjunction_match = iz_importer_config.FILENAME_CONJUNCTION_MATCH + iz_importer_config.IMAGE_SUFFIX
+        self.filename_match = iz_importer_config.FILENAME_MATCH
+        self.directory_match = iz_importer_config.CASIZ_MATCH
+        self.directory_conjunction_match = iz_importer_config.FILENAME_CONJUNCTION_MATCH
+        self.extract_casiz = self.extract_casiz
 
-        self.cur_directory_conjunction_match = self.iz_importer_config['CASIZ_MATCH'] + \
-                                     f' (and|or) ' \
-                                     f'({self.iz_importer_config["CASIZ_PREFIX"]})?({self.iz_importer_config["CASIZ_NUMBER"]})'
 
-        self.cur_directory_match = self.iz_importer_config['CASIZ_MATCH'] + self.iz_importer_config['IMAGE_SUFFIX']
-        self.cur_conjunction_match = self.cur_directory_conjunction_match + self.iz_importer_config['IMAGE_SUFFIX']
-        self.cur_filename_match = self.cur_directory_match + self.iz_importer_config['IMAGE_SUFFIX']
-
-        self.cur_casiz_match = self.iz_importer_config['CASIZ_MATCH']
-        self.cur_extract_casiz = self.extract_casiz
-        self.directory_tree_core = DirectoryTree(self.iz_importer_config['IZ_SCAN_FOLDERS'])
+        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS)
         self.directory_tree_core.process_files(self.build_filename_map)
         # placeholder for filename now
 
         print("Starting to process loaded core files...")
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config)
+            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config_old)
             self.monitoring_tools.create_monitoring_report()
 
-
         print("Starting to process loaded core files...")
-
 
         self.process_loaded_files()
 
         if not full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
-
-
 
     def process_loaded_files(self):
 
@@ -87,25 +83,22 @@ class IzImporter(Importer):
 
             self.process_casiz_number(casiz_number, filepath_list)
 
-
-
-    def read_decoder_ring(self,ring_path):
+    def read_decoder_ring(self, ring_path):
         pass
 
-    def decoder_ring_applied(self,exif,filepath):
+    def decoder_ring_applied(self, exif, filepath):
         pass
 
-    def needs_update(self,casiz_number,filepath):
+    def needs_update(self, casiz_number, filepath):
         pass
         # self.logger.debug(f"Processing casiz_numbers: {casiz_number}")
         # sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
         # collection_object_id = self.specify_db_connection.get_one_record(sql)
 
-
     # Iterates over all the files;
     def process_casiz_number(self, casiz_number, filepath_list):
         self.logger.debug(f"Processing casiz_numbers: {casiz_number}")
-        sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
+        sql = f"select collectionobjectid from collectionobject where catalognumber={casiz_number}"
         collection_object_id = self.specify_db_connection.get_one_record(sql)
         if collection_object_id is None:
             print(f"No record found for casiz_number {casiz_number}, skipping.")
@@ -136,15 +129,15 @@ class IzImporter(Importer):
                         id=None,
                         filename=None,
                         path=None,
-                        method=None,
+                        casiznumber_method=None,
                         rejected=None,
                         copyright_method=None,
                         copyright=None,
                         conjunction=None):
         if rejected is None:
-            rejected = "-"
-        if method is None:
-            method = "-"
+            rejected = "*"
+        if casiznumber_method is None:
+            casiznumber_method = "-"
         if copyright is None:
             copyright = "-"
         if id is None or rejected is True:
@@ -152,18 +145,18 @@ class IzImporter(Importer):
         if conjunction:
             id = conjunction
         print(
-            f"Logged: {id} copyright method: {copyright_method} copyright: \'{copyright}\' rejected:{rejected} filename: {filename}")
-        self.log_file.write(f"{id}\t{filename}\t{method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
+            f"Logged: {id} copyright method: {copyright_method} copyright: \'{copyright}\' rejected:{rejected} filename: {filename} Path: {path}")
+        self.log_file.write(f"{id}\t{filename}\t{casiznumber_method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
         return
 
     def extract_casiz_single(self, candidate_string):
-        ints = re.findall(self.iz_importer_config['CASIZ_NUMBER'], candidate_string)
+        ints = re.findall(self.iz_importer_config.CASIZ_NUMBER, candidate_string)
         if len(ints) > 0:
             return ints[0]
         return None
 
     def extract_casiz(self, candidate_string):
-        ints = re.findall(self.iz_importer_config['CASIZ_MATCH'], candidate_string)
+        ints = re.findall(self.iz_importer_config.CASIZ_MATCH, candidate_string)
         if len(ints) > 0:
             return ints[0][1]
         return None
@@ -181,76 +174,57 @@ class IzImporter(Importer):
 
     def attempt_exif_extraction(self, full_path):
         try:
-            return MetadataTools(full_path)
+            return MetadataTools(full_path, self.iz_importer_config)
         except Exception as e:
             print(f"Exception: {e}")
             traceback.print_exc()
 
             return None
 
-    def attempt_exif_match(self, full_path):
-        if self.exif_tools is None:
-            return False
-        if self.exif_tools.casiz_number is not None:
-            self.casiz_numbers = [self.exif_tools.casiz_number]
-            return True
-        return False
+    def get_casiz_from_exif(self, exif_metadata):
+        if exif_metadata is None:
+            return None
 
-    def attempt_directory_match(self, full_path):
-        directory = os.path.dirname(full_path)
+        if "ImageDescription" in exif_metadata.keys():
+            image_description = exif_metadata['ImageDescription'].strip()
+            ints = re.findall(r'\d+', image_description)
+            if len(ints) == 0:
+                self.logger.debug(f" Can't find any id number in the image description: {image_description}")
 
-        directories = directory.split('/')
+            else:
+                if len(ints[0]) >= iz_importer_config.MINIMUM_ID_DIGITS:
+                    casiz_number = int(ints[0])
+                    return casiz_number
 
-        for cur_directory in reversed(directories):
+        return None
 
-            if self.cur_directory_conjunction_match is not None:
-                result = re.search(self.cur_directory_conjunction_match, cur_directory)
-                if result:
-                    found_substring = result.groups()[0]
-                    self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
-                    return True
-            if self.cur_directory_match is not None:
-                if re.search(self.cur_directory_match, cur_directory):
-                    self.casiz_numbers = [self.cur_extract_casiz(directory)]
-                    return True
-        return False
+    # old and busted
+    def get_copyright_from_exif(self, exif_metadata):
+        if exif_metadata is None:
+            return None
+        if "Copyright" in exif_metadata.keys():
 
-    def attempt_filename_match(self, full_path):
-        filename = os.path.basename(full_path)
-
-        if self.cur_conjunction_match is not None:
-            if re.search(self.cur_conjunction_match, filename):
-                p = re.compile(self.cur_conjunction_match)
-                result = p.search(filename)
-                found_substring = result.groups()[0]
-                self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
-                print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
-                return True
-        if re.search(self.cur_filename_match, filename):
-            self.casiz_numbers = [self.cur_extract_casiz(filename)]
-
-            return True
-
-        return False
-
-    def attempt_directory_copyright_extraction(self, directory_orig_case):
-        directories = directory_orig_case.split('/')
-
-        for cur_directory in reversed(directories):
-            copyright = self.extract_copyright_from_string(cur_directory)
+            copyright = exif_metadata['Copyright'].strip()
             if copyright is not None:
-                self.copyright = copyright
-                return True
-        return False
+                if copyright.startswith('Â'):
+                    copyright = copyright[1:]
+                #     Common data errors
+                if len(copyright) <= 2:
+                    return None
+                if "\x00\x00\x00\x00\x00\x00\x00" in copyright:
+                    return None
+                return copyright
+        return None
 
-    def extract_copyright_from_file(self, orig_case_full_path):
+    def extract_copyright(self, orig_case_full_path, exif_metadata):
         orig_case_directory = os.path.dirname(orig_case_full_path)
         orig_case_filename = os.path.basename(orig_case_full_path)
         self.copyright = None
-        copyright_method = None
-        if self.exif_tools:
-            if self.exif_tools.copyright is not None:
-                self.copyright = self.exif_tools.copyright
+
+        if exif_metadata:
+            copyright = self.get_copyright_from_exif(exif_metadata)
+            if copyright is not None:
+                self.copyright = copyright
                 return 'exif'
         if self.attempt_directory_copyright_extraction(orig_case_directory):
             return 'directory'
@@ -262,6 +236,78 @@ class IzImporter(Importer):
             return 'filename'
 
         return None
+
+    def attempt_directory_match(self, full_path):
+        directory = os.path.dirname(full_path)
+
+        directories = directory.split('/')
+
+        for cur_directory in reversed(directories):
+
+            if self.directory_conjunction_match is not None:
+                result = re.search(self.directory_conjunction_match, cur_directory)
+                if result:
+                    found_substring = result.groups()[0]
+                    self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
+                    return True
+            if self.directory_match is not None:
+                if re.search(self.directory_match, cur_directory):
+                    self.casiz_numbers = [self.extract_casiz(directory)]
+                    return True
+        return False
+
+    def attempt_filename_match(self, full_path):
+        filename = os.path.basename(full_path)
+
+        # Check for conjunction matches first
+        if self.conjunction_match is not None:
+            match = re.search(self.conjunction_match, filename)
+            if match:
+                # Extract all numeric groups (CASIZ numbers) from the match
+                self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,12}\b', filename)]))
+                print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
+                return True
+
+        # Fallback to simple filename match
+        if re.search(self.filename_match, filename):
+            # Extract CASIZ number using the specific extraction method
+            casiz_number = self.extract_casiz(filename)
+            if casiz_number is not None:
+                self.casiz_numbers = [casiz_number]
+                return True
+
+        return False
+    #
+    # def attempt_filename_match(self, full_path):
+    #     filename = os.path.basename(full_path)
+    #     cur_conjunction_match = r'cas(iz)?[#a-z _]*[_ \\-]?([0-9]{5,12}) (and|or) (cas(iz)?[#a-z _]*[_ \\-]?)?([0-9]{5,12})[a-z\\-\\(\\)0-9 ©_,.]*(\.(jpg|jpeg|tiff|tif|png))$'
+    #
+    #     if self.cur_conjunction_match is not None:
+    #         if re.search(self.cur_conjunction_match, filename):
+    #             p = re.compile(self.cur_conjunction_match)
+    #             result = p.search(filename)
+    #             # found_substring = result.groups()[0]
+    #             # self.casiz_numbers = extracted_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,}\b', ' '.join(result))]))
+    #
+    #             self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', result)]))
+    #             print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
+    #             return True
+    #     if re.search(self.cur_filename_match, filename):
+    #         self.casiz_numbers = [self.cur_extract_casiz(filename)]
+    #
+    #         return True
+    #
+    #     return False
+
+    def attempt_directory_copyright_extraction(self, directory_orig_case):
+        directories = directory_orig_case.split('/')
+
+        for cur_directory in reversed(directories):
+            copyright = self.extract_copyright_from_string(cur_directory)
+            if copyright is not None:
+                self.copyright = copyright
+                return True
+        return False
 
     def check_already_attached(self, full_path):
         attachment_id = self.attachment_utils.get_attachmentid_from_filepath(full_path)
@@ -278,12 +324,11 @@ class IzImporter(Importer):
 
     def include_by_extension(self, filepath: str) -> bool:
 
-        pattern = re.compile(f'^.*{self.iz_importer_config["IMAGE_SUFFIX"]}')
+        pattern = re.compile(f'^.*{self.iz_importer_config.IMAGE_SUFFIX}')
 
         return bool(pattern.match(filepath))
 
     def check_already_in_image_db(self, full_path):
-
 
         if self.image_client.check_image_db_if_filepath_imported(self.collection_name,
                                                                  full_path,
@@ -302,17 +347,21 @@ class IzImporter(Importer):
             return False
 
         if self.check_already_attached(full_path):
-            print(f"Already imported {orig_case_full_path}")
+            self.log_file_status(filename=os.path.basename(full_path),
+                                 path=full_path,
+                                 rejected="Already imported")
             return False
-
 
         # if self.check_already_in_image_db(full_path):
         #     print(f"Already in image db {orig_case_full_path}")
         #     return False
+        exif_metadata = None
+        exif_tools = self.attempt_exif_extraction(full_path)
+        if exif_tools is not None:
+            exif_metadata = exif_tools.read_exif_metadata()
 
-        self.exif_tools = self.attempt_exif_extraction(full_path)
         self.casiz_numbers = None
-        if self.attempt_exif_match(full_path):
+        if self.get_casiz_from_exif(exif_metadata) is not None:
             casiz_source = 'EXIF'
         else:
             if self.attempt_directory_match(full_path):
@@ -327,14 +376,15 @@ class IzImporter(Importer):
                     return False
 
         # -------- copyright --------
-        copyright_method = self.extract_copyright_from_file(orig_case_full_path)
+        copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata)
 
         if self.copyright:
             self.path_copyright_map[full_path] = self.copyright
 
         # This little horror ensures that we're all ints in the list of numbers.
         self.casiz_numbers = list(
-            map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))), self.casiz_numbers))
+            map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))),
+                self.casiz_numbers))
 
         for cur_casiz_number in self.casiz_numbers:
             if cur_casiz_number not in self.casiz_filepath_map:
@@ -342,9 +392,10 @@ class IzImporter(Importer):
             else:
                 self.casiz_filepath_map[cur_casiz_number].append(full_path)
 
+        # Joe - this is where we would tag and upload images
         self.log_file_status(filename=os.path.basename(orig_case_full_path),
                              path=orig_case_full_path,
-                             method=casiz_source,
+                             casiznumber_method=casiz_source,
                              id=self.casiz_numbers,
                              copyright_method=copyright_method,
                              copyright=self.copyright)
@@ -353,6 +404,3 @@ class IzImporter(Importer):
     def get_collectionobjectid_from_casiz_number(self, casiz_number):
         sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
         return self.specify_db_connection.get_one_record(sql)
-
-
-

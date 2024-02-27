@@ -9,6 +9,7 @@ import datetime
 import logging
 import os
 from monitoring_tools import MonitoringTools
+from datetime import datetime, timezone, timedelta
 from string_utils import remove_non_numerics
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
@@ -26,8 +27,8 @@ class FileNotFoundException(Exception):
 
 class ImageClient:
     def __init__(self, config=None):
-        ptc_timezone = datetime.timezone(datetime.timedelta(hours=-7), name="PTC")
-        self.datetime_now = datetime.datetime.now(ptc_timezone)
+        ptc_timezone = timezone(timedelta(hours=-8), name="PST")
+        self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
         if config is not None:
             self.monitoring_tools = MonitoringTools(config=config)
@@ -57,6 +58,7 @@ class ImageClient:
         """Return an integer timestamp with one second resolution for
         the current moment.
         """
+
         return int(time.time()) + server_time_delta
 
     def update_time_delta(self):
@@ -66,6 +68,7 @@ class ImageClient:
     def generate_token(self, filename):
         """Generate the auth token for the given filename and timestamp. """
         timestamp = self.get_timestamp()
+        print(f"image client timestamp: {timestamp}", flush=True)
         msg = str(timestamp).encode() + filename.encode()
         mac = hmac.new(server_host_settings.SERVER_KEY.encode(), msg=msg, digestmod='md5')
         return ':'.join((mac.hexdigest(), str(timestamp)))

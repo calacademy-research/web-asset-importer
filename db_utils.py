@@ -1,7 +1,11 @@
 import logging
+logging.basicConfig(level=logging.DEBUG)
+
+
+
+
 import sys
 import traceback
-import re
 
 from mysql.connector import errorcode
 import mysql.connector

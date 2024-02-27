@@ -73,7 +73,6 @@ class BotanyImporter(Importer):
         if collection_object_id is None:
             self.logger.debug(f"No record found for catalog number {barcode}, creating skeleton.")
             self.create_skeleton(barcode)
-            force_redacted = True
             self.logger.warning(f"Skeletons temporarily disabled in botany")
             return
         #  we can have multiple filepaths per barcode in the case of barcode-a, barcode-b etc.
