@@ -47,6 +47,27 @@ def replace_slashes_in_dict(json):
         elif isinstance(value, dict):
             replace_slashes_in_dict(value)
 
+def extract_last_folders(path, number: int):
+    """truncates a path string to keep only the last n elements of a path"""
+    path_components = path.split('/')
+    return '/'.join(path_components[-number:])
+
+def picturae_paths_list(config, date):
+    """parses date arg into picturae image folder structure with prefixes"""
+    date_folders = f"{int(date) // 10000}{os.path.sep}" \
+                   f"{str(int(date) // 100 % 100).zfill(2)}{os.path.sep}" \
+                   f"{str(int(date) % 100).zfill(2)}{os.path.sep}"
+
+    config['PIC_SCAN_FOLDERS'] = [f"{date_folders}"]
+    config['date_str'] = date
+    paths = []
+    for cur_dir in config['PIC_SCAN_FOLDERS']:
+        full_dir = os.path.join(config['PREFIX'],
+                                config['BOTANY_PREFIX'],
+                                cur_dir)
+        paths.append(full_dir)
+        print(f"Scanning: {cur_dir}")
+    return paths
 
 def read_json_config(collection):
     """reads in json file and selects correct collection setting"""
