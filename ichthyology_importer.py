@@ -3,7 +3,7 @@ from importer import Importer
 import os
 import re
 import logging
-from importer_config import get_config
+from get_configs import get_config
 from dir_tools import DirTools
 from monitoring_tools import MonitoringTools
 from time_utils import get_pst_time_now_string
@@ -28,8 +28,8 @@ class IchthyologyImporter(Importer):
         dir_tools = DirTools(self.build_filename_map)
 
 
-        for cur_dir in ich_importer_config['ICH_SCAN_FOLDERS']:
-            cur_dir = os.path.join(ich_importer_config['IMAGE_DIRECTORY_PREFIX'], ich_importer_config['SCAN_DIR'], cur_dir)
+        for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
+            cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
             print(f"Scanning: {cur_dir}")
             dir_tools.process_files_or_directories_recursive(cur_dir)
 

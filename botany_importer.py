@@ -91,7 +91,7 @@ class BotanyImporter(Importer):
 
             self.import_to_imagedb_and_specify(filepath_list,
                                                collection_object_id,
-                                               self.botany_importer_config['AGENT_ID'],
+                                               self.botany_importer_config.AGENT_ID,
                                                force_redacted)
 
 
@@ -101,7 +101,7 @@ class BotanyImporter(Importer):
         if not self.check_for_valid_image(full_path):
             return
         filename = os.path.basename(full_path)
-        matched = re.match(self.botany_importer_config['IMAGE_SUFFIX'], filename.lower())
+        matched = re.match(self.botany_importer_config.IMAGE_SUFFIX, filename.lower())
         is_match = bool(matched)
         if not is_match:
             self.logger.debug(f"Rejected; no match: {filename}")

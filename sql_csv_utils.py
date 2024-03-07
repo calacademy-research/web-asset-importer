@@ -248,8 +248,8 @@ class SqlCsvTools:
                       f"{time_stamp_list[0]}",
                       f"{time_stamp_list[1]}",
                       f"{batch_size}",
-                      f"{self.config['AGENT_ID']}",
-                      f"{self.config['AGENT_ID']}"
+                      f"{self.config.AGENT_ID}",
+                      f"{self.config.AGENT_ID}"
                       ]
 
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -268,7 +268,7 @@ class SqlCsvTools:
                 condition: condition sql string used to select sub-sect of records to update.
         """
         update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}", 
-                            ModifiedByAgentID = "{self.config["AGENT_ID"]}",'''
+                            ModifiedByAgentID = "{self.config.AGENT_ID}",'''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''
@@ -357,8 +357,8 @@ class SqlCsvTools:
                     f"{row[accepted_author]}",
                     f"{row[overall_score]}",
                     f"{row[catalog_number]}",
-                    f"{self.config['AGENT_ID']}",
-                    f"{self.config['AGENT_ID']}"]
+                    f"{self.config.AGENT_ID}",
+                    f"{self.config.AGENT_ID}"]
 
         val_list, col_list = remove_two_index(val_list, col_list)
 
@@ -422,8 +422,8 @@ class SqlCsvTools:
                     f"{row[family]}",
                     f"{row[taxname]}",
                        row[hybrid],
-                    f"{self.config['AGENT_ID']}",
-                    f"{self.config['AGENT_ID']}"]
+                    f"{self.config.AGENT_ID}",
+                    f"{self.config.AGENT_ID}"]
 
 
 
