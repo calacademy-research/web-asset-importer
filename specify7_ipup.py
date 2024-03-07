@@ -63,7 +63,15 @@ def master_run():
 
     ip_replace('server_host_settings.py')
 
-    ip_replace('importer_config.py')
+    ip_replace('config_files/botany_pic_config.py')
+
+    ip_replace('config_files/ichthyology_config.py')
+
+    ip_replace('config_files/iz_config.py')
+
+    ip_replace('config_files/picbatch_config.py')
+
+    ip_replace('config_files/botany_config.py')
 
 # running master function
 master_run()

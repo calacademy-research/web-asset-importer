@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 from gen_import_utils import get_max_subdirectory_date, picturae_paths_list
-from importer_config import get_config
+from get_configs import get_config
 import os
 import logging
 import collection_definitions
@@ -71,25 +71,25 @@ def main(args):
         image_client = ImageClient()
     elif args.subcommand == 'import':
         if args.collection == "Botany":
-            bot_config = get_config(section_name="Botany")
+            bot_config = get_config(config="Botany")
             # get paths here
             paths = []
-            for cur_dir in bot_config['BOTANY_SCAN_FOLDERS']:
-                paths.append(os.path.join(bot_config['PREFIX'],
-                                          bot_config['COLLECTION_PREFIX'],
+            for cur_dir in bot_config.BOTANY_SCAN_FOLDERS:
+                paths.append(os.path.join(bot_config.PREFIX,
+                                          bot_config.COLLECTION_PREFIX,
                                           cur_dir))
                 print(f"Scanning: {cur_dir}")
             full_import = args.full_import
             BotanyImporter(paths=paths, config=bot_config, full_import=full_import)
         elif args.collection == 'Botany_PIC':
-            pic_config = get_config(section_name="Botany_PIC")
+            pic_config = get_config(config="Botany_PIC")
             existing_barcodes = args.existing_barcodes
             if existing_barcodes:
                 paths = []
                 full_import = args.full_import
 
-                paths.append(os.path.join(pic_config['PREFIX'],
-                                     pic_config['COLLECTION_PREFIX']))
+                paths.append(os.path.join(pic_config.PREFIX,
+                                     pic_config.COLLECTION_PREFIX))
 
                 BotanyImporter(paths=paths, config=pic_config, full_import=full_import,
                                existing_barcodes=existing_barcodes)
@@ -120,7 +120,7 @@ def main(args):
             PicturaeUndoBatch(MD5=md5_insert)
     elif args.subcommand == 'update':
         if args.collection == "Botany_PIC":
-            pic_config = get_config(section_name="Botany_PIC")
+            pic_config = get_config(config="Botany_PIC")
             date_override = args.date
             force_update = args.force_update
             UpdateDbFields(config=pic_config, date=date_override, force_update=force_update)

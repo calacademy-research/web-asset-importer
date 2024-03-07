@@ -13,7 +13,7 @@ from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
 from picturae_csv_create import starting_time_stamp
 from specify_db import SpecifyDb
-from importer_config import get_config
+from get_configs import get_config
 from os import path
 import time_utils
 import logging.handlers
@@ -35,7 +35,7 @@ class PicturaeImporter(Importer):
 
         super().__init__(self.picturae_config, "Botany")
 
-        self.picdb_config = get_config(section_name='picbatch')
+        self.picdb_config = get_config(config='picbatch')
 
         self.logger = logging.getLogger("PicturaeImporter")
 
@@ -104,7 +104,7 @@ class PicturaeImporter(Importer):
         for param in init_list:
             setattr(self, param, None)
 
-        self.created_by_agent = self.picturae_config['AGENT_ID']
+        self.created_by_agent = self.picturae_config.AGENT_ID
 
         self.paths = paths
 
@@ -915,7 +915,7 @@ class PicturaeImporter(Importer):
 
         sql = f"""UPDATE mysql.user
                  SET account_locked = 'Y'
-                 WHERE user != '{self.picturae_config['USER']}' AND host = '%';"""
+                 WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -947,6 +947,6 @@ class PicturaeImporter(Importer):
 
         sql = f"""UPDATE mysql.user
                   SET account_locked = 'n'
-                  WHERE user != '{self.picturae_config['USER']}' AND host = '%';"""
+                  WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
 
         self.sql_csv_tools.insert_table_record(sql=sql)

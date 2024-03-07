@@ -5,11 +5,11 @@
 from importer import Importer
 from specify_db import SpecifyDb
 import traceback
-from importer_config import get_config
+from get_configs import get_config
 class PicturaeUndoBatch(Importer):
     def __init__(self, MD5):
-        self.picturae_config = get_config(section_name="Botany_PIC")
-        self.picdb_config = get_config(section_name="picbatch")
+        self.picturae_config = get_config(config="Botany_PIC")
+        self.picdb_config = get_config(config="picbatch")
         super().__init__(self.picturae_config, "Botany")
         self.purge_code = MD5
         self.batch_db_connection = SpecifyDb(db_config_class=self.picdb_config)
@@ -21,7 +21,7 @@ class PicturaeUndoBatch(Importer):
     def get_attachment_location(self, timestamp1, timestamp2):
         sql = f'''SELECT AttachmentLocation FROM attachment WHERE 
                   TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
-                  AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";;'''
+                  AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";;'''
         list_of_attachments = self.specify_db_connection.get_records(query=sql)
         image_location = [record[0] for record in list_of_attachments]
         return image_location
@@ -40,7 +40,7 @@ class PicturaeUndoBatch(Importer):
 
         sql = f'''DELETE FROM {table} WHERE TimestampCreated >= 
                   "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
-                  AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";'''
+                  AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";'''
 
         self.logger.info(f'running query: {sql}')
         self.logger.debug(sql)
@@ -77,7 +77,7 @@ class PicturaeUndoBatch(Importer):
                        NOT IN (SELECT DISTINCT ParentID FROM {table}
                        WHERE ParentID IS NOT NULL) 
                        AND TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}"
-                       AND CreatedByAgentID = "{self.picturae_config['AGENT_ID']}";'''
+                       AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";'''
 
         sql_del = f'''DELETE FROM {table} WHERE TaxonID IN (SELECT TaxonID FROM temp_leaf_nodes);'''
 

@@ -11,7 +11,7 @@ from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import logging
-from importer_config import get_config
+from get_configs import get_config
 from taxon_tools.BOT_TNRS import iterate_taxon_resolve
 starting_time_stamp = datetime.now()
 
@@ -20,7 +20,7 @@ class CsvCreatePicturae(Importer):
     def __init__(self, date_string, config, paths, logging_level):
         self.paths = paths
         self.picturae_config = config
-        self.picdb_config = get_config(section_name="picbatch")
+        self.picdb_config = get_config(config="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
         self.logger = logging.getLogger("CsvCreatePicturae")
         self.logger.setLevel(logging_level)
@@ -70,16 +70,16 @@ class CsvCreatePicturae(Importer):
 
         to_current_directory()
 
-        dir_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}"
+        dir_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}"
 
         dir_sub = os.path.isdir(dir_path)
 
         if dir_sub is True:
-            folder_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
-                          self.picturae_config['CSV_FOLD'] + f"{self.date_use}" + ").csv"
+            folder_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}" + \
+                          self.picturae_config.CSV_FOLD + f"{self.date_use}" + ").csv"
 
-            specimen_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
-                            self.picturae_config['CSV_SPEC'] + f"{self.date_use}" + ").csv"
+            specimen_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}" + \
+                            self.picturae_config.CSV_SPEC + f"{self.date_use}" + ").csv"
 
             if os.path.exists(folder_path):
                 print("Folder csv exists!")
@@ -547,19 +547,19 @@ class CsvCreatePicturae(Importer):
         self.write_upload_csv()
 
 
-# def full_run():
-#     """testing function to run just the first piece o
-#           f the upload process"""
-#     # logger = logging.getLogger("full_run")
-#     test_config = initialize_collection(collection="Botany_PIC")
-#
-#     date_override = "20230628"
-#
-#     from gen_import_utils import picturae_paths_list
-#
-#     paths = picturae_paths_list(config=test_config, date=date_override)
-#
-#     CsvCreatePicturae(date_string=date_override, logging_level='DEBUG', config=test_config, paths=paths)
-#
-#
-# full_run()
+def full_run():
+    """testing function to run just the first piece o
+          f the upload process"""
+    # logger = logging.getLogger("full_run")
+    test_config = get_config(config="Botany_PIC")
+
+    date_override = "20230628"
+
+    from gen_import_utils import picturae_paths_list
+
+    paths = picturae_paths_list(config=test_config, date=date_override)
+
+    CsvCreatePicturae(date_string=date_override, logging_level='DEBUG', config=test_config, paths=paths)
+
+
+full_run()

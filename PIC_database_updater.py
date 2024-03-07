@@ -243,8 +243,8 @@ class UpdateDbFields:
                           f"{get_row_value_or_default(row=row, column_name='UtmEasting')}",
                           f"{get_row_value_or_default(row=row, column_name='UtmNorthing')}",
                           f"{get_row_value_or_default(row=row, column_name='UtmZone')}",
-                          f"{self.config['AGENT_ID']}",
-                          f"{self.config['AGENT_ID']}",
+                          f"{self.config.AGENT_ID}",
+                          f"{self.config.AGENT_ID}",
                           f"{locality_id}"
                           ]
 

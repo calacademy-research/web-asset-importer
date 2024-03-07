@@ -1,10 +1,10 @@
 from PIC_database_updater import UpdateDbFields
 import logging
 from tests.sqlite_csv_utils import SqlLiteTools
-from importer_config import get_config
+from get_configs import get_config
 class AltUpdateDbFields(UpdateDbFields):
     def __init__(self, force_update=False):
-        self.config = get_config(section_name="Botany_PIC")
+        self.config = get_config(config="Botany_PIC")
         self.force_update = force_update
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger('UpdateDbFields')

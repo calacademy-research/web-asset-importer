@@ -52,34 +52,27 @@ def extract_last_folders(path, number: int):
     path_components = path.split('/')
     return '/'.join(path_components[-number:])
 
+
 def picturae_paths_list(config, date):
     """parses date arg into picturae image folder structure with prefixes"""
     date_folders = f"{int(date) // 10000}{os.path.sep}" \
                    f"{str(int(date) // 100 % 100).zfill(2)}{os.path.sep}" \
                    f"{str(int(date) % 100).zfill(2)}{os.path.sep}"
 
-    config['PIC_SCAN_FOLDERS'] = [f"{date_folders}"]
-    config['date_str'] = date
+    config.PIC_SCAN_FOLDERS = f"{date_folders}"
+    config.DATE_STRING = date
     paths = []
-    for cur_dir in config['PIC_SCAN_FOLDERS']:
-        full_dir = os.path.join(config['PREFIX'],
-                                config['COLLECTION_PREFIX'],
+    for cur_dir in config.PIC_SCAN_FOLDERS:
+        full_dir = os.path.join(config.PREFIX,
+                                config.COLLECTION_PREFIX,
                                 cur_dir)
         paths.append(full_dir)
         print(f"Scanning: {cur_dir}")
     return paths
 
-def read_json(json_file, key=None):
-    """reads in json, with optional key"""
-    with open(f'{json_file}') as file:
-        json_dict = json.load(file)
-        if key:
-            json_dict = json_dict[key]
-        replace_slashes_in_dict(json_dict)
-    return json_dict
-
-
 def remove_two_index(value_list, column_list):
+    """if a value is NA ,NaN or None, will kick out value,
+       and corresponding column name at the same index"""
     new_value_list = []
     new_column_list = []
     for entry, column in zip(value_list, column_list):
