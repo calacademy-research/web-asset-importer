@@ -4,31 +4,37 @@ from gen_import_utils import read_json_config
 
 iz_importer_config = read_json_config(collection="IZ")
 
+
 class DirectoryTree():
 
-    def __init__(self, directories):
+    def __init__(self, directories, pickle_for_debug=False):
         self.pickle_file = 'directory_tree.pickle'
-        if os.path.exists(self.pickle_file):
-            print("RESTORING FROM PICKLE")
-            # load the directory tree from the pickle file
-            with open(self.pickle_file, 'rb') as f:
-                self.root_node = pickle.load(f)
+        if pickle_for_debug:
+            if os.path.exists(self.pickle_file):
+                print("RESTORING FROM PICKLE")
+                # load the directory tree from the pickle file
+                with open(self.pickle_file, 'rb') as f:
+                    self.root_node = pickle.load(f)
+            else:
+                # build the directory tree by scanning the directory
+                print("GENERATING PICKLE")
+
+                self._build_root_node(directories)
+
+                # save the directory tree to a pickle file
+                with open(self.pickle_file, 'wb') as f:
+                    pickle.dump(self.root_node, f)
         else:
-            # build the directory tree by scanning the directory
-            print("GENERATING PICKLE")
+            self._build_root_node(directories)
 
-            self.root_node = None
-            for directory in directories:
-                if self.root_node is None:
-                    self.root_node = self._build_tree(directory)
-                    self.root_node.name = directory
-                else:
-                    self.add_directory(directory)
-
-            # save the directory tree to a pickle file
-            with open(self.pickle_file, 'wb') as f:
-                pickle.dump(self.root_node, f)
-
+    def _build_root_node(self,directories):
+        self.root_node = None
+        for directory in directories:
+            if self.root_node is None:
+                self.root_node = self._build_tree(directory)
+                self.root_node.name = directory
+            else:
+                self.add_directory(directory)
     def _build_tree(self, root_path):
         # create a node for the root directory
         root_node = Node(os.path.basename(root_path))
@@ -52,14 +58,12 @@ class DirectoryTree():
         new_root_node.name = root_path
         new_root_node.parent = self.root_node
 
-    def get_node_path(self,node):
+    def get_node_path(self, node):
         if node.is_root:
             return str(node.name)
         else:
             parent_path = self.get_node_path(node.parent)
             return f"{parent_path}/{node.name}"
-
-
 
     def print_tree(self):
         for pre, _, node in RenderTree(self.root_node):
