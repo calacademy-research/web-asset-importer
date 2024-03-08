@@ -1,8 +1,9 @@
-from gen_import_utils import read_json_config
+
 from importer import Importer
 import os
 import re
 import logging
+from get_configs import get_config
 from dir_tools import DirTools
 from monitoring_tools import MonitoringTools
 from time_utils import get_pst_time_now_string
@@ -19,15 +20,16 @@ class IchthyologyImporter(Importer):
     def __init__(self,  full_import):
         self.logger = logging.getLogger('Client.IchthyologyImporter')
 
-        ich_importer_config = read_json_config(collection="ICH")
+        ich_importer_config = get_config("Ichthyology")
+
         super().__init__(ich_importer_config, "Ichthyology")
         self.catalog_number_map = {}
 
         dir_tools = DirTools(self.build_filename_map)
 
 
-        for cur_dir in ich_importer_config['ICH_SCAN_FOLDERS']:
-            cur_dir = os.path.join(ich_importer_config['IMAGE_DIRECTORY_PREFIX'], ich_importer_config['SCAN_DIR'], cur_dir)
+        for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
+            cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
             print(f"Scanning: {cur_dir}")
             dir_tools.process_files_or_directories_recursive(cur_dir)
 

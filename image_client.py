@@ -156,10 +156,10 @@ class ImageClient:
 
         return self.decode_response(params)
 
-    def update_exif_image_data(self, exif_ring, collection, filename):
+    def write_image_metadata(self, exif_dict, collection, filename):
         data = {'filename': filename,
                 'coll': collection,
-                'exif_ring': json.dumps(exif_ring),
+                'exif_dict': json.dumps(exif_dict),
                 'token': self.generate_token(filename)
                 }
 

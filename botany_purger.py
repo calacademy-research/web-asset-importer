@@ -2,15 +2,15 @@ import logging
 from specify_db import SpecifyDb
 from attachment_utils import AttachmentUtils
 from image_client import ImageClient
-from gen_import_utils import read_json_config
+from get_configs import get_config
 class BotanyPurger():
     def __init__(self):
         self.logger = logging.getLogger('Client.purger')
-        botany_importer_config = read_json_config(collection="Botany")
-        self.specify_db = SpecifyDb(botany_importer_config)
+        self.botany_importer_config = get_config(config="Botany_PIC")
+        self.specify_db = SpecifyDb(self.botany_importer_config)
         self.attachment_utils = AttachmentUtils(self.specify_db)
         self.logger.debug(f"BotanyPurger setup complete")
-        self.image_client = ImageClient(config=botany_importer_config)
+        self.image_client = ImageClient(config=self.botany_importer_config)
 
     def purge(self):
 
@@ -46,7 +46,7 @@ class BotanyPurger():
         attachment_locations = self.specify_db.get_records(sql)
         for attachment_location in attachment_locations:
             self.image_client.delete_from_image_server(attachment_location[0],
-                                                       botany_importer_config.COLLECTION_NAME)
+                                                       self.botany_importer_config.COLLECTION_NAME)
 
     def purge_skeletons(self):
         sql = (f"""

@@ -3,13 +3,13 @@ import shutil
 import os
 from tests.pic_csv_test_class import AltCsvCreatePicturae
 from tests.testing_tools import TestingTools
-from gen_import_utils import read_json_config
+from get_configs import get_config
 
 class DirectoryTests(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.md5_hash = self.generate_random_md5()
-        self.picturae_config = read_json_config(collection="Botany_PIC")
+        self.picturae_config = get_config(config="Botany_PIC")
 
     """WorkingDirectoryTests: a series of unit tests to verify
         correct working directory, subdirectories."""
@@ -24,12 +24,12 @@ class DirectoryTests(unittest.TestCase, TestingTools):
         else:
             # create test directories
 
-            expected_folder_path = self.picturae_config['DATA_FOLDER'] + f"{self.md5_hash}" + \
-                                   self.picturae_config['CSV_FOLD'] + \
+            expected_folder_path = self.picturae_config.DATA_FOLDER + f"{self.md5_hash}" + \
+                                   self.picturae_config.CSV_FOLD + \
                                    f"{self.md5_hash}" + ").csv"
 
-            expected_specimen_path = self.picturae_config['DATA_FOLDER'] + f"{self.md5_hash}" + \
-                                     self.picturae_config['CSV_SPEC'] + \
+            expected_specimen_path = self.picturae_config.DATA_FOLDER + f"{self.md5_hash}" + \
+                                     self.picturae_config.CSV_SPEC + \
                                      f"{self.md5_hash}" + ").csv"
 
             # making the directories
@@ -89,8 +89,8 @@ class DirectoryTests(unittest.TestCase, TestingTools):
             del self.test_csv_create_picturae
             # create test directories
 
-            expected_folder_path = self.picturae_config['DATA_FOLDER'] + f"{self.md5_hash}" + \
-                                   self.picturae_config['CSV_FOLD'] + \
+            expected_folder_path = self.picturae_config.DATA_FOLDER + f"{self.md5_hash}" + \
+                                   self.picturae_config.CSV_FOLD + \
                                    f"{self.md5_hash}" + ").csv"
 
             shutil.rmtree(os.path.dirname(expected_folder_path))
