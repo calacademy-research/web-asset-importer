@@ -11,7 +11,9 @@ import os
 from monitoring_tools import MonitoringTools
 from datetime import datetime, timezone, timedelta
 from string_utils import remove_non_numerics
+
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
+
 
 class UploadFailureException(Exception):
     pass
@@ -88,6 +90,10 @@ class ImageClient:
             print(f"Deletion failed, aborted: {r.status_code}:{r.text}")
             raise DeleteFailureException
 
+    def update_iptc(self, attach_loc):
+        # joe
+        pass
+
     def upload_to_image_server(self, full_path, redacted, collection, original_path=None):
         if full_path is None or redacted is None or collection is None:
             errstring = f"Bad input failures to upload to image server: {full_path} {redacted} {collection}"
@@ -144,7 +150,6 @@ class ImageClient:
 
         logging.debug("Upload to file server complete")
 
-
         return url, attach_loc
 
     # works for just basename +ext. "exact" does a sql "like" operation
@@ -175,14 +180,13 @@ class ImageClient:
 
         logging.debug(f"modifying exif data for {filename} complete")
 
-
     def read_exif_image_data(self, collection, filename, datatype):
         params = {'filename': filename,
-                'coll': collection,
-                'dt': datatype,
-                'search_type': 'filename',
-                'token': self.generate_token(filename)
-        }
+                  'coll': collection,
+                  'dt': datatype,
+                  'search_type': 'filename',
+                  'token': self.generate_token(filename)
+                  }
         url = self.build_url("getmetadata")
 
         response = requests.get(url=url, params=params)
@@ -191,10 +195,6 @@ class ImageClient:
             return response.json()
         else:
             return None
-
-
-
-
 
     def decode_response(self, params):
         url = self.build_url("getImageRecord")

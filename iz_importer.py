@@ -337,6 +337,15 @@ class IzImporter(Importer):
         return False
 
     def build_filename_map(self, full_path):
+        # Joe - this is a temp limiter so we can quickly debug
+        if 'counter' not in globals():
+            globals()['counter'] = 0
+        if globals()['counter'] < 10:
+            globals()['counter'] += 1
+        else:
+            return False
+
+
         orig_case_full_path = full_path
         full_path = full_path.lower()
         if not self.include_by_extension(full_path):
