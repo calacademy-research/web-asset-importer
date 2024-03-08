@@ -11,7 +11,7 @@ from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from specify_db import SpecifyDb
 import logging
-from gen_import_utils import read_json_config
+from get_configs import get_config
 from taxon_tools.BOT_TNRS import iterate_taxon_resolve
 starting_time_stamp = datetime.now()
 
@@ -20,7 +20,7 @@ class CsvCreatePicturae(Importer):
     def __init__(self, date_string, config, paths, logging_level):
         self.paths = paths
         self.picturae_config = config
-        self.picdb_config = read_json_config(collection="picbatch")
+        self.picdb_config = get_config(config="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
         self.logger = logging.getLogger("CsvCreatePicturae")
         self.logger.setLevel(logging_level)
@@ -70,16 +70,16 @@ class CsvCreatePicturae(Importer):
 
         to_current_directory()
 
-        dir_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}"
+        dir_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}"
 
         dir_sub = os.path.isdir(dir_path)
 
         if dir_sub is True:
-            folder_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
-                          self.picturae_config['CSV_FOLD'] + f"{self.date_use}" + ").csv"
+            folder_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}" + \
+                          self.picturae_config.CSV_FOLD + f"{self.date_use}" + ").csv"
 
-            specimen_path = self.picturae_config['DATA_FOLDER'] + f"{self.date_use}" + \
-                            self.picturae_config['CSV_SPEC'] + f"{self.date_use}" + ").csv"
+            specimen_path = self.picturae_config.DATA_FOLDER + f"{self.date_use}" + \
+                            self.picturae_config.CSV_SPEC + f"{self.date_use}" + ").csv"
 
             if os.path.exists(folder_path):
                 print("Folder csv exists!")
@@ -511,8 +511,6 @@ class CsvCreatePicturae(Importer):
 
         self.record_full.to_csv(file_path, index=False)
 
-        print(self.record_full)
-
         print(f'DataFrame has been saved to csv as: {file_path}')
 
     def run_all(self):
@@ -553,7 +551,7 @@ class CsvCreatePicturae(Importer):
 #     """testing function to run just the first piece o
 #           f the upload process"""
 #     # logger = logging.getLogger("full_run")
-#     test_config = read_json_config(collection="Botany_PIC")
+#     test_config = get_config(config="Botany_PIC")
 #
 #     date_override = "20230628"
 #

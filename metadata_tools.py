@@ -1,4 +1,6 @@
 """metadata_tools: utility functions for the addition, removal and reading of iptc and exif image metadata"""
+import pandas as pd
+
 from timeout import timeout
 import errno
 import os
@@ -8,19 +10,19 @@ import exifread
 import PIL
 from PIL import Image, ExifTags
 import subprocess
-from gen_import_utils import read_json_config
+import traceback
+
+
+## warning:  standard python exif packages exif, and Pillow, exifread and piexif tool,
+#            have a pattern of overwriting equivalent iptc fields, so a command line pipe
+#            using exiftools is used instead to write exif data.
 
 class MetadataTools:
     @timeout(20, os.strerror(errno.ETIMEDOUT))
-    def __init__(self, path, config):
-        self.config = config
-        # self.exif_ring = config.EXIF_DECODER_RING
+    def __init__(self, path):
         self.path = path
         self.logger = logging.getLogger('MetadataTools')
         self.logger.setLevel(logging.DEBUG)
-        # self.process_exif_ring()
-
-
 
     def is_file_larger_than(self, size_in_mb: float) -> bool:
         """
@@ -37,17 +39,6 @@ class MetadataTools:
         # Compare the actual size with the specified size
         return size_in_mb_actual > size_in_mb
 
-    # def remove_iptc_fields(self, image_path, fields_to_remove):
-    #     """removes specified iptc fields
-    #         args:
-    #             image_path
-    #
-    #         """
-    #     with ExifTool() as et:
-    #         et.execute(f"-IPTC:{','.join(fields_to_remove)}=")
-    #         et.execute(f"-IPTC:{','.join([f'iptc:{field}' for field in fields_to_remove])}=")
-    #
-    #     print("IPTC fields removed successfully.")
 
     def iptc_attach_metadata(self, iptc_field: str, iptc_value):
         """Attach IPTC metadata to an image file."""
@@ -71,35 +62,20 @@ class MetadataTools:
         """attaches exif metadata tags to image using ExifTools subprocess in command line
         args:
             path: path to image
-            exif_dict: dictionary of exif terms using exif codes, and new values to assign"""
+            exif_dict: dictionary of exif terms using exif codes, and new values to assign
+        """
+        if not pd.isna(exif_code):
+            exif_tag = self.exif_code_to_tag(exif_code)
+            command = ['exiftool', '-overwrite_original', f"-{exif_tag}={exif_value}", self.path]
+            try:
+                subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except Exception as e:
+                traceback.print_exc()
+                raise ValueError(f"command return with error  {e}")
+            self.logger.info("exif added succesfully")
+        else:
+            logging.warning("No exif code supplied, skipping attach exif")
 
-        exif_tag = self.exif_code_to_tag(exif_code)
-        command = ['exiftool', '-overwrite_original', f"-{exif_tag}={exif_value}", self.path]
-        # subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        self.logger.info(f"exif added successfully. Tag/value: {exif_tag}={exif_value} file: {self.path}")
-
-
-    # still doesn't work yet, but close
-    # def remove_exif_tags(self, exif_codes):
-    #     """
-    #     Remove specified EXIF tags from an image.
-    #     args:
-    #         path: The path to the image.
-    #         exif_codes: A list of EXIF codes to remove.
-    #     """
-    #     try:
-    #         # Load EXIF
-    #         exif_data = self.read_exif_metadata(path=self.path, convert_tags=False)
-    #         # Iterate over the tags to remove
-    #         for code in exif_codes:
-    #             if code in exif_data:
-    #                 exif_data[code] = None
-    #
-    #         self.attach_exif_metadata(path=self.path, exif_dict=exif_data)
-    #
-    #         print("EXIF tags removed successfully")
-    #     except Exception as e:
-    #         print(f"Error removing EXIF tags: {e}")
 
     def exif_code_to_tag(self, exif_code):
         """converts exif code into the string of the tag name
@@ -119,11 +95,7 @@ class MetadataTools:
                 path: path to image
                 convert_tags: True to convert tags to string, False keep exif codes
         """
-        try:
-            img = Image.open(self.path)
-        except PIL.UnidentifiedImageError as e:
-            logging.warning(f"Unable to open {self.path}")
-            return None
+        img = Image.open(self.path)
         if convert_tags is True:
             exif = {
                 PIL.ExifTags.TAGS[k]: v
@@ -136,24 +108,19 @@ class MetadataTools:
         img.close()
         return exif
 
-    # Joe destructive. Best to change exif data on pushed
-    # images not source ones. In any case, we'd never want to overwrite on init -
-    # only in cases where it makes sense.
-
-
-    # def process_exif_ring(self):
-    #     """iterates through exif_ring dict keys and values to attach them to image"""
-    #     self.logger.info(f"processing exif ring for filepath: {self.path}")
-    #     for key, value in self.exif_ring.items():
-    #         key = int(key)
-    #         self.exif_attach_metadata(exif_code=key, exif_value=value)
+    def write_exif_tags(self, exif_dict):
+        """iterates through exif dict keys and values to attach them to image"""
+        self.logger.info(f"processing exif ring for filepath: {self.path}")
+        for key, value in exif_dict.items():
+            key = int(key)
+            self.exif_attach_metadata(exif_code=key, exif_value=value)
 
 
 # if __name__ == "__main__":
 #     # print("Running tests...")
 #     #
 #     md = MetadataTools(path='picturae_img/PIC_2023-06-28/CAS999999981.TIF')
-#     md.process_exif_ring()
+#     md.()
 #
 #     # md.iptc_attach_metadata(iptc_field="copyright notice", iptc_value="test_val")
 #     # print(md.read_iptc_metadata())
