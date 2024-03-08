@@ -46,14 +46,14 @@ class IzImporter(Importer):
 
         self.logger.debug("IZ import mode")
 
-        self.cur_conjunction_match = self.iz_importer_config.FILENAME_CONJUCTION_MATCH + \
+        self.cur_conjunction_match = self.iz_importer_config.FILENAME_CONJUNCTION_MATCH + \
                                      self.iz_importer_config.IMAGE_SUFFIX
 
         self.cur_filename_match = self.iz_importer_config.FILENAME_MATCH + self.iz_importer_config.IMAGE_SUFFIX
 
         self.cur_casiz_match = self.iz_importer_config.CASIZ_MATCH
         self.cur_extract_casiz = self.extract_casiz
-        self.directory_tree_core = DirectoryTree(self.iz_importer_config['IZ_SCAN_FOLDERS'])
+        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS)
 
         self.directory_tree_core.process_files(self.build_filename_map)
         # placeholder for filename now
@@ -61,7 +61,7 @@ class IzImporter(Importer):
         print("Starting to process loaded core files...")
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config_old)
+            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config)
             self.monitoring_tools.create_monitoring_report()
 
         print("Starting to process loaded core files...")
@@ -119,11 +119,16 @@ class IzImporter(Importer):
                                                                          self.AGENT_ID)
             else:
                 # If not:
-                self.import_to_imagedb_and_specify([cur_filepath],
-                                                   collection_object_id,
-                                                   self.AGENT_ID,
-                                                   copyright_filepath_map=self.path_copyright_map,
-                                                   force_redacted=True)
+
+                attach_loc = self.import_to_imagedb_and_specify([cur_filepath],
+                                                                collection_object_id,
+                                                                self.AGENT_ID,
+                                                                copyright_filepath_map=self.path_copyright_map,
+                                                                force_redacted=True)
+                # Joe - this is where we would tag images via the image server
+                # using the attach_loc
+                print(f"Joe attach here. Loc{attach_loc}")
+
 
     def log_file_status(self,
                         id=None,
@@ -243,32 +248,29 @@ class IzImporter(Importer):
 
         for cur_directory in reversed(directories):
 
-            if self.directory_conjunction_match is not None:
-                result = re.search(self.directory_conjunction_match, cur_directory)
-                if result:
-                    found_substring = result.groups()[0]
-                    self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
-                    return True
-            if self.directory_match is not None:
-                if re.search(self.directory_match, cur_directory):
-                    self.casiz_numbers = [self.extract_casiz(directory)]
-                    return True
+            result = re.search(self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH, cur_directory)
+            if result:
+                found_substring = result.groups()[0]
+                self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
+                return True
+            if re.search(self.iz_importer_config.DIRECTORY_MATCH, cur_directory):
+                self.casiz_numbers = [self.extract_casiz(directory)]
+                return True
         return False
 
     def attempt_filename_match(self, full_path):
         filename = os.path.basename(full_path)
 
         # Check for conjunction matches first
-        if self.conjunction_match is not None:
-            match = re.search(self.conjunction_match, filename)
-            if match:
-                # Extract all numeric groups (CASIZ numbers) from the match
-                self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,12}\b', filename)]))
-                print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
-                return True
+        match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, filename)
+        if match:
+            # Extract all numeric groups (CASIZ numbers) from the match
+            self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,12}\b', filename)]))
+            print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
+            return True
 
         # Fallback to simple filename match
-        if re.search(self.filename_match, filename):
+        if re.search(self.iz_importer_config.FILENAME_MATCH, filename):
             # Extract CASIZ number using the specific extraction method
             casiz_number = self.extract_casiz(filename)
             if casiz_number is not None:
@@ -338,12 +340,12 @@ class IzImporter(Importer):
 
     def build_filename_map(self, full_path):
         # Joe - this is a temp limiter so we can quickly debug
-        if 'counter' not in globals():
-            globals()['counter'] = 0
-        if globals()['counter'] < 10:
-            globals()['counter'] += 1
-        else:
-            return False
+        # if 'counter' not in globals():
+        #     globals()['counter'] = 0
+        # if globals()['counter'] < 10:
+        #     globals()['counter'] += 1
+        # else:
+        #     return False
 
         orig_case_full_path = full_path
         full_path = full_path.lower()
@@ -400,11 +402,10 @@ class IzImporter(Importer):
             else:
                 self.casiz_filepath_map[cur_casiz_number].append(full_path)
 
-        # Joe - this is where we would tag and upload images
         self.log_file_status(filename=os.path.basename(orig_case_full_path),
                              path=orig_case_full_path,
                              casiznumber_method=casiz_source,
-                             id=self.casiz_numbers,
+                             id=cur_casiz_number,
                              copyright_method=copyright_method,
                              copyright=self.copyright)
         return True

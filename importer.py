@@ -342,6 +342,7 @@ class Importer:
                                                 agent_id,
                                                 copyright=copyright,
                                                 is_public=(not force_redacted))
+                return attach_loc
 
             except TimeoutError:
                 self.logger.error(f"Timeout converting {cur_filepath}")

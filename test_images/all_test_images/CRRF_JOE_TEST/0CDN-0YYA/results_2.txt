@@ -1,4 +1,0 @@
-cp: 0cdn3186.jpg: No such file or directory
-rm: 0cdn3186.jpg: No such file or directory
-mv: temp.jpg: No such file or directory
-override rwx------  root/wheel for CASIZ 304961.jpg? (y/n [n]) 
