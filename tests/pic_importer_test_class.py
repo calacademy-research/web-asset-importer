@@ -3,12 +3,12 @@ import logging
 from sql_csv_utils import SqlCsvTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
-from gen_import_utils import read_json_config
+from get_configs import get_config
 class AltPicturaeImporter(PicturaeImporter):
     def __init__(self, date_string, paths):
-        self.picturae_config = read_json_config(collection="Botany_PIC")
+        self.picturae_config = get_config(config="Botany_PIC")
         Importer.__init__(self, db_config_class=self.picturae_config, collection_name="Botany")
-        self.picdb_config = read_json_config(collection="picbatch")
+        self.picdb_config = get_config(config="picbatch")
         self.init_all_vars(date_string=date_string, paths=paths)
         self.sql_csv_tools = SqlCsvTools(config=self.picturae_config)
         self.logger = logging.getLogger("AltPicturaeImporter")

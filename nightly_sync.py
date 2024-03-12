@@ -1,7 +1,7 @@
 from image_db import ImageDb
 from attachment_utils import AttachmentUtils
 from db_utils import DbUtils
-from gen_import_utils import read_json_config
+from get_configs import get_config
 import traceback
 import logging
 import sys
@@ -12,8 +12,8 @@ botany_importer = None
 attachment_utils: Optional[AttachmentUtils] = None
 
 def import_configs():
-    botany_importer_config = read_json_config(collection='Botany')
-    ich_importer_config = read_json_config(collection='ICH')
+    botany_importer_config = get_config(config='Botany')
+    ich_importer_config = get_config(config='Ichthyology')
     return botany_importer_config, ich_importer_config
 
 def get_specify_state(internal_filename):
@@ -84,19 +84,19 @@ def main():
     if sys.argv[1] == "Botany":
         collection_name = botany_importer_config.COLLECTION_NAME
         specify_db_connection = DbUtils(
-            botany_importer_config['USER'],
-            botany_importer_config['PASSWORD'],
-            botany_importer_config['SPECIFY_DATABASE_PORT'],
-            botany_importer_config['SPECIFY_DATABASE_HOST'],
-            botany_importer_config['SPECIFY_DATABASE'])
+            botany_importer_config.USER,
+            botany_importer_config.PASSWORD,
+            botany_importer_config.SPECIFY_DATABASE_PORT,
+            botany_importer_config.SPECIFY_DATABASE_HOST,
+            botany_importer_config.SPECIFY_DATABASE)
     elif sys.argv[1] == "Ichthyology":
-        collection_name = ich_importer_config['COLLECTION_NAME']
+        collection_name = ich_importer_config.COLLECTION_NAME
         specify_db_connection = DbUtils(
-            ich_importer_config['USER'],
-            ich_importer_config['PASSWORD'],
-            ich_importer_config['SPECIFY_DATABASE_PORT'],
-            ich_importer_config['SPECIFY_DATABASE_HOST'],
-            ich_importer_config['SPECIFY_DATABASE'])
+            ich_importer_config.USER,
+            ich_importer_config.PASSWORD,
+            ich_importer_config.SPECIFY_DATABASE_PORT,
+            ich_importer_config.SPECIFY_DATABASE_HOST,
+            ich_importer_config.SPECIFY_DATABASE)
     do_sync(collection_name, specify_db_connection)
 
 

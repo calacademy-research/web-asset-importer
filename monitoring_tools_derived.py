@@ -54,7 +54,7 @@ class MonitoringToolsDir(MonitoringTools):
             <hr>
             <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
             <p>Batch MD5: {self.batch_md5}</p>
-            <p>Uploader: {self.config['AGENT_ID']}</p>
+            <p>Uploader: {self.config.AGENT_ID}</p>
 
             <h2>Summary Statistics:</h2>
             <ul>

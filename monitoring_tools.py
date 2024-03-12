@@ -1,4 +1,4 @@
-from gen_import_utils import read_json_config
+
 import logging
 import pandas as pd
 import time_utils
@@ -8,12 +8,10 @@ from sql_csv_utils import SqlCsvTools
 from jinja2 import Template
 import smtplib
 
-
 class MonitoringTools:
     def __init__(self, config):
-        self.path = config['REPORT_PATH']
+        self.path = config.REPORT_PATH
         self.config = config
-        self.smtp_config = read_json_config(collection="SMTP")
         self.logger = logging.getLogger("MonitoringTools")
         if not pd.isna(config) and config != {}:
             self.check_config_present()
@@ -29,11 +27,11 @@ class MonitoringTools:
 
     def check_config_present(self):
         """checks if mandatory config terms present in config file for email"""
-        required_keys = ['SUMMARY_IMG', 'SUMMARY_TERMS',
-                         'MAILING_LIST']
-        for key in required_keys:
-            if key not in self.config:
-                raise ValueError(f"Config is missing term '{key}'")
+        required_terms = ['SUMMARY_IMG', 'SUMMARY_TERMS',
+                          'MAILING_LIST']
+        for term in required_terms:
+            if not hasattr(self.config, term):
+                raise ValueError(f"Config is missing term '{term}'")
 
     def add_imagepath_to_html(self, image_path, barcode, success):
         """add_filepath_to_monitor_txt: adds single line to end of txt file,
@@ -83,7 +81,7 @@ class MonitoringTools:
             return None
         else:
             terms = ""
-            for index, term in enumerate(self.config['SUMMARY_TERMS']):
+            for index, term in enumerate(self.config.SUMMARY_TERMS):
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
 
@@ -130,7 +128,7 @@ class MonitoringTools:
                           <h1>Upload Batch Report</h1>
                           <hr>
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.config['AGENT_ID']}</p>
+                          <p>Uploader: {self.config.AGENT_ID}</p>
                           
                           <h2>Summary Statistics:</h2>
                           <ul>
@@ -206,7 +204,7 @@ class MonitoringTools:
                 value_list: the list of values to use for custom terms.
                 """
         self.clear_txt()
-        if self.config['SUMMARY_TERMS']:
+        if self.config.SUMMARY_TERMS:
             custom_terms = self.create_summary_term_list(value_list=value_list)
             self.add_format_batch_report(custom_terms=custom_terms)
         else:
@@ -240,8 +238,8 @@ class MonitoringTools:
            in a variety of mail platforms, using both html and cids
         """
         msg = EmailMessage()
-        if not self.config['SUMMARY_IMG']:
-            image_paths = self.config['SUMMARY_IMG']
+        if not self.config.SUMMARY_IMG:
+            image_paths = self.config.SUMMARY_IMG
             image_cids = []
             for i in range(len(image_paths)):
                 cid = make_msgid()
@@ -253,8 +251,8 @@ class MonitoringTools:
 
         msg.add_alternative(html_content, subtype='html')
 
-        if not self.config['SUMMARY_IMG']:
-            for index, image in enumerate(self.config['SUMMARY_IMG']):
+        if not self.config.SUMMARY_IMG:
+            for index, image in enumerate(self.config.SUMMARY_IMG):
                 cid = image_cids[index]
                 with open(f'{image}', 'rb') as img:
                     msg.get_payload()[0].add_related(img.read(), 'image', 'jpeg', cid=cid)
@@ -308,12 +306,9 @@ class MonitoringTools:
             msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
             recipient_list = []
-            for email in self.config['MAILING_LIST']:
+            for email in self.config.MAILING_LIST:
                 recipient_list.append(email)
             msg['To'] = recipient_list
-            with smtplib.SMTP(port=self.smtp_config['smtp_port'], host=self.smtp_config['smtp_server']) as server:
-                server.starttls()
-                server.login(user=self.smtp_config['smtp_user'], password=self.smtp_config['smtp_password'])
+
+            with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)
-            # with smtplib.SMTP('localhost') as server:
-            #     server.send_message(msg)

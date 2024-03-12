@@ -253,8 +253,8 @@ class Importer:
 
 
         # attaching necessary exif data post-conversion
-        if self.db_config_class['EXIF_DECODER_RING']:
-            MetadataTools(path=upload_me, config=self.db_config_class)
+        # if self.db_config_class.EXIF_DICT:
+        #     MetadataTools(path=upload_me, config=self.db_config_class)
 
 
         self.logger.debug(

@@ -63,27 +63,20 @@ def picturae_paths_list(config, date):
                    f"{str(int(date) // 100 % 100).zfill(2)}{os.path.sep}" \
                    f"{str(int(date) % 100).zfill(2)}{os.path.sep}"
 
-    config['PIC_SCAN_FOLDERS'] = [f"{date_folders}"]
-    config['date_str'] = date
+    config.PIC_SCAN_FOLDERS = f"{date_folders}"
+    config.DATE_STRING = date
     paths = []
-    for cur_dir in config['PIC_SCAN_FOLDERS']:
-        full_dir = os.path.join(config['PREFIX'],
-                                config['BOTANY_PREFIX'],
+    for cur_dir in config.PIC_SCAN_FOLDERS:
+        full_dir = os.path.join(config.PREFIX,
+                                config.COLLECTION_PREFIX,
                                 cur_dir)
         paths.append(full_dir)
         print(f"Scanning: {cur_dir}")
     return paths
 
-def read_json_config(collection):
-    """reads in json file and selects correct collection setting"""
-    with open('config_collections.json') as file:
-        config = json.load(file)
-        config = config[collection]
-        replace_slashes_in_dict(config)
-    return config
-
-
 def remove_two_index(value_list, column_list):
+    """if a value is NA ,NaN or None, will kick out value,
+       and corresponding column name at the same index"""
     new_value_list = []
     new_column_list = []
     for entry, column in zip(value_list, column_list):
