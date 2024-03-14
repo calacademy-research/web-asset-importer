@@ -2,12 +2,10 @@ import os
 
 from string_utils import remove_non_numerics
 from PIL import Image
-from gen_import_utils import read_json_config
-config = read_json_config("Botany_PIC")
-import re
-
-source_dir = config['PREFIX'] + ['BOTANY_PREFIX']
-def convert_tiff_folder(source_dir, quality, min_bar, resize_to=None):
+# from get_configs import get_config
+# config = get_config("Botany_PIC")
+source_dir = "/admin/picturae_drive_mount/CAS_for_OCR/"
+def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=None):
     """convert_tiff_folder: creates new folder of resized jpegs from a
          folder of tiffs. Uses a walk perform recursively
          args:
@@ -27,22 +25,39 @@ def convert_tiff_folder(source_dir, quality, min_bar, resize_to=None):
                 barcode = int(remove_non_numerics(file_name))
                 if barcode >= min_bar and "Cover" not in file_name:
                     if file_name.lower().endswith('.tiff') or file_name.lower().endswith('.tif'):
-                        file_path = os.path.join(tiff_dir, file_name)
-                        image = Image.open(file_path)
-
-                        # Resize the image if resize_to is not None
-                        if resize_to is not None:
-                            image = image.resize(resize_to)
-
                         # Construct the output file name and path
                         base_name = os.path.splitext(file_name)[0]
                         output_file_name = f"{base_name}.jpg"
                         output_file_path = os.path.join(output_dir, output_file_name)
 
-                        # Save the image as JPEG with the specified quality
-                        image.save(output_file_path, 'JPEG', quality=quality, optimize=True, subsampling=0)
+                        # Skip if output file already exists
+                        if os.path.exists(output_file_path):
+                            print(f"Skipping {file_name}, already processed.")
+                            continue
+
+                        file_path = os.path.join(tiff_dir, file_name)
+                        img_quality = quality
+                        with Image.open(file_path) as image:
+
+                            print(f"resizing file {file_name}")
+
+                            # Resize the image if resize_to is not None
+                            if resize_to is not None:
+                                image = image.resize(resize_to)
+
+                            # Save the image as JPEG with the specified quality
+                            while img_quality > 20:
+                                image.save(output_file_path, 'JPEG', quality=quality, optimize=True, subsampling=0)
+                                if os.path.getsize(output_file_path) <= max_size_kb * 1024:
+                                    print(f"image {file_name} resized successfully")
+                                    break
+                                img_quality -= 1
+                            if img_quality <= 20:
+                                print(f"Warning: Could not reduce {file_name} to under {max_size_kb}KB "
+                                      f"without dropping below min quality.")
 
 
 if __name__ == "__main__":
-    convert_tiff_folder(source_dir, quality=76, min_bar=800000, resize_to=(2838, 3745))
+    # ideal presets for picturae project, can change for other use cases
+    convert_tiff_folder(source_dir, quality=76, min_bar=800000, max_size_kb=999, resize_to=(2838, 3745))
 

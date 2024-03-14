@@ -8,11 +8,8 @@ from gen_import_utils import *
 import logging
 from string_utils import *
 from importer import Importer
-from picturae_csv_create import CsvCreatePicturae
 from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
-from picturae_csv_create import starting_time_stamp
-from specify_db import SpecifyDb
 from get_configs import get_config
 from os import path
 import time_utils
@@ -20,6 +17,7 @@ import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
 from taxon_tools.BOT_TNRS import process_taxon_resolve
 
+starting_time_stamp = datetime.now()
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -41,15 +39,6 @@ class PicturaeImporter(Importer):
 
         self.init_all_vars(date_string=date_string, paths=paths)
 
-        # running csv create
-        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use,
-                                                config=self.picturae_config,
-                                                paths=paths,
-                                                logging_level=self.logger.getEffectiveLevel())
-
-        self.records_dropped = csv_create_picturae.records_dropped
-
-
         self.record_full = pd.read_csv(self.file_path)
 
         self.num_barcodes = len(self.record_full)
@@ -64,10 +53,9 @@ class PicturaeImporter(Importer):
                 date_string: the date input recieved from init params
                 paths: the paths string recieved from the init params"""
 
-        print(paths)
         self.date_use = date_string
 
-        self.file_path = f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
+        self.file_path = self.picturae_config.PREFIX + f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
@@ -123,7 +111,7 @@ class PicturaeImporter(Importer):
                         AND TimestampCreated <= "{ending_time_stamp}";'''
 
 
-        error_tabs = ['taxa_unmatch', 'picturaetaxa_added']
+        error_tabs = ['picturaetaxa_added']
         for tab in error_tabs:
 
             sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
@@ -250,6 +238,7 @@ class PicturaeImporter(Importer):
             self.image_list = list(set(self.image_list))
 
 
+    # modify to deal with title seperation
 
     def create_agent_list(self, row):
         """create_agent_list:
@@ -341,9 +330,6 @@ class PicturaeImporter(Importer):
 
         self.GeographyID = self.sql_csv_tools.get_one_match(tab_name='geography', id_col='GeographyID',
                                                             key_col='FullName', match=self.geography_string)
-
-        # self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col='LocalityID',
-        #                                                     key_col='LocalityName', match=self.locality)
 
 
     def populate_taxon(self):
@@ -796,7 +782,6 @@ class PicturaeImporter(Importer):
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
- # continue working from here to figure out how to list subfolders.
     def hide_unwanted_files(self):
         """hide_unwanted_files:
                function to hide files inside of images folder,
@@ -865,7 +850,6 @@ class PicturaeImporter(Importer):
             if self.taxon_id is None:
                 self.create_taxon()
 
-            # if self.locality_id is None and not pd.isna(self.locality):
             self.create_locality_record()
 
             if len(self.new_collector_list) > 0:
@@ -930,7 +914,7 @@ class PicturaeImporter(Importer):
             self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full)
         # uploading attachments
 
-        value_list = [len(self.new_taxa), self.records_dropped]
+        value_list = [len(self.new_taxa)]
 
         self.monitoring_tools.create_monitoring_report(value_list=value_list)
 

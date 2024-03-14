@@ -126,7 +126,7 @@ def main(args):
             force_update = args.force_update
             UpdatePICFields(config=pic_config, date=date_override, force_update=force_update)
         if args.collection == 'Botany':
-            bot_config = read_json_config(collection="Botany")
+            bot_config = get_config(config="Botany")
             date_override = args.date
             force_update = args.force_update
             UpdateBotDbFields(config=bot_config, date=date_override, force_update=force_update)
