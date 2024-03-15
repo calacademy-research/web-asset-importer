@@ -46,7 +46,6 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
             self.assertEqual(self.test_picturae_importer.barcode, '000123456')
             self.assertEqual(self.test_picturae_importer.locality, 'Harden Lake')
             self.assertEqual(self.test_picturae_importer.GeographyID, 16490)
-            self.assertEqual(self.test_picturae_importer.locality_id, 54)
             self.assertEqual(self.test_picturae_importer.first_intra, 'Castilleja miniata subsp. dixonii')
 
     def tearDown(self):

@@ -51,6 +51,7 @@ settings.development.py
 .hidden_*
 /tests/casbotany_lite.db
 **/config_collections.json
+**import_monitoring.html
 *JPG*
 *TIF*
-**import_monitoring.html
+*.xlsx

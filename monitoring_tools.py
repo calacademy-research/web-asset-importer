@@ -5,6 +5,7 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
+from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
@@ -152,6 +153,9 @@ class MonitoringTools:
 
 
 
+
+
+
     def add_batch_size(self, batch_size):
         with open(self.path, "r") as file:
             html_content = file.readlines()
@@ -247,13 +251,12 @@ class MonitoringTools:
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
             msg = self.attach_html_images()
-            msg['From'] = "ibss-crontab@calacademy.org"
+            msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
             recipient_list = []
             for email in self.config.MAILING_LIST:
                 recipient_list.append(email)
             msg['To'] = recipient_list
-
 
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)
