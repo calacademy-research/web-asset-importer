@@ -160,11 +160,14 @@ class UpdateBotDbFields:
 
             if self.collecting_event_id:
 
-                count = self.check_id_unique(tab="collectingevent", id_col="LocalityID", id=locality_id)
+                count = self.check_key_unique(tab="collectingevent", id_col="LocalityID", id=locality_id,
+                                              primarykey="CollectingEventID")
 
                 if count == 1:
                     self.locality_id = locality_id
-                    print("locality id unique, editing locality")
+                    self.locality_guid = self.sql_csv_tools.get_one_match(tab_name='locality', id_col="GUID",
+                                                                          key_col="LocalityID", match=self.locality_id)
+                    self.logger.info("locality id unique, editing locality")
                 else:
 
                     self.locality_guid = self.create_new_locality_record(row)
@@ -173,7 +176,7 @@ class UpdateBotDbFields:
                     self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col="LocalityID",
                                                                         key_col="GUID", match=self.locality_guid)
 
-                    print(f"new locality being created at {self.locality_id} for collectingevent")
+                    self.logger.info(f"new locality being created at {self.locality_id} for collectingevent")
 
                     condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
@@ -245,9 +248,9 @@ class UpdateBotDbFields:
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
-    def check_id_unique(self, tab, id_col, id):
+    def check_key_unique(self, tab, id_col, id, primarykey):
 
-        sql = f'''SELECT COUNT(DISTINCT {id}) from {tab} WHERE {id_col}={id}'''
+        sql = f'''SELECT COUNT(DISTINCT {primarykey}) from {tab} WHERE {id_col}={id}'''
 
         count = self.sql_csv_tools.get_record(sql=sql)
 
@@ -317,8 +320,8 @@ class UpdateBotDbFields:
                       f"{row['Text2']}",
                       3,
                       f"{geography_id}",
-                      f"{self.config['AGENT_ID']}",
-                      f"{self.config['AGENT_ID']}"]
+                      f"{self.config.AGENT_ID}",
+                      f"{self.config.AGENT_ID}"]
 
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -336,51 +339,47 @@ class UpdateBotDbFields:
         """create_locality_detail_tab: most specimens will not have a locality details table record to update,
            so one must be created instead"""
 
-        self.locality_det_id = self.sql_csv_tools.get_one_match(tab_name="localitydetail", id_col="LocalityDetailID",
-                                                                key_col="LocalityID", match=self.locality_id,
-                                                                match_type=int)
-        if self.locality_det_id is None:
 
-            column_list = ['TimestampCreated',
-                           'TimestampModified',
-                           'Version',
-                           'RangeDesc',
-                           'Section',
-                           'Township',
-                           'UtmDatum',
-                           'UtmEasting',
-                           'UtmNorthing',
-                           'UtmZone',
-                           'CreatedByAgentID',
-                           'ModifiedByAgentID',
-                           'LocalityID'
-                           ]
+        column_list = ['TimestampCreated',
+                       'TimestampModified',
+                       'Version',
+                       'RangeDesc',
+                       'Section',
+                       'Township',
+                       'UtmDatum',
+                       'UtmEasting',
+                       'UtmNorthing',
+                       'UtmZone',
+                       'CreatedByAgentID',
+                       'ModifiedByAgentID',
+                       'LocalityID'
+                       ]
 
-            value_list = [f'{time_utils.get_pst_time_now_string()}',
-                          f'{time_utils.get_pst_time_now_string()}',
-                          0,
-                          f"{get_row_value_or_default(row=row, column_name='Range')}",
-                          f"{get_row_value_or_default(row=row, column_name='Section')}",
-                          f"{get_row_value_or_default(row=row, column_name='Township')}",
-                          f"{get_row_value_or_default(row=row, column_name='UtmDatum')}",
-                          f"{get_row_value_or_default(row=row, column_name='UtmEasting')}",
-                          f"{get_row_value_or_default(row=row, column_name='UtmNorthing')}",
-                          f"{get_row_value_or_default(row=row, column_name='UtmZone')}",
-                          f"{self.config['AGENT_ID']}",
-                          f"{self.config['AGENT_ID']}",
-                          f"{self.locality_id}"
-                          ]
+        value_list = [f'{time_utils.get_pst_time_now_string()}',
+                      f'{time_utils.get_pst_time_now_string()}',
+                      0,
+                      f"{get_row_value_or_default(row=row, column_name='Range')}",
+                      f"{get_row_value_or_default(row=row, column_name='Section')}",
+                      f"{get_row_value_or_default(row=row, column_name='Township')}",
+                      f"{get_row_value_or_default(row=row, column_name='UtmDatum')}",
+                      f"{get_row_value_or_default(row=row, column_name='UtmEasting')}",
+                      f"{get_row_value_or_default(row=row, column_name='UtmNorthing')}",
+                      f"{get_row_value_or_default(row=row, column_name='UtmZone')}",
+                      f"{self.config.AGENT_ID}",
+                      f"{self.config.AGENT_ID}",
+                      f"{self.locality_id}"
+                      ]
 
 
 
-            values, columns = remove_two_index(value_list=value_list, column_list=column_list)
+        values, columns = remove_two_index(value_list=value_list, column_list=column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(val_list=values, col_list=columns,
-                                                             tab_name="localitydetail")
+        sql = self.sql_csv_tools.create_insert_statement(val_list=values, col_list=columns,
+                                                         tab_name="localitydetail")
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
-        else:
-            pass
+        self.sql_csv_tools.insert_table_record(sql=sql)
+
+        self.logger.info("New entry created in the localitydetail table")
 
 
     def update_locality_det(self, row):
@@ -389,28 +388,33 @@ class UpdateBotDbFields:
                 creates localitydetail record if not exists, if exists, updates UTM and TRS fields if present
             args:
             row: row of update csv to process"""
-
-        self.create_locality_detail_tab(row=row)
-
         self.locality_det_id = self.sql_csv_tools.get_one_match(tab_name="localitydetail", id_col="LocalityDetailID",
-                                                                   key_col="LocalityID", match=self.locality_id,
-                                                                   match_type=int)
+                                                                key_col="LocalityID", match=self.locality_id,
+                                                                match_type=int)
 
-        self.logger.info("New entry created in the localitydetail table")
+        if self.locality_det_id is None:
+            self.create_locality_detail_tab(row=row)
 
-        if 'Township' or 'Range' or 'Section' in self.update_frame:
-
-            self.update_trs(row=row)
-
+            self.locality_det_id = self.sql_csv_tools.get_one_match(tab_name="localitydetail",
+                                                                    id_col="LocalityDetailID",
+                                                                    key_col="LocalityID", match=self.locality_id,
+                                                                    match_type=int)
         else:
-            self.logger.info(f"No TRS Fields in data, skipping update")
+            self.logger.info("editing existing localitydetail entry")
 
-        if 'UtmNorthing' or 'UtmEasting' or 'UtmDatum' or 'UtmZone' in self.update_frame:
+            if 'Township' or 'Range' or 'Section' in self.update_frame:
 
-            self.update_utm(row=row)
+                self.update_trs(row=row)
 
-        else:
-            self.logger.info(f"No UTM fields in data, skipping update")
+            else:
+                self.logger.info(f"No TRS Fields in data, skipping update")
+
+            if 'UtmNorthing' or 'UtmEasting' or 'UtmDatum' or 'UtmZone' in self.update_frame:
+
+                self.update_utm(row=row)
+
+            else:
+                self.logger.info(f"No UTM fields in data, skipping update")
 
 
     def update_trs(self, row):
@@ -447,3 +451,11 @@ class UpdateBotDbFields:
                                                          condition=condition)
 
         self.sql_csv_tools.insert_table_record(sql=sql)
+
+
+# def update_dummy():
+#     from get_configs import get_config
+#     config = get_config(config='Botany')
+#     UpdateBotDbFields(config=config, date="2024-02-28", force_update=True)
+#
+# update_dummy()

@@ -29,7 +29,9 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
                             "locality": "On the south slope of Mt. Tam",
                             "county": "Marin",
                             "state": "California",
-                            "country": "United States"
+                            "country": "United States",
+                            "sheet_notes": "[notes]",
+                            "cover_notes": "[notes]"
                             }
 
         self.record_full = pd.DataFrame(self.record_full)
@@ -61,7 +63,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
                       "Section": ["29, NW 1/4 of NE 1/4"],
                       "UtmNorthing": ["4756577"],
                       "UtmEasting": ["503000"],
-                      "UtmDatum": ["NAD83"]
+                      "UtmDatum": ["NAD83"],
                       }
 
 

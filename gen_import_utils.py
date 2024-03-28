@@ -11,54 +11,24 @@ import os
 from string_utils import remove_non_numerics
 # import list tools
 
-
-def separate_titles(row):
-    first_name_titles = ['Dr.', 'Mrs.', 'Mr', 'Mr.', 'Fr.', 'Miss.', 'Sister', 'Bro.',
-                         'Frère', 'Captain', "M. l'Abbé", 'Miss', 'Prof.',
-                         'M.', 'Père', 'Abb.', '(Mrs.)', "l'Abbé", 'Ranger',
-                         'abb.', 'Farm Advisor', 'Ma.', 'Rev. Père', 'Abbé',
-                         'Rev.', 'Mr. and Mrs.', 'Dr. sc.', 'Fr', 'Mrs', 'abbé', 'Ed.',
-                         'F.', 'Mr. & Mrs.', 'Professor', 'Brother', 'Frère/Brother', 'Sgto.',
-                         'Frè', 'der Lehrer [= the teacher]', 'Botany Volunteer', 'M. [= Monsieur]',
-                         'DR.', 'Prof. Dr.', 'Capt.', 'Col.', 'Lt. M.D.', 'Major', 'Ms.', 'Profr.',
-                         'Pr.', 'Lt.', 'Father', 'Baron', 'Fre.', 'Fre.']
-
-    last_name_titles = ['M.D', 'M.D.', 'Esq.', 'III', 'Jr.', 'A.M.', 'JR', 'Sr.']
-
-    # Initialize Title as empty
-    row['Title'] = ''
-
-    # Check and process first name titles
-    for title in first_name_titles:
-        if row['First Name'].startswith(title + " "):
-            row['Title'] = title
-            row['First Name'] = row['First Name'][len(title)+1:]
-            break  # Assuming only one title, break after finding
-
-    # Check and process last name titles
-    for title in last_name_titles:
-        if row['Last Name'].endswith(" " + title):
-            row['Title'] = title
-            row['Last Name'] = row['Last Name'][:-(len(title)+1)]
-            break
-
-    return row
-
-
 def format_date_columns(year, month, day):
     """format_date_columns: gathers year, month, day columns
        and concatenates them into one YYYY-MM-DD date.
     """
     if not pd.isna(year) and year != "":
-        date_str = f"{int(year):04d}"
+        date_str = "\'"
+        date_str += f"{int(year):04d}"
         if not pd.isna(month) and month != "":
             date_str += f"-{int(month):02d}"
+        else:
+            date_str += f"-01"
             if not pd.isna(day) and day != "":
                 date_str += f"-{int(day):02d}"
+            else:
+                date_str += f"-01"
         return date_str
     else:
         return ""
-
 
 def unique_ordered_list(input_list):
     """unique_ordered_list:
@@ -80,19 +50,6 @@ def extract_last_folders(path, number: int):
     path_components = path.split('/')
     return '/'.join(path_components[-number:])
 
-
-def picturae_paths_list(config, date):
-    """parses date arg into picturae image folder structure with prefixes"""
-    date = remove_non_numerics(date)
-
-    config.PIC_SCAN_FOLDERS = f"CP1_{date}_BATCH_0001{os.path.sep}"
-    config.DATE_STRING = str(date)
-    paths = []
-    full_dir = os.path.join(config.PREFIX,
-                            config.COLLECTION_PREFIX,
-                            config.PIC_SCAN_FOLDERS)
-    paths.append(full_dir)
-    return paths
 
 def remove_two_index(value_list, column_list):
     """if a value is NA ,NaN or None, will kick out value,
