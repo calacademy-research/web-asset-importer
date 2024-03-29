@@ -50,6 +50,8 @@ class SqlCsvTools:
         """dbtools get_one_record"""
         return self.specify_db_connection.get_one_record(sql=sql)
 
+    def get_records(self, sql):
+        return self.specify_db_connection.get_records(query=sql)
     def get_cursor(self):
         """standard db cursor"""
         return self.specify_db_connection.get_cursor()
@@ -72,25 +74,25 @@ class SqlCsvTools:
         """
         sql = f'''SELECT AgentID FROM agent'''
         statement_count = 0
-        if not pd.isna(first_name):
+        if not pd.isna(first_name) and first_name != '':
             statement_count += 1
             sql += f''' WHERE FirstName = "{first_name}"'''
         else:
             statement_count += 1
             sql += f''' WHERE FirstName IS NULL'''
 
-        if not pd.isna(last_name):
+        if not pd.isna(last_name) and last_name != '':
             sql += f''' AND LastName = "{last_name}"'''
 
         else:
-            sql += f''' AND FirstName IS NULL'''
+            sql += f''' AND LastName IS NULL'''
 
-        if not pd.isna(middle_initial):
+        if not pd.isna(middle_initial) and middle_initial != '':
             sql += f''' AND MiddleInitial = "{middle_initial}"'''
         else:
             sql += f''' AND MiddleInitial IS NULL'''
 
-        if not pd.isna(title):
+        if not pd.isna(title) and title != '':
             sql += f''' AND Title = "{title}"'''
         else:
             sql += f''' AND Title IS NULL'''
@@ -199,7 +201,7 @@ class SqlCsvTools:
                           requires database ip, which sqlite does not have
         """
         cursor = self.get_cursor()
-        self.logger.debug(f"running query - {sql}")
+        # self.logger.debug(f"running query - {sql}")
         try:
             cursor.execute(sql)
         except Exception as e:

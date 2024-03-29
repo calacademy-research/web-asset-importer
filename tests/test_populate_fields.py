@@ -32,9 +32,13 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
                 'accepted_author': ['Douglas ex hook'],
                 'first_intra': ['Castilleja miniata subsp. dixonii'],
                 'geography_string': ['Mariposa County, California, United States'],
-                'county': 'Mariposa County',
-                'state': 'California',
-                'country': 'United States'}
+                'County': ['Mariposa County'],
+                'State': ['California'],
+                'Country': ['United States'],
+                'matched_name_author': ['Douglas ex hook'],
+                'sheet_notes': ['notes'],
+                'cover_notes': ['notes'],
+                'overall_score': [1.0]}
 
         self.test_picturae_importer.record_full = pd.DataFrame(data)
 
