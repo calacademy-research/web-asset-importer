@@ -132,6 +132,7 @@ class PicturaeImporter(Importer):
         # marking starting time stamp
         # at exit run ending timestamp and append timestamp csv
         atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
+        atexit.register(self.unhide_files)
 
 
     def assign_col_dtypes(self):
@@ -224,6 +225,7 @@ class PicturaeImporter(Importer):
 
             self.barcode_list = list(set(self.barcode_list))
             self.image_list = list(set(self.image_list))
+            # running unhide files at beginning just in case failed run
 
 
 
@@ -367,6 +369,7 @@ class PicturaeImporter(Importer):
         """
 
         self.barcode = row.CatalogNumber.zfill(9)
+        self.raw_barcode = row.CatalogNumber
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
@@ -704,6 +707,11 @@ class PicturaeImporter(Importer):
                                                                     key_col='GUID', match=self.collecting_event_guid)
         table = 'collectionobject'
 
+        if self.sheet_notes or self.tax_notes:
+            notes = f"{self.sheet_notes + ' ' + self.tax_notes}"
+        else:
+            notes = ""
+
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'CollectingEventID',
@@ -738,7 +746,7 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{self.created_by_agent}",
                       f"{self.created_by_agent}",
-                      f"{self.sheet_notes + ' ' + self.tax_notes}",
+                      f"{notes}",
                       f"{self.picturae_config.PROJECT_NAME}"]
 
         # removing na values from both lists
@@ -875,23 +883,20 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-
         lower_list = [image_path.lower() for image_path in self.image_list]
         folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
         for folder_path in folder_paths:
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
-
                 if file_path.lower() not in lower_list:
                     new_file_name = f".hidden_{file_name}"
                     new_file_path = os.path.join(folder_path, new_file_name)
                     os.rename(file_path, new_file_path)
 
-
     def unhide_files(self):
         """unhide_files:
-                will directly undo the result of hide_unwanted_files.
-                Removes substring `.hidden_` from all base filenames
+                Will directly undo the result of hide_unwanted_files.
+                Removes substring `.hidden_` from all base filenames.
            args:
                 none
            returns:
@@ -899,14 +904,16 @@ class PicturaeImporter(Importer):
         """
         folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
         for folder_path in folder_paths:
-            prefix = ".hidden_"  # The prefix added during hiding
+            prefix = ".hidden_"
             for file_name in os.listdir(folder_path):
                 if file_name.startswith(prefix):
-                    old_file_name = file_name[len(prefix):]
-                    old_file_path = os.path.join(folder_path, old_file_name)
-                    new_file_path = os.path.join(folder_path, file_name)
-                    os.rename(new_file_path, old_file_path)
-
+                    # Calculate the new file name by removing the prefix
+                    new_file_name = file_name[len(prefix):]
+                    # Construct the full path of the current (hidden) file
+                    old_file_path = os.path.join(folder_path, file_name)
+                    new_file_path = os.path.join(folder_path, new_file_name)
+                    # Rename the file
+                    os.rename(old_file_path, new_file_path)
 
     def upload_records(self):
         """upload_records:
@@ -919,33 +926,37 @@ class PicturaeImporter(Importer):
         """
         # the order of operations matters, if you change the order certain variables may overwrite
 
-        self.record_full = self.record_full[self.record_full['CatalogNumber'].isin(self.barcode_list)]
-
         self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
 
         for row in self.record_full.itertuples(index=False):
-            self.populate_fields(row)
+            if row.CatalogNumber in self.barcode_list:
+                self.populate_fields(row)
 
-            self.record_full.to_csv("tests/test_output_csv.csv")
+                # updating barcode present
+                self.record_full.loc[self.record_full['CatalogNumber'] == self.raw_barcode, 'barcode_present'] = True
 
-            self.create_agent_list(row)
-            self.populate_taxon()
+                self.create_agent_list(row)
+                self.populate_taxon()
 
-            if self.taxon_id is None:
-                self.create_taxon()
+                if self.taxon_id is None:
+                    self.create_taxon()
 
-            self.create_locality_record()
+                self.create_locality_record()
 
-            if len(self.new_collector_list) > 0:
-                self.create_agent_id()
+                if len(self.new_collector_list) > 0:
+                    self.create_agent_id()
 
-            self.create_collecting_event()
+                self.create_collecting_event()
 
-            self.create_collection_object()
+                self.create_collection_object()
 
-            self.create_determination()
+                self.create_determination()
 
-            self.create_collector()
+                self.create_collector()
+            else:
+                pass
+
+
 
 
     def upload_attachments(self):
@@ -955,6 +966,7 @@ class PicturaeImporter(Importer):
                 picturae_config to ensure prefix is
                 updated for correct filepath
         """
+        self.unhide_files()
         try:
             self.hide_unwanted_files()
             BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
@@ -969,6 +981,13 @@ class PicturaeImporter(Importer):
                         self-explanatory function, will run all methods in class in sequential manner"""
         # code to create test images for test image uploads
         # setting directory
+
+        # creating backup copy of upload csv before modifying
+        copy_path = self.picturae_config.PREFIX + self.scan_folder + f"PIC_record_{self.date_use}_copy.csv"
+
+        if not os.path.exists(copy_path):
+            shutil.copyfile(self.file_path, copy_path)
+
         to_current_directory()
 
         self.assign_col_dtypes()
@@ -991,10 +1010,13 @@ class PicturaeImporter(Importer):
         self.sql_csv_tools.insert_table_record(sql=sql)
 
         # starting purge timer
-        self.exit_timestamp()
+        if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
+            self.exit_timestamp()
 
         # creating tables
         self.upload_records()
+
+        self.record_full.to_csv(self.file_path)
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
@@ -1005,7 +1027,14 @@ class PicturaeImporter(Importer):
 
         self.monitoring_tools.create_monitoring_report(value_list=value_list)
 
+
         self.upload_attachments()
+
+        # resaving after importing images to prevent double uploading
+
+        self.record_full['image_present_db'] = True
+
+        self.record_full.to_csv(self.file_path)
 
         self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
                                                      time_stamp=starting_time_stamp)
@@ -1015,7 +1044,6 @@ class PicturaeImporter(Importer):
         self.logger.info("process finished")
 
         # unlocking database
-
         sql = f"""UPDATE mysql.user
                   SET account_locked = 'n'
                   WHERE user != '{self.picturae_config.USER}' AND host = '%';"""

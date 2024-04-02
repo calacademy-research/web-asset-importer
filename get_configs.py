@@ -17,7 +17,7 @@ def get_config(config: str):
     location = f"config_files/{config}_config.py"
 
     try:
-        if current_dir.endswith("importer"):
+        if "importer" in current_dir.lower():
             pass
         else:
             location = "../" + location

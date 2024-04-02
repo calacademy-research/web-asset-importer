@@ -24,6 +24,8 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
+
+
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
