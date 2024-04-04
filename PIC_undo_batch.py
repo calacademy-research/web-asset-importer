@@ -169,7 +169,7 @@ class PicturaeUndoBatch(Importer):
 
         # clearing picbatch records
         if self.data_deleted is True:
-            for table in ['picturaetaxa_added', 'taxa_unmatch', 'picturae_batch']:
+            for table in ['picturaetaxa_added', 'picturae_batch']:
                 self.batch_log_clear(table=table, MD5=MD5)
 
 

@@ -19,12 +19,7 @@ PREFIX = f"{sla}path{sla}to{sla}image{sla}folder"
 
 PIC_SCAN_FOLDERS = f"CP1_MMDDYYYY_BATCH_0001{sla}"
 
-FOLDER_REGEX = r"(CP1_).+?(_BATCH)"
-
-COLLECTION_PREFIX = f"collection{sla}folder{sla}"
-DATA_FOLDER = f"csv_folder_name{sla}"
-CSV_SPEC = f"{sla}specimen_csv_prefix"
-CSV_FOLD = f"{sla}folder_csv_prefix"
+FOLDER_REGEX = r"_.+?_"
 
 PROJECT_NAME = "name of digitization project"
 
