@@ -35,7 +35,8 @@ class Importer:
 
     def __init__(self, db_config_class, collection_name):
         self.db_config_class = db_config_class
-        self.logger = logging.getLogger('Client.importer')
+
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
         self.image_client = ImageClient(config=db_config_class)

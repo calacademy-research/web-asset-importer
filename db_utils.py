@@ -1,14 +1,9 @@
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
-
-
-
 import sys
 import traceback
-
 from mysql.connector import errorcode
 import mysql.connector
+
 
 class DatabaseInconsistentError(Exception):
     pass
@@ -29,9 +24,8 @@ class DbUtils:
         self.database_port = database_port
         self.database_host = database_host
         self.database_name = database_name
-        self.logger = logging.getLogger('Client.dbutils')
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.cnx = None
-
 
     def reset_connection(self):
 
@@ -79,8 +73,6 @@ class DbUtils:
                 self.reset_connection()
             # self.logger.debug(f"Already connected db {self.database_host}...")
 
-
-
     # added buffered = true so will work properly with forloops
     def get_one_record(self, sql):
 
@@ -96,7 +88,7 @@ class DbUtils:
             retval = None
         if retval is None:
 
-            self.logger.warning(f"Warning: No results from: \n\n{sql}\n")
+            self.logger.info(f"Info: No results from: \n\n{sql}\n")
         else:
             retval = retval[0]
         cursor.close()
@@ -114,7 +106,6 @@ class DbUtils:
         self.connect()
         cursor = self.cnx.cursor(buffered=buffered)
         return cursor
-
 
     def execute(self, sql):
         cursor = self.get_cursor()

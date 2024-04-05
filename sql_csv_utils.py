@@ -17,7 +17,7 @@ class SqlCsvTools:
     def __init__(self, config, logging_level=logging.INFO):
         self.config = config
         self.specify_db_connection = SpecifyDb(db_config_class=self.config)
-        self.logger = logging.getLogger("SqlCsvTools")
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.logger.setLevel(logging_level)
         self.check_db_connection()
 

@@ -9,13 +9,13 @@ from monitoring_tools import MonitoringTools
 import traceback
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
+import warnings
+
+logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
 
 starting_time_stamp = datetime.now()
-
-
-#  EXIF takes first priority Directory takes second. File name takes 3rd.
 
 
 class IzImporter(Importer):
@@ -24,7 +24,18 @@ class IzImporter(Importer):
             self.casiz_numbers = []
 
     def __init__(self, full_import):
-        logging.getLogger('PIL').setLevel(logging.ERROR)
+
+        logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
+        # logging.getLogger("urllib3").setLevel(logging.WARNING)
+        # logging.getLogger("mysql.connector").setLevel(logging.WARNING)
+
+        warnings.filterwarnings("ignore", category=UserWarning)
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
+        logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
+        logging.getLogger('Client.importer').setLevel(logging.DEBUG)
+        logging.getLogger('Client.ImageClient').setLevel(logging.DEBUG)
+
+        self.logger.setLevel(logging.DEBUG)
 
         self.iz_importer_config = get_config(config="IZ")
         self.AGENT_ID = 26280
@@ -32,8 +43,6 @@ class IzImporter(Importer):
         self.item_mappings = []
         self.log_file.write(f"casiz\tfilename\tCASIZ method\tcopyright method\tcopyright\trejected\tpath on disk\n")
 
-        self.logger = logging.getLogger('Client.IzImporter')
-        self.logger.setLevel(logging.DEBUG)
 
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
 
@@ -53,12 +62,10 @@ class IzImporter(Importer):
 
         self.cur_casiz_match = self.iz_importer_config.CASIZ_MATCH
         self.cur_extract_casiz = self.extract_casiz
-        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS)
+        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=True)
 
         self.directory_tree_core.process_files(self.build_filename_map)
         # placeholder for filename now
-
-        print("Starting to process loaded core files...")
 
         if not full_import:
             self.monitoring_tools = MonitoringTools(config=self.iz_importer_config)
@@ -125,10 +132,32 @@ class IzImporter(Importer):
                                                                 self.AGENT_ID,
                                                                 copyright_filepath_map=self.path_copyright_map,
                                                                 force_redacted=True)
-                # Joe - this is where we would tag images via the image server
-                # using the attach_loc
-                print(f"Joe attach here. Loc{attach_loc}")
 
+                # Copyright                       : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
+                # CopyrightNotice                 : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
+                # CopyrightFlag                   : True
+                # Credit                          : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
+                # Rights                          : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
+
+                if cur_filepath in self.path_copyright_map:
+                    copyright = self.path_copyright_map[cur_filepath]
+                else:
+                    copyright = "-"
+
+                iptc_dict = {"by-line": "Picasso",
+                             'Date Created': "2023-02-10",
+                             "2#116": f"{copyright}1",
+                             "110": f"{copyright}2"}
+                # joe
+                exif_dict = {
+                    "33432": f"{copyright}3",
+                    "XMP-dc:Rights": f"{copyright}4",
+                    "XMP-dc:Credit": f"{copyright}5",
+                    "IPTC:CopyrightNotice": f"{copyright}6",
+                    "CopyrightFlag": "True"}
+
+                self.image_client.write_iptc_image_metadata(iptc_dict, self.collection_name, attach_loc)
+                self.image_client.write_exif_image_metadata(exif_dict, self.collection_name, attach_loc)
 
     def log_file_status(self,
                         id=None,
@@ -169,18 +198,19 @@ class IzImporter(Importer):
 
     def extract_copyright_from_string(self, copyright_string):
         copyright = None
+
         if '©' in copyright_string:
             copyright = copyright_string.split('©')[-1]
         if 'copyright' in copyright_string:
             copyright = copyright_string.split('copyright')[-1]
         if copyright is not None:
             copyright = copyright.strip()
-            copyright = os.path.splitext(copyright)[0]
+            copyright = re.sub(r'\s*_.*$', '', copyright)
         return copyright
 
     def attempt_exif_extraction(self, full_path):
         try:
-            return MetadataTools(full_path, self.iz_importer_config)
+            return MetadataTools(full_path)
         except Exception as e:
             print(f"Exception: {e}")
             traceback.print_exc()
@@ -198,7 +228,7 @@ class IzImporter(Importer):
             else:
                 if len(ints[0]) >= self.iz_importer_config.MINIMUM_ID_DIGITS:
                     casiz_number = int(ints[0])
-                    return casiz_number
+                    self.casiz_numbers = [casiz_number]
 
         return None
 
@@ -227,8 +257,9 @@ class IzImporter(Importer):
 
         if exif_metadata:
             copyright = self.get_copyright_from_exif(exif_metadata)
-            if copyright is not None:
+            if copyright is not None and copyright.lower() != 'copyright':
                 self.copyright = copyright
+
                 return 'exif'
         if self.attempt_directory_copyright_extraction(orig_case_directory):
             return 'directory'
@@ -340,20 +371,36 @@ class IzImporter(Importer):
 
     def build_filename_map(self, full_path):
         # Joe - this is a temp limiter so we can quickly debug
-        # if 'counter' not in globals():
-        #     globals()['counter'] = 0
-        # if globals()['counter'] < 10:
-        #     globals()['counter'] += 1
-        # else:
-        #     return False
+        if 'counter' not in globals():
+            globals()['counter'] = 0
+        if globals()['counter'] < 110:
+            globals()['counter'] += 1
+        else:
+            return False
 
         orig_case_full_path = full_path
         full_path = full_path.lower()
+        if 'crrf' in full_path:
+            print("Rejecting all CRRF for now - pending mapping")
+            self.log_file_status(filename=os.path.basename(full_path),
+                                 path=full_path,
+                                 rejected="Skipping CRRF for now")
+
         if not self.include_by_extension(full_path):
             print(f"Will not import, excluded extension: {full_path}")
             self.log_file_status(filename=os.path.basename(full_path),
                                  path=full_path,
                                  rejected="Forbidden extension")
+            return False
+
+        filename = full_path.split('/')[-1]
+
+        # Check if the filename starts with .
+        if filename.startswith('.'):
+            print(f"Skipping all files that start with .: {full_path}")
+            self.log_file_status(filename=os.path.basename(full_path),
+                                 path=full_path,
+                                 rejected=".filename")
             return False
 
         if self.check_already_attached(full_path):

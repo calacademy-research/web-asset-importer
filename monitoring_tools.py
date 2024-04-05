@@ -11,7 +11,7 @@ class MonitoringTools:
     def __init__(self, config):
         self.path = config.REPORT_PATH
         self.config = config
-        self.logger = logging.getLogger("MonitoringTools")
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         if not pd.isna(config) and config != {}:
             self.check_config_present()
             self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())

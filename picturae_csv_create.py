@@ -22,7 +22,7 @@ class CsvCreatePicturae(Importer):
         self.picturae_config = config
         self.picdb_config = get_config(config="picbatch")
         super().__init__(db_config_class=self.picturae_config, collection_name="Botany")
-        self.logger = logging.getLogger("CsvCreatePicturae")
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.logger.setLevel(logging_level)
         self.init_all_vars(date_string)
 

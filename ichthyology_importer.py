@@ -18,7 +18,7 @@ class FilenameFormatException(Exception):
 
 class IchthyologyImporter(Importer):
     def __init__(self,  full_import):
-        self.logger = logging.getLogger('Client.IchthyologyImporter')
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
         ich_importer_config = get_config("Ichthyology")
 

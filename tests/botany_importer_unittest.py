@@ -23,7 +23,6 @@ class BotanyImporterTests(unittest.TestCase):
         self.botany_importer = BotanyImporter()
         # setting up logger
         self.logger = logging.getLogger(__name__)
-        self.logger.setLevel(logging.DEBUG)
         self.log_capture = LogCapture()
         # create real image path and incorrect image path
         path_list = ["CAS0123456.JPG", "CASABCDEFG.JPG", "CAS999999991.JPG"]

@@ -29,6 +29,8 @@ class FileNotFoundException(Exception):
 
 class ImageClient:
     def __init__(self, config=None):
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
+
         ptc_timezone = timezone(timedelta(hours=-8), name="PST")
         self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
@@ -82,7 +84,7 @@ class ImageClient:
             'token': self.generate_token(attach_loc),
         }
         url = self.build_url("filedelete")
-        logging.debug(f"Deleting {url} from server")
+        self.logger.debug(f"Deleting {url} from server")
         r = requests.post(url, data=data)
         if r.status_code == 404:
             raise FileNotFoundException
@@ -123,10 +125,13 @@ class ImageClient:
             'image': (attach_loc, open(local_filename, 'rb')),
         }
         url = self.build_url("fileupload")
-        logging.debug(f"Attempting upload to {url}")
+        self.logger.debug(f"Attempting upload to {url}")
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
-            print(f"Image upload aborted: {r.status_code}:{r.text}")
+            if r.status_code == 409:
+                print(f"Image upload skipped for {upload_path}")
+            else:
+                print(f"Image upload aborted: {r.status_code}:{r.text}")
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=False)
@@ -142,13 +147,13 @@ class ImageClient:
             r = requests.get(self.build_url("getfileref"), params=params)
             url = r.text
             assert r.status_code == 200
-            logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
+            self.logger.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             print("adding to image")
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=True)
 
-        logging.debug("Upload to file server complete")
+        self.logger.debug("Upload to file server complete")
 
         return url, attach_loc
 
@@ -164,21 +169,31 @@ class ImageClient:
 
         return self.decode_response(params)
 
-    def write_image_metadata(self, exif_dict, collection, filename):
+    def write_iptc_image_metadata(self, exif_dict, collection, filename):
+        self._write_image_metadata(exif_dict, collection, filename, 'iptc')
+
+    def write_exif_image_metadata(self, exif_dict, collection, filename):
+        self._write_image_metadata(exif_dict, collection, filename, 'exif')
+
+    def _write_image_metadata(self, exif_dict, collection, filename, metadata_type):
+        api_target = f'update{metadata_type}data'
         data = {'filename': filename,
                 'coll': collection,
                 'exif_dict': json.dumps(exif_dict),
                 'token': self.generate_token(filename)
                 }
 
-        url = self.build_url("updatemetadata")
+        url = self.build_url(api_target)
 
-        r = requests.post(url, data=data)
+        response = requests.post(url, data=data)
 
-        if r.status_code != 200:
-            print(f"exif update aborted: {r.status_code}:{r.text}")
+        if response.status_code == 200:
+            self.logger.debug(f"{metadata_type.capitalize()} data for '{filename}' updated successfully.")
+        else:
+            self.logger.error(
+                f"Failed to update {metadata_type} data for '{filename}': {response.status_code} - {response.text}")
 
-        logging.debug(f"modifying exif data for {filename} complete")
+        self.logger.debug(f"modifying {metadata_type} data for {filename} complete")
 
     def read_exif_image_data(self, collection, filename, datatype):
         params = {'filename': filename,
@@ -200,14 +215,14 @@ class ImageClient:
         url = self.build_url("getImageRecord")
         r = requests.get(url, params=params)
         if r.status_code == 404:
-            logging.debug(f"Checked {params['file_string']} and found no duplicates")
+            self.logger.debug(f"Checked {params['file_string']} and found no duplicates")
             return False
         if r.status_code == 200:
-            logging.debug(f"Checked {params['file_string']} - already imported")
+            self.logger.debug(f"Checked {params['file_string']} - already imported")
             return True
         if r.status_code == 500:
-            logging.error(f"500: Internal server error checking {params['file_string']}")
-            logging.error(f"URL: {url}")
+            self.logger.error(f"500: Internal server error checking {params['file_string']}")
+            self.logger.error(f"URL: {url}")
             assert False
 
         assert False

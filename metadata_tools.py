@@ -21,8 +21,7 @@ class MetadataTools:
     @timeout(20, os.strerror(errno.ETIMEDOUT))
     def __init__(self, path):
         self.path = path
-        self.logger = logging.getLogger('MetadataTools')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
     def is_file_larger_than(self, size_in_mb: float) -> bool:
         """
@@ -95,7 +94,12 @@ class MetadataTools:
                 path: path to image
                 convert_tags: True to convert tags to string, False keep exif codes
         """
-        img = Image.open(self.path)
+        try:
+            img = Image.open(self.path)
+        except Exception as e:
+            logging.warning(f"Unidentified image error in metadata extraction: {self.path} : {e}")
+            return None
+
         if convert_tags is True:
             exif = {
                 PIL.ExifTags.TAGS[k]: v

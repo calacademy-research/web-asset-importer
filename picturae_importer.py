@@ -37,7 +37,7 @@ class PicturaeImporter(Importer):
 
         self.picdb_config = get_config(config='picbatch')
 
-        self.logger = logging.getLogger("PicturaeImporter")
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
         self.init_all_vars(date_string=date_string, paths=paths)
 
