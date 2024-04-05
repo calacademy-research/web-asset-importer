@@ -45,8 +45,11 @@ class AltPicturaeImporterlite(PicturaeImporter):
         self.genus = row.Genus
         self.family_name = row.Family
         self.is_hybrid = row.Hybrid
-        self.author = row.accepted_author
+        self.author = row.matched_name_author
         self.first_intra = row.first_intra
+        self.sheet_notes = row.sheet_notes
+        self.overall_score = row.overall_score
+        self.tax_notes = row.cover_notes
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
@@ -60,6 +63,8 @@ class AltPicturaeImporterlite(PicturaeImporter):
         self.end_date = row.end_date
         self.collector_number = row.collector_number
         self.locality = row.locality
+        self.sheet_notes = row.sheet_notes
+        self.tax_notes = row.cover_notes
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:

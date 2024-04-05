@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import argparse
-from gen_import_utils import get_max_subdirectory_date, picturae_paths_list
+import re
 from get_configs import get_config
 import os
 import logging
@@ -13,7 +13,8 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
-from PIC_database_updater import UpdateDbFields
+from PIC_database_updater import UpdatePICFields
+from BOT_database_updater import UpdateBotDbFields
 args = None
 logger = None
 
@@ -88,18 +89,30 @@ def main(args):
                 paths = []
                 full_import = args.full_import
 
-                paths.append(os.path.join(pic_config.PREFIX,
-                                     pic_config.COLLECTION_PREFIX))
+                for root, dirs, files in os.walk(pic_config.PREFIX):
+                    if 'databased' in dirs:
+                        img_dir = os.path.join(root, 'databased')
+                        paths.append(img_dir)
 
                 BotanyImporter(paths=paths, config=pic_config, full_import=full_import,
                                existing_barcodes=existing_barcodes)
             else:
                 date_override = args.date
-                # default is to get date of most recent folder in csv folder
+
+                # if none reverts to default, to get date of most recent folder in csv folder
                 if date_override is None:
-                    date_override = get_max_subdirectory_date("/picturae_csv")
-                # otherwise replace dates with most args.date
-                paths = picturae_paths_list(config=pic_config, date=date_override)
+                    raise AttributeError("date argument missing from command line")
+
+                scan_folder = re.sub(pattern=pic_config.FOLDER_REGEX, repl=f"_{date_override}_",
+                                     string=pic_config.PIC_SCAN_FOLDERS)
+
+                scan_folder = os.path.join(scan_folder, f"undatabased{os.path.sep}")
+
+                paths = []
+                full_dir = os.path.join(pic_config.PREFIX,
+                                        scan_folder)
+                paths.append(full_dir)
+
                 PicturaeImporter(paths=paths, config=pic_config, date_string=date_override)
 
 
@@ -123,7 +136,12 @@ def main(args):
             pic_config = get_config(config="Botany_PIC")
             date_override = args.date
             force_update = args.force_update
-            UpdateDbFields(config=pic_config, date=date_override, force_update=force_update)
+            UpdatePICFields(config=pic_config, date=date_override, force_update=force_update)
+        if args.collection == 'Botany':
+            bot_config = get_config(config="Botany")
+            date_override = args.date
+            force_update = args.force_update
+            UpdateBotDbFields(config=bot_config, date=date_override, force_update=force_update)
 
     else:
         print(f"Unknown command: {args.subcommand}")

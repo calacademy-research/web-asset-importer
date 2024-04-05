@@ -3,23 +3,22 @@
     Used as part of picturae_project for upload post-imaging, to create records to be updated post OCR and transcription
 """
 import atexit
+import os.path
+import shutil
 from uuid import uuid4
 from gen_import_utils import *
 import logging
 from string_utils import *
 from importer import Importer
-from picturae_csv_create import CsvCreatePicturae
 from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
-from picturae_csv_create import starting_time_stamp
-from specify_db import SpecifyDb
 from get_configs import get_config
-from os import path
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
 from taxon_tools.BOT_TNRS import process_taxon_resolve
 
+starting_time_stamp = datetime.now()
 
 class PicturaeImporter(Importer):
     """DataOnboard:
@@ -41,15 +40,6 @@ class PicturaeImporter(Importer):
 
         self.init_all_vars(date_string=date_string, paths=paths)
 
-        # running csv create
-        csv_create_picturae = CsvCreatePicturae(date_string=self.date_use,
-                                                config=self.picturae_config,
-                                                paths=paths,
-                                                logging_level=self.logger.getEffectiveLevel())
-
-        self.records_dropped = csv_create_picturae.records_dropped
-
-
         self.record_full = pd.read_csv(self.file_path)
 
         self.num_barcodes = len(self.record_full)
@@ -64,10 +54,12 @@ class PicturaeImporter(Importer):
                 date_string: the date input recieved from init params
                 paths: the paths string recieved from the init params"""
 
-        print(paths)
         self.date_use = date_string
 
-        self.file_path = f"PIC_upload{path.sep}PIC_record_{self.date_use}.csv"
+        self.scan_folder = re.sub(pattern=self.picturae_config.FOLDER_REGEX, repl=f"_{self.date_use}_",
+                                  string=self.picturae_config.PIC_SCAN_FOLDERS)
+
+        self.file_path = self.picturae_config.PREFIX + self.scan_folder + f"PIC_record_{self.date_use}.csv"
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
@@ -123,7 +115,7 @@ class PicturaeImporter(Importer):
                         AND TimestampCreated <= "{ending_time_stamp}";'''
 
 
-        error_tabs = ['taxa_unmatch', 'picturaetaxa_added']
+        error_tabs = ['picturaetaxa_added']
         for tab in error_tabs:
 
             sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
@@ -140,6 +132,7 @@ class PicturaeImporter(Importer):
         # marking starting time stamp
         # at exit run ending timestamp and append timestamp csv
         atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
+        atexit.register(self.unhide_files)
 
 
     def assign_col_dtypes(self):
@@ -154,64 +147,48 @@ class PicturaeImporter(Importer):
 
         self.record_full = self.record_full.replace({'True': True, 'False': False})
 
-        self.record_full = self.record_full.replace(['', None, 'nan', np.nan], pd.NA)
+        self.record_full = self.record_full.replace([None, 'nan', np.nan, '<NA>'], '')
+
+        # removing leading apostrophes from data columns
+        for col_name in list(["start", "end"]):
+            self.record_full[f"{col_name}_date"] = self.record_full[f"{col_name}_date"].str.lstrip("\'")
 
 
-    def taxon_assign_defitem(self, taxon_string):
-        """taxon_assign_defitme: assigns, taxon rank and treeitemid number,
-                                based on subtrings present in taxon name.
-            args:
-                taxon_string: the taxon string or substring, which before assignment
-        """
-        def_tree = 13
-        rank_id = 220
-        if "subsp." in taxon_string:
-            def_tree = 14
-            rank_id = 230
-        if "var." in taxon_string:
-            def_tree = 15
-            rank_id = 240
-        if "subvar." in taxon_string:
-            def_tree = 16
-            rank_id = 250
-        if " f. " in taxon_string:
-            def_tree = 17
-            rank_id = 260
-        if "subf." in taxon_string:
-            def_tree = 21
-            rank_id = 270
-        if len(taxon_string.split()) == 1:
-            def_tree = 12
-            rank_id = 180
+    def duplicate_images(self):
+        """will copy image associated with parent barcode,
+           and rename according to new barcode for duplicate sheets"""
 
-        return def_tree, rank_id
+        for row in self.record_full.itertuples():
+            if row.duplicate is True:
+                parent_bar = row.parent_CatalogNumber
 
+                parent_bar = re.sub(r"_[0-9]+", "", parent_bar)
 
-    def taxa_author_tnrs(self, taxon_name, barcode):
-        """taxa_author_tnrs: designed to take in one taxaname and
-           do a TNRS operation on it to get an author for iterative higher taxa.
+                new_bar = row.CatalogNumber
 
-           args:
-                taxon_name: a string of a taxon name, or a parsed genus or family, used to control
-                            for unconfirmed species, and spelling mistakes.
-                barcode: the string barcode of the taxon name associated with each photo.
-                         used to re-merge dataframes after TNRS and keep track of the record in R.
-        """
+                old_path = self.picturae_config.PREFIX + self.scan_folder + \
+                           f"undatabased{os.path.sep}" + f"{parent_bar}.tif"
 
-        taxon_frame = {"CatalogNumber": [barcode], "fullname": [taxon_name]}
+                new_path = self.picturae_config.PREFIX + self.scan_folder + \
+                           f"undatabased{os.path.sep}" + f"{new_bar}.tif"
 
-        taxon_frame = pd.DataFrame(taxon_frame)
+                try:
+                    if os.path.exists(new_path) is False:
+                        shutil.copy2(old_path, new_path)
+                    else:
+                        pass
+                    new_filename = os.path.basename(new_path)
 
-        # running taxonomic names through TNRS
+                    self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_filename
 
-        resolved_taxon = process_taxon_resolve(taxon_frame)
+                    self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar} ")
 
-        taxon_list = list(resolved_taxon['accepted_author'])
-
-        self.parent_author = taxon_list[0]
+                except Exception as e:
+                    raise FileNotFoundError(f"Error: {e}")
+            else:
+                pass
 
 
-    # think of finding way to make this function logic not so repetitive
     def create_file_list(self):
         """create_file_list: creates a list of imagepaths and barcodes for upload,
                                 after checking conditions established to prevent
@@ -248,8 +225,63 @@ class PicturaeImporter(Importer):
 
             self.barcode_list = list(set(self.barcode_list))
             self.image_list = list(set(self.image_list))
+            # running unhide files at beginning just in case failed run
 
 
+
+    def taxon_assign_defitem(self, taxon_string):
+        """taxon_assign_defitme: assigns, taxon rank and treeitemid number,
+                                based on subtrings present in taxon name.
+            args:
+                taxon_string: the taxon string or substring, which before assignment
+        """
+        def_tree = 13
+        rank_id = 220
+        if "subsp." in taxon_string:
+            def_tree = 14
+            rank_id = 230
+        if "var." in taxon_string:
+            def_tree = 15
+            rank_id = 240
+        if "subvar." in taxon_string:
+            def_tree = 16
+            rank_id = 250
+        if " f. " in taxon_string:
+            def_tree = 17
+            rank_id = 260
+        if "subf." in taxon_string:
+            def_tree = 21
+            rank_id = 270
+
+        return def_tree, rank_id
+
+
+    def taxa_author_tnrs(self, taxon_name, barcode):
+        """taxa_author_tnrs: designed to take in one taxaname and
+           do a TNRS operation on it to get an author for iterative higher taxa.
+
+           args:
+                taxon_name: a string of a taxon name, or a parsed genus or family, used to control
+                            for unconfirmed species, and spelling mistakes.
+                barcode: the string barcode of the taxon name associated with each photo.
+                         used to re-merge dataframes after TNRS and keep track of the record in R.
+        """
+
+        taxon_frame = {"CatalogNumber": [barcode], "fullname": [taxon_name]}
+
+        taxon_frame = pd.DataFrame(taxon_frame)
+
+        # running taxonomic names through TNRS
+
+        resolved_taxon = process_taxon_resolve(taxon_frame)
+
+        taxon_list = list(resolved_taxon['matched_name_author'])
+
+        self.parent_author = taxon_list[0]
+
+
+
+    # modify to deal with title seperation
 
     def create_agent_list(self, row):
         """create_agent_list:
@@ -271,25 +303,45 @@ class PicturaeImporter(Importer):
                 first_index = column_names.index(f'collector_first_name{i}')
                 middle_index = column_names.index(f'collector_middle_name{i}')
                 last_index = column_names.index(f'collector_last_name{i}')
+                id_index = column_names.index(f'agent_id{i}')
 
                 first = row[first_index]
                 middle = row[middle_index]
                 last = row[last_index]
+                agent_id = row[id_index]
+
 
             except ValueError:
                 break
-            # need a way to keep ones with nas, but only split titles from real names
-            if not pd.isna(first) or not pd.isna(middle) or not pd.isna(last):
+
+            if pd.notna(agent_id) and agent_id != '':
+                collector_dict = {f'collector_first_name': first,
+                                  f'collector_middle_initial': middle,
+                                  f'collector_last_name': last,
+                                  f'collector_title': '',
+                                  f'agent_id': agent_id}
+
+                self.full_collector_list.append(collector_dict)
+
+            elif any(pd.notna(x) and x != '' for x in [first, middle, last]):
                 # first name title taking priority over last
-                first_name, title = assign_collector_titles(first_last='first', name=f"{first}")
-                last_name, title = assign_collector_titles(first_last='last', name=f"{last}")
+                first_name, title_first = assign_collector_titles(first_last='first', name=f"{first}",
+                                                                  config=self.picturae_config)
+
+                last_name, title_last = assign_collector_titles(first_last='last', name=f"{last}",
+                                                                config=self.picturae_config)
+
+                if pd.notna(title_first) and title_first != '':
+                    title = title_first
+                else:
+                    title = title_last
 
                 middle = middle
                 elements = [first_name, last_name, title, middle]
 
                 for index in range(len(elements)):
                     if pd.isna(elements[index]) or elements[index] == '':
-                        elements[index] = pd.NA
+                        elements[index] = ''
 
                 first_name, last_name, title, middle = elements
 
@@ -298,7 +350,8 @@ class PicturaeImporter(Importer):
                 collector_dict = {f'collector_first_name': first_name,
                                   f'collector_middle_initial': middle,
                                   f'collector_last_name': last_name,
-                                  f'collector_title': title}
+                                  f'collector_title': title,
+                                  f'agent_id': agent_id}
 
                 self.full_collector_list.append(collector_dict)
                 if agent_id is None:
@@ -316,6 +369,7 @@ class PicturaeImporter(Importer):
         """
 
         self.barcode = row.CatalogNumber.zfill(9)
+        self.raw_barcode = row.CatalogNumber
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
@@ -329,21 +383,24 @@ class PicturaeImporter(Importer):
         self.genus = row.Genus
         self.family_name = row.Family
         self.is_hybrid = row.Hybrid
-        self.author = row.accepted_author
+        self.author = row.matched_name_author
         self.first_intra = row.first_intra
+
+        self.overall_score = row.overall_score
+
+        self.sheet_notes = row.sheet_notes
+
+        self.tax_notes = row.cover_notes
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
 
-        self.geography_string = str(row.county) + ", " + \
-                                str(row.state) + ", " + str(row.country)
+        self.geography_string = str(row.County) + ", " + \
+                                str(row.State) + ", " + str(row.Country)
 
         self.GeographyID = self.sql_csv_tools.get_one_match(tab_name='geography', id_col='GeographyID',
                                                             key_col='FullName', match=self.geography_string)
-
-        self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col='LocalityID',
-                                                            key_col='LocalityName', match=self.locality)
 
 
     def populate_taxon(self):
@@ -409,14 +466,17 @@ class PicturaeImporter(Importer):
 
         author_insert = self.author
 
-        if rank_name != self.family_name:
+        if rank_name != self.family_name and rank_name != self.genus:
             tree_item_id, rank_id = self.taxon_assign_defitem(taxon_string=rank_name)
+        elif rank_name == self.genus:
+            rank_id = 180
+            tree_item_id = 12
         else:
             rank_id = 140
             tree_item_id = 11
 
-        if rank_id < 220:
-            author_insert = pd.NA
+        if rank_id < 220 or (taxon == self.full_name and float(self.overall_score) < .90):
+            author_insert = ''
 
         # assigning parent_author if needed , for gen_spec
 
@@ -424,7 +484,7 @@ class PicturaeImporter(Importer):
             author_insert = self.parent_author
 
         if self.is_hybrid is True:
-            author_insert = pd.NA
+            author_insert = ''
 
         return author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id
 
@@ -435,6 +495,8 @@ class PicturaeImporter(Importer):
                through create_sql_string and create_table record
                in order to add new locality record to database
         """
+        if self.locality == '' or pd.isna(self.locality):
+            self.locality=["[unspecified]"]
 
         table = 'locality'
 
@@ -533,7 +595,7 @@ class PicturaeImporter(Importer):
 
         self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality',
                                                             id_col='LocalityID',
-                                                            key_col='LocalityName', match=self.locality)
+                                                            key_col='GUID', match=self.locality_guid)
 
         table = 'collectingevent'
 
@@ -645,6 +707,11 @@ class PicturaeImporter(Importer):
                                                                     key_col='GUID', match=self.collecting_event_guid)
         table = 'collectionobject'
 
+        if self.sheet_notes or self.tax_notes:
+            notes = f"{self.sheet_notes + ' ' + self.tax_notes}"
+        else:
+            notes = ""
+
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'CollectingEventID',
@@ -659,7 +726,9 @@ class PicturaeImporter(Importer):
                        'InventoryDatePrecision',
                        'ModifiedByAgentID',
                        'CreatedByAgentID',
-                       'CatalogerID'
+                       'CatalogerID',
+                       'Remarks',
+                       'ReservedText'
                        ]
 
         value_list = [f"{time_utils.get_pst_time_now_string()}",
@@ -676,7 +745,9 @@ class PicturaeImporter(Importer):
                       1,
                       f"{self.created_by_agent}",
                       f"{self.created_by_agent}",
-                      f"{self.created_by_agent}"]
+                      f"{self.created_by_agent}",
+                      f"{notes}",
+                      f"{self.picturae_config.PROJECT_NAME}"]
 
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -719,7 +790,7 @@ class PicturaeImporter(Importer):
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
                            # 'DeterminerID',
-                           'PreferredTaxonID',
+                           'PreferredTaxonID'
                            ]
             value_list = [f"{time_utils.get_pst_time_now_string()}",
                           f"{time_utils.get_pst_time_now_string()}",
@@ -733,7 +804,7 @@ class PicturaeImporter(Importer):
                           f"{self.collection_ob_id}",
                           f"{self.created_by_agent}",
                           f"{self.created_by_agent}",
-                          f"{self.taxon_id}",
+                          f"{self.taxon_id}"
                           ]
 
             # removing na values from both lists
@@ -761,10 +832,15 @@ class PicturaeImporter(Importer):
         for index, agent_dict in enumerate(self.full_collector_list):
             table = 'collector'
 
-            agent_id = self.sql_csv_tools.check_agent_name_sql(first_name=agent_dict["collector_first_name"],
-                                                          last_name=agent_dict["collector_last_name"],
-                                                          middle_initial=agent_dict["collector_middle_initial"],
-                                                          title=agent_dict["collector_title"])
+            agent_id = agent_dict['agent_id']
+            if agent_id != '' and pd.notna(agent_id):
+                agent_id = agent_dict['agent_id']
+            else:
+                self.logger.info("new agent pulling agent id")
+                agent_id = self.sql_csv_tools.check_agent_name_sql(first_name=agent_dict["collector_first_name"],
+                                                              last_name=agent_dict["collector_last_name"],
+                                                              middle_initial=agent_dict["collector_middle_initial"],
+                                                              title=agent_dict["collector_title"])
 
             column_list = ['TimestampCreated',
                            'TimestampModified',
@@ -796,7 +872,7 @@ class PicturaeImporter(Importer):
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
- # continue working from here to figure out how to list subfolders.
+
     def hide_unwanted_files(self):
         """hide_unwanted_files:
                function to hide files inside of images folder,
@@ -807,39 +883,37 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-
         lower_list = [image_path.lower() for image_path in self.image_list]
         folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
         for folder_path in folder_paths:
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
-
                 if file_path.lower() not in lower_list:
                     new_file_name = f".hidden_{file_name}"
                     new_file_path = os.path.join(folder_path, new_file_name)
                     os.rename(file_path, new_file_path)
 
-
     def unhide_files(self):
         """unhide_files:
-                will directly undo the result of hide_unwanted_files.
-                Removes substring `.hidden_` from all base filenames
+                Will directly undo the result of hide_unwanted_files.
+                Removes substring `.hidden_` from all base filenames.
            args:
                 none
            returns:
                 none
         """
-        lower_list = [image_path.lower() for image_path in self.image_list]
         folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
         for folder_path in folder_paths:
-            prefix = ".hidden_"  # The prefix added during hiding
+            prefix = ".hidden_"
             for file_name in os.listdir(folder_path):
                 if file_name.startswith(prefix):
-                    old_file_name = file_name[len(prefix):]
-                    old_file_path = os.path.join(folder_path, old_file_name)
-                    new_file_path = os.path.join(folder_path, file_name)
-                    os.rename(new_file_path, old_file_path)
-
+                    # Calculate the new file name by removing the prefix
+                    new_file_name = file_name[len(prefix):]
+                    # Construct the full path of the current (hidden) file
+                    old_file_path = os.path.join(folder_path, file_name)
+                    new_file_path = os.path.join(folder_path, new_file_name)
+                    # Rename the file
+                    os.rename(old_file_path, new_file_path)
 
     def upload_records(self):
         """upload_records:
@@ -852,32 +926,37 @@ class PicturaeImporter(Importer):
         """
         # the order of operations matters, if you change the order certain variables may overwrite
 
-        self.record_full = self.record_full[self.record_full['CatalogNumber'].isin(self.barcode_list)]
-
         self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
 
         for row in self.record_full.itertuples(index=False):
-            self.populate_fields(row)
-            self.create_agent_list(row)
-            self.populate_taxon()
+            if row.CatalogNumber in self.barcode_list:
+                self.populate_fields(row)
 
+                # updating barcode present
+                self.record_full.loc[self.record_full['CatalogNumber'] == self.raw_barcode, 'barcode_present'] = True
 
-            if self.taxon_id is None:
-                self.create_taxon()
+                self.create_agent_list(row)
+                self.populate_taxon()
 
-            if self.locality_id is None and not pd.isna(self.locality):
+                if self.taxon_id is None:
+                    self.create_taxon()
+
                 self.create_locality_record()
 
-            if len(self.new_collector_list) > 0:
-                self.create_agent_id()
+                if len(self.new_collector_list) > 0:
+                    self.create_agent_id()
 
-            self.create_collecting_event()
+                self.create_collecting_event()
 
-            self.create_collection_object()
+                self.create_collection_object()
 
-            self.create_determination()
+                self.create_determination()
 
-            self.create_collector()
+                self.create_collector()
+            else:
+                pass
+
+
 
 
     def upload_attachments(self):
@@ -887,6 +966,7 @@ class PicturaeImporter(Importer):
                 picturae_config to ensure prefix is
                 updated for correct filepath
         """
+        self.unhide_files()
         try:
             self.hide_unwanted_files()
             BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
@@ -901,9 +981,19 @@ class PicturaeImporter(Importer):
                         self-explanatory function, will run all methods in class in sequential manner"""
         # code to create test images for test image uploads
         # setting directory
+
+        # creating backup copy of upload csv before modifying
+        copy_path = self.picturae_config.PREFIX + self.scan_folder + f"PIC_record_{self.date_use}_copy.csv"
+
+        if not os.path.exists(copy_path):
+            shutil.copyfile(self.file_path, copy_path)
+
         to_current_directory()
 
         self.assign_col_dtypes()
+
+        # duplicating images with duplicate bar codes
+        self.duplicate_images()
 
         # creating file list after conditions
         self.create_file_list()
@@ -920,21 +1010,31 @@ class PicturaeImporter(Importer):
         self.sql_csv_tools.insert_table_record(sql=sql)
 
         # starting purge timer
-        self.exit_timestamp()
+        if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
+            self.exit_timestamp()
 
         # creating tables
         self.upload_records()
+
+        self.record_full.to_csv(self.file_path)
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
             self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full)
         # uploading attachments
 
-        value_list = [len(self.new_taxa), self.records_dropped]
+        value_list = [len(self.new_taxa)]
 
         self.monitoring_tools.create_monitoring_report(value_list=value_list)
 
+
         self.upload_attachments()
+
+        # resaving after importing images to prevent double uploading
+
+        self.record_full['image_present_db'] = True
+
+        self.record_full.to_csv(self.file_path)
 
         self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
                                                      time_stamp=starting_time_stamp)
@@ -944,7 +1044,6 @@ class PicturaeImporter(Importer):
         self.logger.info("process finished")
 
         # unlocking database
-
         sql = f"""UPDATE mysql.user
                   SET account_locked = 'n'
                   WHERE user != '{self.picturae_config.USER}' AND host = '%';"""

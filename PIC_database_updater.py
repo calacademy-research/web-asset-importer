@@ -6,7 +6,7 @@ from gen_import_utils import remove_two_index, get_row_value_or_default
 import time_utils
 
 
-class UpdateDbFields:
+class UpdatePICFields:
     def __init__(self, config, date, force_update=False):
 
         csv_path = f"nfn_csv/{date}/NFN_{date}.csv"
@@ -196,7 +196,7 @@ class UpdateDbFields:
 
             condition = f"""WHERE LocalityID = {locality_id};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['MaxElevation', 
+            sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['MaxElevation',
                                                                                             'MinElevation',
                                                                                             'OriginalElevationUnit'],
                                                              val_list=[max_elev, min_elev, elev_unit],
@@ -250,7 +250,7 @@ class UpdateDbFields:
 
             values, columns = remove_two_index(value_list=value_list, column_list=column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(val_list=values, col_list=columns, 
+            sql = self.sql_csv_tools.create_insert_statement(val_list=values, col_list=columns,
                                                              tab_name="localitydetail")
 
             self.sql_csv_tools.insert_table_record(sql=sql)

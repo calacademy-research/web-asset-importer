@@ -5,6 +5,7 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
+from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
@@ -15,7 +16,6 @@ class MonitoringTools:
         if not pd.isna(config) and config != {}:
             self.check_config_present()
             self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
-
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
@@ -54,7 +54,6 @@ class MonitoringTools:
         with open(self.path, 'w') as file:
             file.writelines(html_content)
 
-
     def add_line_between(self, line_num: int, string: str):
         """add_line_between: used to add a string line into a txt file, between two existing lines,
            using a line index.
@@ -68,7 +67,6 @@ class MonitoringTools:
 
         with open(self.path, "w") as file:
             file.writelines(lines)
-
 
     def create_summary_term_list(self, value_list):
         """function that adds in list of custom summary stats from config file
@@ -150,8 +148,6 @@ class MonitoringTools:
 
         self.add_line_between(line_num=0, string=report)
 
-
-
     def add_batch_size(self, batch_size):
         with open(self.path, "r") as file:
             html_content = file.readlines()
@@ -177,7 +173,6 @@ class MonitoringTools:
             self.add_format_batch_report(custom_terms=custom_terms)
         else:
             self.add_format_batch_report()
-
 
     def insert_cid_img(self, cid):
         """insert_cid_img: adds single line to end of txt file,
@@ -230,7 +225,6 @@ class MonitoringTools:
 
         return msg
 
-
     def send_monitoring_report(self, subject, time_stamp):
         """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
@@ -247,13 +241,12 @@ class MonitoringTools:
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
             msg = self.attach_html_images()
-            msg['From'] = "ibss-crontab@calacademy.org"
+            msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
             recipient_list = []
             for email in self.config.MAILING_LIST:
                 recipient_list.append(email)
             msg['To'] = recipient_list
-
 
             with smtplib.SMTP('localhost') as server:
                 server.send_message(msg)

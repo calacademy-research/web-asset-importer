@@ -86,6 +86,7 @@ class BotanyImporter(Importer):
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
 
+
         if not self.existing_barcodes or (self.existing_barcodes and collection_object_id is not None):
 
             self.import_to_imagedb_and_specify(filepath_list,
@@ -96,7 +97,7 @@ class BotanyImporter(Importer):
 
 
     def build_filename_map(self, full_path):
-        full_path = full_path.lower()
+
         if not self.check_for_valid_image(full_path):
             return
         filename = os.path.basename(full_path)
