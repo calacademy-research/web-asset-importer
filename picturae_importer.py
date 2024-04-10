@@ -64,7 +64,8 @@ class PicturaeImporter(Importer):
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
         self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
-                                                   batch_md5=self.batch_md5)
+                                                   batch_md5=self.batch_md5,
+                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH)
 
         # setting up db sql_tools for each connection
 
@@ -96,7 +97,7 @@ class PicturaeImporter(Importer):
         for param in init_list:
             setattr(self, param, None)
 
-        self.created_by_agent = self.picturae_config.AGENT_ID
+        self.created_by_agent = self.picturae_config.IMPORTER_AGENT_ID
 
         self.paths = paths
 
@@ -356,6 +357,11 @@ class PicturaeImporter(Importer):
                 self.full_collector_list.append(collector_dict)
                 if agent_id is None:
                     self.new_collector_list.append(collector_dict)
+
+        if not self.full_collector_list or \
+                self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown":
+            self.full_collector_list[0]["collector_last_name"] = "unspecified"
+
 
     def populate_fields(self, row):
         """populate_fields:
@@ -1003,11 +1009,11 @@ class PicturaeImporter(Importer):
 
         # locking users out from the database
 
-        sql = f"""UPDATE mysql.user
-                 SET account_locked = 'Y'
-                 WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
-
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        # sql = f"""UPDATE mysql.user
+        #          SET account_locked = 'Y'
+        #          WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
+        #
+        # self.sql_csv_tools.insert_table_record(sql=sql)
 
         # starting purge timer
         if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
@@ -1044,8 +1050,8 @@ class PicturaeImporter(Importer):
         self.logger.info("process finished")
 
         # unlocking database
-        sql = f"""UPDATE mysql.user
-                  SET account_locked = 'n'
-                  WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
-
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        # sql = f"""UPDATE mysql.user
+        #           SET account_locked = 'n'
+        #           WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
+        #
+        # self.sql_csv_tools.insert_table_record(sql=sql)

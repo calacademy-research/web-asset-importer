@@ -1,6 +1,7 @@
 botany_update_log.txt
 ntobiko_databases_ddl.sql
 picturae_sync.sh
+run_pic_databased.sh
 picdb_data/
 **brooks_parse.py
 **api_test.py

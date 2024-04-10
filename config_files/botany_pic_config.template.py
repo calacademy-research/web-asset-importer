@@ -9,7 +9,15 @@ USER = "redacted"
 PASSWORD = "redacted"
 
 COLLECTION_NAME = "Botany"
-REPORT_PATH = f"html_reports{sla}botany_import_monitoring.html"
+
+
+REPORT_PATH = f"html_reports{sla}botany_pic_passive_import_monitoring.html"
+
+ACTIVE_REPORT_PATH = f"html_reports{sla}botany_pic_active_import_monitoring.html"
+
+# IMPORTER_AGENT_ID is used for allowing separate agent IDS for
+# passive and active databased records, for easy purging.
+IMPORTER_AGENT_ID = "designated importer agent_id"
 
 AGENT_ID = "your_agent_id"
 
