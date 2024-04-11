@@ -39,7 +39,9 @@ class IchthyologyImporter(Importer):
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=ich_importer_config)
+            self.monitoring_tools = MonitoringTools(config=ich_importer_config,
+                                                    report_path=ich_importer_config.REPORT_PATH)
+
             self.monitoring_tools.create_monitoring_report()
 
         self.process_loaded_files()

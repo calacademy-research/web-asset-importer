@@ -30,7 +30,7 @@ class ImageClient:
         self.datetime_now = datetime.datetime.now(ptc_timezone)
         self.update_time_delta()
         if config is not None:
-            self.monitoring_tools = MonitoringTools(config=config)
+            self.monitoring_tools = MonitoringTools(config=config, report_path=config.REPORT_PATH)
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
