@@ -10,7 +10,6 @@ class AttachmentUtils:
     def __init__(self, db_utils):
         self.db_utils = db_utils
 
-
     def get_collectionobjectid_from_filename(self, attachment_location):
         sql = f"""
         select cat.CollectionObjectID
@@ -53,7 +52,8 @@ class AttachmentUtils:
     #
     #     return coid
 
-    def create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, url, agent_id,copyright=None, is_public=True):
+    def old_deleteme_create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, url, agent_id,
+                          copyright=None, is_public=True):
         # image type example 'image/png'
         basename = os.path.basename(original_filename)
         sql = (f"""
@@ -72,6 +72,40 @@ class AttachmentUtils:
         """)
         cursor = self.db_utils.get_cursor()
         cursor.execute(sql)
+        self.db_utils.commit()
+        cursor.close()
+    def create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, agent_id,
+                          is_public=True, copyright_date=None, copyright_holder=None,
+                          credit=None, date_imaged=None, license=None, license_logo_url=None, metadata_text=None,
+                          remarks=None, scope_id=None, scope_type=None, subject_orientation=None,
+                          subtype=None, title=None, type=None):
+        # Helper function to handle None values correctly for SQL
+        def val(param):
+            return param if param is not None else 'NULL'
+
+        # Using parameterized SQL queries to prevent SQL injection
+        sql = """
+            INSERT INTO attachment (
+                attachmentlocation, attachmentstorageconfig, capturedevice, copyrightdate, copyrightholder, credit,
+                dateimaged, filecreateddate, guid, ispublic, license, licenselogourl, metadatatext, mimetype,
+                origfilename, remarks, scopeid, scopetype, subjectorientation, subtype, tableid, timestampcreated,
+                timestampmodified, title, type, version, visibility, AttachmentImageAttributeID, CreatedByAgentID,
+                CreatorID, ModifiedByAgentID, VisibilitySetByID
+            )
+            VALUES (
+                %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 41, CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP, %s, %s, 0, NULL, NULL, %s, NULL, NULL, NULL
+            )
+        """
+        params = (
+            storename, val(copyright_date), val(copyright_holder), val(credit), val(date_imaged),
+            file_created_datetime.strftime("%Y-%m-%d"), guid, is_public, val(license), val(license_logo_url),
+            val(metadata_text), image_type, original_filename, val(remarks), val(scope_id), val(scope_type),
+            val(subject_orientation), val(subtype), val(title), val(type), agent_id
+        )
+
+        cursor = self.db_utils.get_cursor()
+        cursor.execute(sql, params)
         self.db_utils.commit()
         cursor.close()
 
@@ -114,7 +148,6 @@ class AttachmentUtils:
         sql = f"select max(ordinal) from collectionobjectattachment where CollectionObjectID={collection_object_id}"
         return self.db_utils.get_one_record(sql)
 
-
     def get_is_attachment_redacted(self, internal_id):
         sql = f"""
             select a.AttachmentID,a.ispublic  from attachment a
@@ -137,7 +170,6 @@ class AttachmentUtils:
             if retval is False or retval == 0:
                 return True
         return False
-
 
     def get_is_collection_object_redacted(self, collection_object_id):
         sql = f"""SELECT co.YesNo2          AS `CO redact locality`
@@ -164,6 +196,6 @@ class AttachmentUtils:
             logging.warning(f"Warning: No results from: \n\n{sql}\n")
         else:
             for val in retval:
-                if val is True or val == 1 or val==b'\x01':
+                if val is True or val == 1 or val == b'\x01':
                     return True
         return False

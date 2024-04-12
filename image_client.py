@@ -18,6 +18,8 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 class UploadFailureException(Exception):
     pass
 
+class DuplicateImageException(Exception):
+    pass
 
 class DeleteFailureException(Exception):
     pass
@@ -125,13 +127,15 @@ class ImageClient:
             'image': (attach_loc, open(local_filename, 'rb')),
         }
         url = self.build_url("fileupload")
-        self.logger.debug(f"Attempting upload to {url}")
+        self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
         r = requests.post(url, files=files, data=data)
         if r.status_code != 200:
+            self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
-                print(f"Image upload skipped for {upload_path}")
+                self.logger.error(f"Image already in server; skipping for {upload_path}")
+                raise DuplicateImageException
             else:
-                print(f"Image upload aborted: {r.status_code}:{r.text}")
+                self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=False)

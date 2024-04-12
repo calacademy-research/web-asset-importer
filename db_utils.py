@@ -19,12 +19,12 @@ class DataInvariantException(Exception):
 
 class DbUtils:
     def __init__(self, database_user, database_password, database_port, database_host, database_name):
+        self.logger = logging.getLogger(f'Client.DbUtils') # must hardcode to see base class name
         self.database_user = database_user
         self.database_password = database_password
         self.database_port = database_port
         self.database_host = database_host
         self.database_name = database_name
-        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.cnx = None
 
     def reset_connection(self):

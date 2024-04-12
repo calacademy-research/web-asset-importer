@@ -175,6 +175,8 @@ def setup_logging(verbosity: int):
     elif verbosity == 2:
         logger.setLevel(logging.WARN)
     elif verbosity == 3:
+        print(f"Logging level set to info...")
+
         logger.setLevel(logging.INFO)
     elif verbosity >= 4:
         print(f"Logging level set to full debug...")

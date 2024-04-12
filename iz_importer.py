@@ -1,3 +1,4 @@
+import sys
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
@@ -18,31 +19,28 @@ CASIZ_FILE_LOG = "file_log.tsv"
 starting_time_stamp = datetime.now()
 
 
+# specify attachment has copyright date and copyright holder. Create based on copyright
+# extraction.
+
+
 class IzImporter(Importer):
     class item_mapping:
         def __init__(self):
             self.casiz_numbers = []
 
     def __init__(self, full_import):
-
-        logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
-        # logging.getLogger("urllib3").setLevel(logging.WARNING)
-        # logging.getLogger("mysql.connector").setLevel(logging.WARNING)
-
         warnings.filterwarnings("ignore", category=UserWarning)
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
         logging.getLogger('Client.importer').setLevel(logging.DEBUG)
         logging.getLogger('Client.ImageClient').setLevel(logging.DEBUG)
-
-        self.logger.setLevel(logging.DEBUG)
+        logging.getLogger('Client.IzImporter').setLevel(logging.DEBUG)
 
         self.iz_importer_config = get_config(config="IZ")
         self.AGENT_ID = 26280
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
         self.log_file.write(f"casiz\tfilename\tCASIZ method\tcopyright method\tcopyright\trejected\tpath on disk\n")
-
 
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
 
@@ -51,7 +49,7 @@ class IzImporter(Importer):
         # dir_tools = DirTools(self.build_filename_map)
 
         self.casiz_filepath_map = {}
-        self.path_copyright_map = {}
+        self.filepathpath_metadata_map = {}
 
         self.logger.debug("IZ import mode")
 
@@ -102,6 +100,17 @@ class IzImporter(Importer):
         # sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
         # collection_object_id = self.specify_db_connection.get_one_record(sql)
 
+    def generate_attachment_properties(self, filepath):
+        print("Joe - get iptc and file pate date and things for here. ")
+        attachment_properties_map = {}
+        metadata = self.filepathpath_metadata_map[filepath]
+        copyright = metadata["copyright"]
+        exif_metadata = metadata["exif_metadata"]
+        print("Joe stop here - process exif data into attachment properties")
+        sys.exit(1)
+        attachment_properties_map["copyright_holder"] = copyright
+        return attachment_properties_map
+
     # Iterates over all the files;
     def process_casiz_number(self, casiz_number, filepath_list):
         self.logger.debug(f"Processing casiz_numbers: {casiz_number}")
@@ -126,38 +135,50 @@ class IzImporter(Importer):
                                                                          self.AGENT_ID)
             else:
                 # If not:
+                attachment_properties_map = self.generate_attachment_properties(cur_filepath)
 
                 attach_loc = self.import_to_imagedb_and_specify([cur_filepath],
                                                                 collection_object_id,
                                                                 self.AGENT_ID,
-                                                                copyright_filepath_map=self.path_copyright_map,
+                                                                attachment_properties_map=attachment_properties_map,
                                                                 force_redacted=True)
 
-                # Copyright                       : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
-                # CopyrightNotice                 : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
-                # CopyrightFlag                   : True
-                # Credit                          : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
-                # Rights                          : Copyright President and Fellows of Harvard College, Peabody Museum of Archaeology and Ethnology
+                if attach_loc is None:
+                    self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
+                    return
 
-                if cur_filepath in self.path_copyright_map:
-                    copyright = self.path_copyright_map[cur_filepath]
-                else:
-                    copyright = "-"
-
-                iptc_dict = {"by-line": "Picasso",
-                             'Date Created': "2023-02-10",
-                             "2#116": f"{copyright}1",
-                             "110": f"{copyright}2"}
-                # joe
                 exif_dict = {
-                    "33432": f"{copyright}3",
-                    "XMP-dc:Rights": f"{copyright}4",
-                    "XMP-dc:Credit": f"{copyright}5",
-                    "IPTC:CopyrightNotice": f"{copyright}6",
-                    "CopyrightFlag": "True"}
+                    "EXIF:Artist": "CAS1",
+                    "EXIF:Copyright": "CAS2",
+                    "EXIF:CreateDate": "2024:01:01 00:00:00",
+                    "EXIF:ImageDescription": "joe",
+                    "IPTC:Credit": "CAS3",
+                    "IPTC:CopyrightNotice": "CAS4",
+                    "IPTC:By-line": "CAS5",
+                    "IPTC:By-lineTitle": "CAS6",
+                    "IPTC:Caption-Abstract": "CAS7",
+                    "IPTC:Keywords": "CAS8",
+                    "Photoshop:CopyrightFlag": "True",
+                    "XMP:Rights": "CAS10",
+                    "XMP:Credit": "CAS12",
+                    "XMP:Creator": "CAS13",
+                    "XMP:Usage": "CAS14",
+                    "XMP:UsageTerms": "CAS15",
+                    "XMP:CreatorWorkURL": "CAS16",
+                    "XMP:CreateDate": "2024:01:01 00:00:00",
+                    "XMP:Title": "CAS18",
+                    "XMP:Label": "CAS19",
+                    "XMP:CreatorAddress": "CAS20 52 Music Concourse Drive",
+                    "XMP:CreatorCity": "CAS21 San Francisco",
+                    "XMP:CreatorCountry": "CAS22 San Francisco",
+                    "XMP:CreatorRegion": "CAS23 San Francisco",
+                    "XMP:CreatorPostalCode": "CAS24 San Francisco",
+                    "XMP:DateCreated": "2024:01:01 00:00:00",
+                    "XMP-dc:Description": "CAS25"
+                }
 
-                self.image_client.write_iptc_image_metadata(iptc_dict, self.collection_name, attach_loc)
                 self.image_client.write_exif_image_metadata(exif_dict, self.collection_name, attach_loc)
+                sys.exit(1)  # joe
 
     def log_file_status(self,
                         id=None,
@@ -435,8 +456,9 @@ class IzImporter(Importer):
         # -------- copyright --------
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata)
 
-        if self.copyright:
-            self.path_copyright_map[full_path] = self.copyright
+        self.filepathpath_metadata_map[full_path] = {"copyright": self.copyright,
+                                                     "exif_metadata": exif_metadata,
+                                                     "orig_case_full_path": orig_case_full_path,}
 
         # This little horror ensures that we're all ints in the list of numbers.
         self.casiz_numbers = list(

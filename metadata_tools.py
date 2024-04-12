@@ -65,7 +65,7 @@ class MetadataTools:
         """
         if not pd.isna(exif_code):
             exif_tag = self.exif_code_to_tag(exif_code)
-            command = ['exiftool', '-overwrite_original', f"-{exif_tag}={exif_value}", self.path]
+            command = ['exiftool', '-overwrite_original', f'-{exif_tag}="{exif_value}"', self.path]
             try:
                 subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             except Exception as e:
