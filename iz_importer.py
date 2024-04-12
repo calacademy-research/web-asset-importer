@@ -66,7 +66,8 @@ class IzImporter(Importer):
         # placeholder for filename now
 
         if not full_import:
-            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config)
+            self.monitoring_tools = MonitoringTools(config=self.iz_importer_config,
+                                                    report_path=self.iz_importer_config.REPORT_PATH)
             self.monitoring_tools.create_monitoring_report()
 
         print("Starting to process loaded core files...")

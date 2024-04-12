@@ -9,8 +9,9 @@ from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
-    def __init__(self, config):
-        self.path = config.REPORT_PATH
+    def __init__(self, config, report_path):
+
+        self.path = report_path
         self.config = config
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         if not pd.isna(config) and config != {}:
@@ -234,8 +235,10 @@ class MonitoringTools:
         """
 
         sql = f"""SELECT COUNT(*)
-                  FROM attachment
-                  WHERE TimestampCreated >= '{str(time_stamp)}';"""
+                          FROM attachment
+                          WHERE TimestampCreated >= '{str(time_stamp)}' 
+                          AND CreatedByAgentID = {self.config.AGENT_ID};"""
+
         self.sql_csv_tools.ensure_db_connection()
         batch_size = self.sql_csv_tools.get_record(sql=sql)
         if batch_size > 0:

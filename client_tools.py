@@ -88,8 +88,15 @@ def main(args):
             if existing_barcodes:
                 paths = []
                 full_import = args.full_import
+                root_path = pic_config.PREFIX
 
-                for root, dirs, files in os.walk(pic_config.PREFIX):
+                if args.date:
+                    scan_folder = re.sub(pattern=pic_config.FOLDER_REGEX, repl=f"_{args.date}_",
+                                         string=pic_config.PIC_SCAN_FOLDERS)
+
+                    root_path = os.path.join(pic_config.PREFIX, scan_folder)
+
+                for root, dirs, files in os.walk(root_path):
                     if 'databased' in dirs:
                         img_dir = os.path.join(root, 'databased')
                         paths.append(img_dir)
