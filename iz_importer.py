@@ -230,35 +230,29 @@ class IzImporter(Importer):
             copyright = re.sub(r'\s*_.*$', '', copyright)
         return copyright
 
-    def attempt_exif_extraction(self, full_path):
-        try:
-            return MetadataTools(full_path)
-        except Exception as e:
-            print(f"Exception: {e}")
-            traceback.print_exc()
 
     def get_casiz_from_exif(self, exif_metadata):
         if exif_metadata is None:
             return None
 
-        if "ImageDescription" in exif_metadata.keys():
-            image_description = exif_metadata['ImageDescription'].strip()
+        image_description_key = next((key for key in exif_metadata if "ImageDescription" in key), None)
+        if image_description_key:
+            image_description = exif_metadata[image_description_key].strip()
             ints = re.findall(r'\d+', image_description)
-            if len(ints) == 0:
-                self.logger.debug(f" Can't find any id number in the image description: {image_description}")
-
-            else:
-                if len(ints[0]) >= self.iz_importer_config.MINIMUM_ID_DIGITS:
-                    casiz_number = int(ints[0])
-                    self.casiz_numbers = [casiz_number]
-
-        return None
+            if not ints:
+                self.logger.debug(f"Can't find any ID number in the image description: {image_description}")
+                return None
+            elif len(ints[0]) >= self.iz_importer_config.MINIMUM_ID_DIGITS:
+                casiz_number = int(ints[0])
+                self.casiz_numbers = [casiz_number]
+                return casiz_number
 
     # old and busted
     def get_copyright_from_exif(self, exif_metadata):
         if exif_metadata is None:
             return None
-        if "Copyright" in exif_metadata.keys():
+        joe fix this - check for lowecase
+        if "EXIF:Copyright" in exif_metadata.keys():
 
             copyright = exif_metadata['Copyright'].strip()
             if copyright is not None:
@@ -288,7 +282,6 @@ class IzImporter(Importer):
 
         filename_copyright = self.extract_copyright_from_string(orig_case_filename)
         if filename_copyright is not None:
-            copyright_method = 'filename'
             self.copyright = filename_copyright
             return 'filename'
 
@@ -435,9 +428,9 @@ class IzImporter(Importer):
         #     print(f"Already in image db {orig_case_full_path}")
         #     return False
         exif_metadata = None
-        exif_tools = self.attempt_exif_extraction(full_path)
+        exif_tools = MetadataTools(full_path)
         if exif_tools is not None:
-            exif_metadata = exif_tools.read_exif_metadata()
+            exif_metadata = exif_tools.read_exif()
 
         self.casiz_numbers = None
         if self.get_casiz_from_exif(exif_metadata) is not None:

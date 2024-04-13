@@ -39,7 +39,7 @@ casiz	filename	CASIZ method	copyright method	copyright	rejected	path on disk
 -	casiz193196-001_compressed.jpg	-	None	-	Already imported	/volumes/data/izg/iz images/adbctimetrials/casiz193196-001_compressed.jpg
 193192	CASIZ193192-001_compressed.jpg	Filename	None	-	*	/volumes/data/izg/iz images/ADBCTimeTrials/CASIZ193192-001_compressed.jpg
 -	casiz193195-001.tif	-	None	-	Already imported	/volumes/data/izg/iz images/adbctimetrials/casiz193195-001.tif
-193197	CASIZ193197-001.TIF	Filename	None	-	*	/volumes/data/izg/iz images/ADBCTimeTrials/CASIZ193197-001.TIF
+-	casiz193197-001.tif	-	None	-	Already imported	/volumes/data/izg/iz images/adbctimetrials/casiz193197-001.tif
 193197	CASIZ193197-001_compressed.tif	Filename	None	-	*	/volumes/data/izg/iz images/ADBCTimeTrials/CASIZ193197-001_compressed.tif
 -	thumbs.db	-	None	-	Forbidden extension	/volumes/data/izg/iz images/adbctimetrials/thumbs.db
 193185	casiz193185-001.tif	Filename	None	-	*	/volumes/data/izg/iz images/ADBCTimeTrials/casiz193185-001.tif
@@ -104,8 +104,3 @@ casiz	filename	CASIZ method	copyright method	copyright	rejected	path on disk
 -	test-cllcns-ent2-+40.jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllcns-ent2-+40.jpg
 -	test-cllcns-ent2-+77(1).jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllcns-ent2-+77(1).jpg
 -	test-cllctns-bot-+55(1).jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+55(1).jpg
--	test-cllctns-bot-+42(1).jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+42(1).jpg
--	test-cllctns-bot-+130.jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+130.jpg
--	test-cllctns-bot-+42.jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+42.jpg
--	test-cllctns-bot-+59.jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+59.jpg
--	test-cllctns-bot-+55.jpg	-	None	-	no casiz match for exif, filename, or directory.	/volumes/data/izg/iz images/alex farnum images/alex farnum 14_files/test-cllctns-bot-+55.jpg
