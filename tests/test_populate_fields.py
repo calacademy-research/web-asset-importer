@@ -13,8 +13,7 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
     def setUp(self):
         """creating fake dataset to check if
           populate fields function assigns the strings and numbers"""
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash,
-                                                          paths=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
         data = {'CatalogNumber': ['123456'],
                 'verbatim_date': ['March 21, 2008'],
                 'start_date': ['3/21/2008'],

@@ -1,17 +1,17 @@
 """This is an unittest file for the botany_importer.py"""
 import os
 from mock import patch
-from botany_importer import BotanyImporter
+from tests.botany_importer_test_class import AltBotanyImporter
 import unittest
 import logging
 from testfixtures import LogCapture
 from PIL import Image
-
+from get_configs import get_config
 
 class BotanyImporterTests(unittest.TestCase):
 
     def generate_test_directory(self):
-        test_images_dir = '/image_client/test_images/'
+        test_images_dir = f'{os.getcwd()}/test_images/'
 
         return test_images_dir
 
@@ -20,16 +20,18 @@ class BotanyImporterTests(unittest.TestCase):
             creating three test images, some have incorrect
             data in order to test logger returns"""
         # adding in botany importer
-        self.botany_importer = BotanyImporter()
+        self.test_images_dir = self.generate_test_directory()
+        self.config = get_config(config="Botany")
+        self.config.BOTANY_SCAN_FOLDERS = [f'{self.test_images_dir}']
+        self.botany_importer = AltBotanyImporter(config=self.config, full_import=False, paths=self.test_images_dir)
         # setting up logger
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.DEBUG)
         self.log_capture = LogCapture()
         # create real image path and incorrect image path
         path_list = ["CAS0123456.JPG", "CASABCDEFG.JPG", "CAS999999991.JPG"]
-        test_images_dir = self.generate_test_directory()
         for picture in path_list:
-            self.image_path_real = os.path.join(test_images_dir, picture)
+            self.image_path_real = os.path.join(self.test_images_dir, picture)
             image = Image.new("RGB", (100, 100), (255, 0, 0))
             image.save(self.image_path_real)
 
@@ -126,7 +128,6 @@ class BotanyImporterTests(unittest.TestCase):
     @patch('botany_importer.Importer.import_to_imagedb_and_specify', return_value=None)
     def test_remove_filenames_list(self, test_skeleton, test_img_db):
         """tests whether the file_list is cleaned of created records"""
-        instance = BotanyImporter()
         test_dir = self.generate_test_directory()
         file_name = "CAS0688729.JPG"
         barcode = "688729"
@@ -135,7 +136,8 @@ class BotanyImporterTests(unittest.TestCase):
         filepath_list = [full_path]
         test_list = [full_path]
 
-        new_list = instance.remove_imagedb_imported_filenames_from_list(filepath_list)
+        new_list = self.botany_importer.remove_imagedb_imported_filenames_from_list(filepath_list)
+
         self.assertEqual(len(new_list), 0)
 
         self.assertNotEqual(new_list, test_list)
@@ -143,14 +145,16 @@ class BotanyImporterTests(unittest.TestCase):
 
     def tearDown(self):
         """deletes test files"""
-        test_dir = self.generate_test_directory()
 
-        os.remove(os.path.join(test_dir, "CASABCDEFG.JPG"))
-        os.remove(os.path.join(test_dir, "CAS0123456.JPG"))
-        os.remove(os.path.join(test_dir, "CAS999999991.JPG"))
+        os.remove(os.path.join(self.test_images_dir, "CASABCDEFG.JPG"))
+        os.remove(os.path.join(self.test_images_dir, "CAS0123456.JPG"))
+        os.remove(os.path.join(self.test_images_dir, "CAS999999991.JPG"))
 
         # removing logger capture
         self.log_capture.uninstall()
+
+        del self.botany_importer
+
 
 if __name__ == "__main__":
     unittest.main()

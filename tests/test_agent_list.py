@@ -1,6 +1,9 @@
+import shutil
+
 import pandas as pd
 from tests.pic_importer_test_class import AltPicturaeImporter
 import unittest
+import os
 from tests.testing_tools import TestingTools
 
 class TestAgentList(unittest.TestCase, TestingTools):
@@ -11,8 +14,8 @@ class TestAgentList(unittest.TestCase, TestingTools):
         """creating instance of PicturaeImporter, +
            creating dummy dataset of real and fake names"""
 
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash,
-                                                          paths=self.md5_hash)
+
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
 
         # jose Gonzalez is a real agent,
         # to make sure true matches are not added to list.
@@ -62,5 +65,3 @@ class TestAgentList(unittest.TestCase, TestingTools):
     def tearDown(self):
         """deleting instance of self.PicturaeImporter"""
         del self.test_picturae_importer
-
-
