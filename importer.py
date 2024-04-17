@@ -216,9 +216,9 @@ class Importer:
         tif_found = False
         deleteme = None
         filename, filename_ext = self.split_filepath(filepath)
-        if filename_ext == "jpg" or filename_ext == "jpeg":
+        if filename_ext.lower() == "jpg" or filename_ext.lower() == "jpeg":
             jpg_found = filepath
-        if filename_ext == "tif" or filename_ext == "tiff":
+        if filename_ext.lower() == "tif" or filename_ext.lower() == "tiff":
             tif_found = filepath
         if not jpg_found and tif_found:
             self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")

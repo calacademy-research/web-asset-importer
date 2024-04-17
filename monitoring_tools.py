@@ -237,10 +237,13 @@ class MonitoringTools:
         sql = f"""SELECT COUNT(*)
                           FROM attachment
                           WHERE TimestampCreated >= '{str(time_stamp)}' 
-                          AND CreatedByAgentID = {self.config.AGENT_ID};"""
+                          AND CreatedByAgentID = '{self.config.AGENT_ID}';"""
 
         self.sql_csv_tools.ensure_db_connection()
         batch_size = self.sql_csv_tools.get_record(sql=sql)
+        if batch_size is None:
+            self.logger.warning("batch_size is None. If not true, check configured AgentID")
+            batch_size = 0
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
             msg = self.attach_html_images()
