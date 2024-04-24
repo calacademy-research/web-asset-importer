@@ -104,10 +104,9 @@ def main(args):
                 BotanyImporter(paths=paths, config=pic_config, full_import=full_import,
                                existing_barcodes=existing_barcodes)
             else:
-                date_override = args.date
+                # importing highest csv date
+                PicturaeImporter(config=pic_config)
 
-                # if none reverts to default, to get date of most recent folder in csv folder
-                PicturaeImporter(config=pic_config, date_string=date_override)
 
 
         elif args.collection == "Ichthyology":
