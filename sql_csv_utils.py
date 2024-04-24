@@ -217,7 +217,7 @@ class SqlCsvTools:
         cursor.close()
 
     def create_batch_record(self, start_time: datetime, end_time: datetime,
-                            batch_size: int, batch_md5: str):
+                            batch_size: int, batch_md5: str, agent_id: str | int):
         """create_timestamps:
                 uses starting and ending timestamps to create window for sql database purge,
                 adds 10 second buffer on either end to allow sql queries to populate.
@@ -248,8 +248,8 @@ class SqlCsvTools:
                       f"{time_stamp_list[0]}",
                       f"{time_stamp_list[1]}",
                       f"{batch_size}",
-                      f"{self.config.AGENT_ID}",
-                      f"{self.config.AGENT_ID}"
+                      f"{agent_id}",
+                      f"{agent_id}"
                       ]
 
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -258,7 +258,8 @@ class SqlCsvTools:
 
         return sql
 
-    def create_update_statement(self, tab_name: str, col_list: list, val_list: list, condition: str):
+    def create_update_statement(self, tab_name: str, agent_id: int | str, col_list: list,
+                                val_list: list, condition: str):
         """create_update_string: function used to create sql string used to upload a list of values in the database
 
             args:
@@ -269,8 +270,9 @@ class SqlCsvTools:
         """
         val_list, col_list = remove_two_index(value_list=val_list, column_list=col_list)
 
+
         update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}", 
-                            ModifiedByAgentID = "{self.config.AGENT_ID}",'''
+                            ModifiedByAgentID = "{agent_id}",'''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''
@@ -297,7 +299,7 @@ class SqlCsvTools:
 
             return result_id
 
-    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame):
+    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: str | int):
         """new_taxa_record: creates record level data for any new taxa added to the database,
                             populates useful table for qc and troubleshooting
         args:
@@ -314,11 +316,11 @@ class SqlCsvTools:
                                                 match=row[catalog_number],
                                                 match_type=int)
             if barcode_result is None:
-                sql = self.create_new_tax_tab(row=row, df=taxa_frame, tab_name='picturaetaxa_added')
+                sql = self.create_new_tax_tab(row=row, df=taxa_frame, tab_name='picturaetaxa_added', agent_id=agent_id)
 
                 self.insert_table_record(sql=sql)
 
-    def create_new_tax_tab(self, row, df: pd.DataFrame, tab_name: str):
+    def create_new_tax_tab(self, row, df: pd.DataFrame, tab_name: str, agent_id: str | int):
         """create_new_tax: does a similar function as create_unmatch_tab,
                             but instead uploads a table of taxa newly added
                             to the database for QC monitoring(make sure no wonky taxa are added)
@@ -352,8 +354,8 @@ class SqlCsvTools:
                     f"{row[family]}",
                     f"{row[taxname]}",
                        row[hybrid],
-                    f"{self.config.AGENT_ID}",
-                    f"{self.config.AGENT_ID}"]
+                    f"{agent_id}",
+                    f"{agent_id}"]
 
 
 

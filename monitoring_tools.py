@@ -9,11 +9,17 @@ from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
-    def __init__(self, config, report_path):
+    def __init__(self, config, report_path, active=False):
 
         self.path = report_path
         self.config = config
         self.logger = logging.getLogger("MonitoringTools")
+
+        if active is True:
+            self.AGENT_ID = self.config.IMPORTER_AGENT_ID
+        else:
+            self.AGENT_ID = self.config.AGENT_ID
+
         if not pd.isna(config) and config != {}:
             self.check_config_present()
             self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
@@ -126,7 +132,7 @@ class MonitoringTools:
                           <h1>Upload Batch Report</h1>
                           <hr>
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.config.AGENT_ID}</p>
+                          <p>Uploader: {self.AGENT_ID}</p>
                           
                           <h2>Summary Statistics:</h2>
                           <ul>
@@ -237,10 +243,11 @@ class MonitoringTools:
         sql = f"""SELECT COUNT(*)
                           FROM attachment
                           WHERE TimestampCreated >= '{str(time_stamp)}' 
-                          AND CreatedByAgentID = '{self.config.AGENT_ID}';"""
+                          AND CreatedByAgentID = '{self.AGENT_ID}';"""
 
         self.sql_csv_tools.ensure_db_connection()
         batch_size = self.sql_csv_tools.get_record(sql=sql)
+
         if batch_size is None:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
             batch_size = 0

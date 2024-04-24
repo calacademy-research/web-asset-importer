@@ -28,7 +28,7 @@ class PicturaeImporter(Importer):
            along with attached images
     """
 
-    def __init__(self, config, date_string=None):
+    def __init__(self, config):
 
         self.picturae_config = config
 
@@ -40,7 +40,7 @@ class PicturaeImporter(Importer):
 
         self.csv_folder = self.picturae_config.CSV_FOLDER
 
-        self.process_csv_files(date=date_string)
+        self.process_csv_files()
 
         self.init_all_vars()
 
@@ -49,9 +49,7 @@ class PicturaeImporter(Importer):
         self.run_all_methods()
 
 
-    def process_csv_files(self, date):
-
-        self.date_use = date
+    def process_csv_files(self):
 
         self.csv_folder = self.picturae_config.CSV_FOLDER
 
@@ -94,7 +92,8 @@ class PicturaeImporter(Importer):
 
         self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
                                                    batch_md5=self.batch_md5,
-                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH)
+                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH,
+                                                   active=True)
 
         # setting up db sql_tools for each connection
 
@@ -134,7 +133,8 @@ class PicturaeImporter(Importer):
         ending_time_stamp = datetime.now()
 
         sql = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                       batch_md5=self.batch_md5, batch_size=batch_size)
+                                                       batch_md5=self.batch_md5, batch_size=batch_size,
+                                                       agent_id=self.created_by_agent)
 
         self.batch_sql_tools.insert_table_record(sql=sql)
 
@@ -146,7 +146,8 @@ class PicturaeImporter(Importer):
         for tab in error_tabs:
 
             sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
-                                                               val_list=[self.batch_md5], condition=condition)
+                                                               val_list=[self.batch_md5], condition=condition,
+                                                               agent_id=self.created_by_agent)
 
             self.batch_sql_tools.insert_table_record(sql=sql)
 
@@ -343,9 +344,10 @@ class PicturaeImporter(Importer):
                 break
 
             if pd.notna(agent_id) and agent_id != '':
-                collector_dict = {f'collector_first_name': first,
-                                  f'collector_middle_initial': middle,
-                                  f'collector_last_name': last,
+                # note do not convert agent_id to string it will mess with sql
+                collector_dict = {f'collector_first_name': str(first),
+                                  f'collector_middle_initial': str(middle),
+                                  f'collector_last_name': str(last),
                                   f'collector_title': '',
                                   f'agent_id': agent_id}
 
@@ -375,18 +377,20 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': first_name,
-                                  f'collector_middle_initial': middle,
-                                  f'collector_last_name': last_name,
-                                  f'collector_title': title,
+                collector_dict = {f'collector_first_name': str(first_name),
+                                  f'collector_middle_initial': str(middle),
+                                  f'collector_last_name': str(last_name),
+                                  f'collector_title': str(title),
                                   f'agent_id': agent_id}
 
+
                 self.full_collector_list.append(collector_dict)
+
                 if agent_id is None:
                     self.new_collector_list.append(collector_dict)
 
         if not self.full_collector_list or \
-                self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown":
+                (self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown"):
             self.full_collector_list[0]["collector_last_name"] = "unspecified"
 
 
@@ -866,6 +870,7 @@ class PicturaeImporter(Importer):
             table = 'collector'
 
             agent_id = agent_dict['agent_id']
+
             if agent_id != '' and pd.notna(agent_id):
                 agent_id = agent_dict['agent_id']
             else:
@@ -1054,7 +1059,8 @@ class PicturaeImporter(Importer):
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
-            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full)
+            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full,
+                                                          agent_id=self.created_by_agent)
         # uploading attachments
 
         value_list = [len(self.new_taxa)]

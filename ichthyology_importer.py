@@ -27,6 +27,8 @@ class IchthyologyImporter(Importer):
 
         dir_tools = DirTools(self.build_filename_map)
 
+        self.full_import = full_import
+
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
             cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
@@ -38,7 +40,7 @@ class IchthyologyImporter(Importer):
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
-        if not full_import:
+        if not self.full_import:
             self.monitoring_tools = MonitoringTools(config=ich_importer_config,
                                                     report_path=ich_importer_config.REPORT_PATH)
 
@@ -46,7 +48,7 @@ class IchthyologyImporter(Importer):
 
         self.process_loaded_files()
 
-        if not full_import:
+        if not self.full_import:
 
             self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)

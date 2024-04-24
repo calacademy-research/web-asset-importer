@@ -2,6 +2,8 @@
     database.
     NOTE: only use this process if your upload process includes a LOCK user command
           to prevent other changes to the database during upload"""
+import pandas as pd
+
 from importer import Importer
 from specify_db import SpecifyDb
 import traceback
@@ -21,7 +23,7 @@ class PicturaeUndoBatch(Importer):
     def get_attachment_location(self, timestamp1, timestamp2):
         sql = f'''SELECT AttachmentLocation FROM attachment WHERE 
                   TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
-                  AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";;'''
+                  AND CreatedByAgentID = "{self.picturae_config.IMPORTER_AGENT_ID}";'''
         list_of_attachments = self.specify_db_connection.get_records(query=sql)
         image_location = [record[0] for record in list_of_attachments]
         return image_location
@@ -40,7 +42,7 @@ class PicturaeUndoBatch(Importer):
 
         sql = f'''DELETE FROM {table} WHERE TimestampCreated >= 
                   "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
-                  AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";'''
+                  AND CreatedByAgentID = "{self.picturae_config.IMPORTER_AGENT_ID}";'''
 
         self.logger.info(f'running query: {sql}')
         self.logger.debug(sql)
@@ -77,7 +79,7 @@ class PicturaeUndoBatch(Importer):
                        NOT IN (SELECT DISTINCT ParentID FROM {table}
                        WHERE ParentID IS NOT NULL) 
                        AND TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}"
-                       AND CreatedByAgentID = "{self.picturae_config.AGENT_ID}";'''
+                       AND CreatedByAgentID = "{self.picturae_config.IMPORTER_AGENT_ID}";'''
 
         sql_del = f'''DELETE FROM {table} WHERE TaxonID IN (SELECT TaxonID FROM temp_leaf_nodes);'''
 
