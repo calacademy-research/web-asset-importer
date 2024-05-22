@@ -18,6 +18,8 @@ from os.path import isfile, join
 import traceback
 import hashlib
 from image_client import DuplicateImageException
+from urllib.parse import unquote
+
 
 class ConvertException(Exception):
     pass

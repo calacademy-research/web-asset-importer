@@ -60,7 +60,7 @@ class IzImporter(Importer):
 
         self.cur_casiz_match = self.iz_importer_config.CASIZ_MATCH
         self.cur_extract_casiz = self.extract_casiz
-        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=True)
+        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=False)
 
         self.directory_tree_core.process_files(self.build_filename_map)
         # placeholder for filename now
@@ -124,7 +124,7 @@ class IzImporter(Importer):
         # "is this in specify attached to this casiz" query
         filepath_list = self.remove_specify_imported_and_id_linked_from_path(filepath_list, collection_object_id)
 
-        # now, check if the attachment is already in there (AND case):
+        # now, check if the attachment is already in there (AND/OR case):
         for cur_filepath in filepath_list:
 
             attachment_id = self.attachment_utils.get_attachmentid_from_filepath(cur_filepath)
@@ -177,6 +177,34 @@ class IzImporter(Importer):
                     "XMP:DateCreated": "2024:01:01 00:00:00",
                     "XMP-dc:Description": "CAS25"
                 }
+
+                exif_keys = [
+                    "EXIF:Artist",
+                    "EXIF:Copyright",
+                    "EXIF:CreateDate",
+                    "EXIF:ImageDescription",
+                    "EXIF:Title",
+                    "IPTC:Credit",
+                    "IPTC:CopyrightNotice",
+                    "IPTC:By-line",
+                    "IPTC:By-lineTitle",
+                    "IPTC:Caption-Abstract",
+                    "IPTC:Keywords",
+                    "Photoshop:CopyrightFlag",
+                    "XMP:Rights",
+                    "XMP:Credit",
+                    "XMP:Creator",
+                    "XMP:Usage",
+                    "XMP:UsageTerms",
+                    "XMP:CreatorWorkURL",
+                    "XMP:CreateDate",
+                    "XMP:Title",
+                    "XMP:DateCreated",
+                    "XMP-dc:Description",
+                    "XMP-dc:Subject",
+                    "XMP-lr:HierarchicalSubject",
+                    "EXIF:IFD0:ImageDescription"
+                ]
 
                 self.image_client.write_exif_image_metadata(exif_dict, self.collection_name, attach_loc)
                 sys.exit(1)  # joe
@@ -251,8 +279,9 @@ class IzImporter(Importer):
     def get_copyright_from_exif(self, exif_metadata):
         if exif_metadata is None:
             return None
-        joe fix this - check for lowecase
-        if "EXIF:Copyright" in exif_metadata.keys():
+        copyright_keys = ["EXIF:Copyright",
+                          "IPTC:CopyrightNotice"]
+        if any(key.lower() in (k.lower() for k in exif_metadata.keys()) for key in copyright_keys):
 
             copyright = exif_metadata['Copyright'].strip()
             if copyright is not None:
@@ -325,28 +354,6 @@ class IzImporter(Importer):
 
         return False
 
-    #
-    # def attempt_filename_match(self, full_path):
-    #     filename = os.path.basename(full_path)
-    #     cur_conjunction_match = r'cas(iz)?[#a-z _]*[_ \\-]?([0-9]{5,12}) (and|or) (cas(iz)?[#a-z _]*[_ \\-]?)?([0-9]{5,12})[a-z\\-\\(\\)0-9 ©_,.]*(\.(jpg|jpeg|tiff|tif|png))$'
-    #
-    #     if self.cur_conjunction_match is not None:
-    #         if re.search(self.cur_conjunction_match, filename):
-    #             p = re.compile(self.cur_conjunction_match)
-    #             result = p.search(filename)
-    #             # found_substring = result.groups()[0]
-    #             # self.casiz_numbers = extracted_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,}\b', ' '.join(result))]))
-    #
-    #             self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', result)]))
-    #             print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
-    #             return True
-    #     if re.search(self.cur_filename_match, filename):
-    #         self.casiz_numbers = [self.cur_extract_casiz(filename)]
-    #
-    #         return True
-    #
-    #     return False
-
     def attempt_directory_copyright_extraction(self, directory_orig_case):
         directories = directory_orig_case.split('/')
 
@@ -363,13 +370,6 @@ class IzImporter(Importer):
             return True
         return False
 
-    # def exclude_by_extension(self,full_path):
-    #     extension = full_path.rsplit('.', 1)[-1]
-    #     if extension in iz_importer_config.EXCLUDE_EXTENSIONS:
-    #         return True
-    #     else:
-    #         return False
-
     def include_by_extension(self, filepath: str) -> bool:
 
         pattern = re.compile(f'^.*{self.iz_importer_config.IMAGE_SUFFIX}')
@@ -377,8 +377,7 @@ class IzImporter(Importer):
         return bool(pattern.match(filepath))
 
     def check_already_in_image_db(self, full_path):
-
-        if self.image_client.check_image_db_if_filepath_imported(self.collection_name,
+        if self.image_client.check_image_db_if_filename_imported(self.collection_name,
                                                                  full_path,
                                                                  exact=True):
             return True
@@ -424,9 +423,9 @@ class IzImporter(Importer):
                                  rejected="Already imported")
             return False
 
-        # if self.check_already_in_image_db(full_path):
-        #     print(f"Already in image db {orig_case_full_path}")
-        #     return False
+        if self.check_already_in_image_db(full_path):
+            print(f"Already in image db {orig_case_full_path}")
+            return False
         exif_metadata = None
         exif_tools = MetadataTools(full_path)
         if exif_tools is not None:
@@ -473,6 +472,3 @@ class IzImporter(Importer):
                              copyright=self.copyright)
         return True
 
-    def get_collectionobjectid_from_casiz_number(self, casiz_number):
-        sql = f"select collectionobjectid  from collectionobject where catalognumber={casiz_number}"
-        return self.specify_db_connection.get_one_record(sql)

@@ -11,6 +11,7 @@ import os
 from monitoring_tools import MonitoringTools
 from datetime import datetime, timezone, timedelta
 from string_utils import remove_non_numerics
+from urllib.parse import quote
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
@@ -164,11 +165,11 @@ class ImageClient:
     # works for just basename +ext. "exact" does a sql "like" operation
     def check_image_db_if_filename_imported(self, collection, filename, exact=False):
         params = {
-            'file_string': filename,
+            'file_string': quote(filename),
             'coll': collection,
             'exact': exact,
             'search_type': 'filename',
-            'token': self.generate_token(filename)
+            'token': self.generate_token(quote(filename))
         }
 
         return self.decode_response(params)

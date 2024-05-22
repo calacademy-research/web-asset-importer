@@ -21,6 +21,7 @@ class MonitoringTools:
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
             args:
+            args:
                 path: path of .txt or html file to clear"""
         with open(self.path, 'w') as file:
             pass
