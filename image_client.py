@@ -174,14 +174,11 @@ class ImageClient:
 
         return self.decode_response(params)
 
-    def write_iptc_image_metadata(self, exif_dict, collection, filename):
-        self._write_image_metadata(exif_dict, collection, filename, 'iptc')
+
 
     def write_exif_image_metadata(self, exif_dict, collection, filename):
-        self._write_image_metadata(exif_dict, collection, filename, 'exif')
 
-    def _write_image_metadata(self, exif_dict, collection, filename, metadata_type):
-        api_target = f'update{metadata_type}data'
+        api_target = f'updateexifdata'
         data = {'filename': filename,
                 'coll': collection,
                 'exif_dict': json.dumps(exif_dict),
@@ -193,12 +190,12 @@ class ImageClient:
         response = requests.post(url, data=data)
 
         if response.status_code == 200:
-            self.logger.debug(f"{metadata_type.capitalize()} data for '{filename}' updated successfully.")
+            self.logger.debug(f"EXIF data for '{filename}' updated successfully.")
         else:
             self.logger.error(
-                f"Failed to update {metadata_type} data for '{filename}': {response.status_code} - {response.text}")
+                f"Failed to update EXIF data for '{filename}': {response.status_code} - {response.text}")
 
-        self.logger.debug(f"modifying {metadata_type} data for {filename} complete")
+        self.logger.debug(f"modifying EXIF data for {filename} complete")
 
     def read_exif_image_data(self, collection, filename, datatype):
         params = {'filename': filename,
@@ -207,7 +204,7 @@ class ImageClient:
                   'search_type': 'filename',
                   'token': self.generate_token(filename)
                   }
-        url = self.build_url("getmetadata")
+        url = self.build_url("getexifdata")
 
         response = requests.get(url=url, params=params)
 

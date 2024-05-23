@@ -13,7 +13,6 @@ from get_configs import get_config
 import warnings
 import csv
 
-
 logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
@@ -25,10 +24,7 @@ starting_time_stamp = datetime.now()
 # extraction.
 
 
-
-
 def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
-
     # Extract the 4-digit year from EXIF:CreateDate if available
     exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
     exif_create_year = None
@@ -38,9 +34,6 @@ def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, fi
             exif_create_year = exif_match.group(0)
 
     #
-
-
-
 
 
 class IzImporter(Importer):
@@ -61,7 +54,7 @@ class IzImporter(Importer):
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
         self.log_file.write(f"casiz\tfilename\tCASIZ method\tcopyright method\tcopyright\trejected\tpath on disk\n")
-        self.filepath_metadata_map={}
+        self.filepath_metadata_map = {}
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
 
         super().__init__(self.iz_importer_config, "Invertebrate Zoology")
@@ -156,77 +149,42 @@ class IzImporter(Importer):
                                                                          self.AGENT_ID)
             else:
                 # If not:
-                attachment_properties_map = self.generate_attachment_properties(cur_filepath)
+                attachment_properties_map = self.filepathpath_metadata_map(cur_filepath)
+                agent = attachment_properties_map.get(ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
 
                 attach_loc = self.import_to_imagedb_and_specify([cur_filepath],
                                                                 collection_object_id,
-                                                                self.AGENT_ID,
+                                                                agent,
                                                                 attachment_properties_map=attachment_properties_map,
                                                                 force_redacted=True)
 
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
+                # exifdict is in the form of a dictionary of values that map
+                # EXIF constants (from constants.py) to values.
 
-                exif_dict = {
-                    "EXIF:Artist": "CAS1",
-                    "EXIF:Copyright": "CAS2",
-                    "EXIF:CreateDate": "2024:01:01 00:00:00",
-                    "EXIF:ImageDescription": "joe",
-                    "IPTC:Credit": "CAS3",
-                    "IPTC:CopyrightNotice": "CAS4",
-                    "IPTC:By-line": "CAS5",
-                    "IPTC:By-lineTitle": "CAS6",
-                    "IPTC:Caption-Abstract": "CAS7",
-                    "IPTC:Keywords": "CAS8",
-                    "Photoshop:CopyrightFlag": "True",
-                    "XMP:Rights": "CAS10",
-                    "XMP:Credit": "CAS12",
-                    "XMP:Creator": "CAS13",
-                    "XMP:Usage": "CAS14",
-                    "XMP:UsageTerms": "CAS15",
-                    "XMP:CreatorWorkURL": "CAS16",
-                    "XMP:CreateDate": "2024:01:01 00:00:00",
-                    "XMP:Title": "CAS18",
-                    "XMP:Label": "CAS19",
-                    "XMP:CreatorAddress": "CAS20 52 Music Concourse Drive",
-                    "XMP:CreatorCity": "CAS21 San Francisco",
-                    "XMP:CreatorCountry": "CAS22 San Francisco",
-                    "XMP:CreatorRegion": "CAS23 San Francisco",
-                    "XMP:CreatorPostalCode": "CAS24 San Francisco",
-                    "XMP:DateCreated": "2024:01:01 00:00:00",
-                    "XMP-dc:Description": "CAS25"
+                mapping = {
+                    EXIF_ARTIST: attachment_properties_map[ST_METADATA_TEXT],
+                    EXIF_COPYRIGHT: attachment_properties_map[ST_COPYRIGHT_HOLDER],
+                    EXIF_CREATE_DATE: attachment_properties_map[ST_DATE_IMAGED],
+                    EXIF_IMAGE_DESCRIPTION: attachment_properties_map[ST_TITLE],
+                    IPTC_CREDIT: attachment_properties_map[ST_CREDIT],
+                    IPTC_COPYRIGHT_NOTICE: attachment_properties_map[ST_COPYRIGHT_HOLDER],
+                    IPTC_BY_LINE: attachment_properties_map[ST_METADATA_TEXT],
+                    IPTC_CAPTION_ABSTRACT: attachment_properties_map[ST_TITLE],
+                    PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
+                    XMP_RIGHTS: attachment_properties_map[ST_LICENSE],
+                    XMP_CREDIT: attachment_properties_map[ST_CREDIT],
+                    XMP_CREATOR: attachment_properties_map[ST_METADATA_TEXT],
+                    XMP_USAGE: attachment_properties_map[ST_LICENSE],
+                    XMP_USAGE_TERMS: attachment_properties_map[ST_LICENSE],
+                    XMP_CREATE_DATE: attachment_properties_map[ST_FILE_CREATED_DATE],
+                    XMP_TITLE: attachment_properties_map[ST_TITLE],
+                    XMP_DATE_CREATED: attachment_properties_map[ST_DATE_IMAGED]
                 }
 
-                exif_keys = [
-                    "EXIF:Artist",
-                    "EXIF:Copyright",
-                    "EXIF:CreateDate",
-                    "EXIF:ImageDescription",
-                    "EXIF:Title",
-                    "IPTC:Credit",
-                    "IPTC:CopyrightNotice",
-                    "IPTC:By-line",
-                    "IPTC:By-lineTitle",
-                    "IPTC:Caption-Abstract",
-                    "IPTC:Keywords",
-                    "Photoshop:CopyrightFlag",
-                    "XMP:Rights",
-                    "XMP:Credit",
-                    "XMP:Creator",
-                    "XMP:Usage",
-                    "XMP:UsageTerms",
-                    "XMP:CreatorWorkURL",
-                    "XMP:CreateDate",
-                    "XMP:Title",
-                    "XMP:DateCreated",
-                    "XMP-dc:Description",
-                    "XMP-dc:Subject",
-                    "XMP-lr:HierarchicalSubject",
-                    "EXIF:IFD0:ImageDescription"
-                ]
-
-                self.image_client.write_exif_image_metadata(exif_dict, self.collection_name, attach_loc)
+                self.image_client.write_exif_image_metadata(mapping, self.collection_name, attach_loc)
                 sys.exit(1)  # joe
 
     def log_file_status(self,
@@ -308,7 +266,6 @@ class IzImporter(Importer):
                 self.casiz_numbers = [casiz_number]
                 return casiz_number
 
-
     def get_copyright_from_exif(self, exif_metadata):
         if exif_metadata is None:
             return None
@@ -344,7 +301,6 @@ class IzImporter(Importer):
         orig_case_directory = os.path.dirname(orig_case_full_path)
         orig_case_filename = os.path.basename(orig_case_full_path)
         self.copyright = None
-
 
         if self.attempt_directory_copyright_extraction(orig_case_directory):
             return 'directory'
@@ -407,7 +363,7 @@ class IzImporter(Importer):
         if match:
             # Extract CASIZ number using the specific extraction method
             casiz_number = self.extract_casiz(filename)
-            self.title=f"CASIZ {casiz_number}"
+            self.title = f"CASIZ {casiz_number}"
             if casiz_number is not None:
                 self.casiz_numbers = [casiz_number]
                 return True
@@ -495,7 +451,6 @@ class IzImporter(Importer):
 
         return True
 
-
     # Helper function to parse date
     def _parse_date(self, date_str):
         try:
@@ -554,7 +509,6 @@ class IzImporter(Importer):
 
         for mapped_key in column_mappings.values():
             result_dict[mapped_key] = None
-
 
         # Read the key.csv file with appropriate encoding
         try:
@@ -645,7 +599,6 @@ class IzImporter(Importer):
     def get_casiz_ids(self, full_path, exif_metadata):
         # filename
 
-
         if self.attempt_filename_match(full_path):
             return 'Filename'
 
@@ -654,8 +607,6 @@ class IzImporter(Importer):
 
         if self.attempt_directory_match(full_path):
             return 'Directory'
-
-
 
         self.log_file_status(
             filename=os.path.basename(full_path),
