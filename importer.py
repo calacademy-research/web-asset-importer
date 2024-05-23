@@ -18,8 +18,7 @@ from os.path import isfile, join
 import traceback
 import hashlib
 from image_client import DuplicateImageException
-from urllib.parse import unquote
-
+from constants import *
 
 class ConvertException(Exception):
     pass
@@ -31,6 +30,34 @@ class TooSmallException(Exception):
 
 class MissingPathException(Exception):
     pass
+
+# Constants for specify table nomenclature
+
+
+
+def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
+
+    attachment_guid = uuid4()  # Ensure you import uuid module
+
+    file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
+
+    mime_type = self.get_mime_type(filepath)
+
+    self.attachment_utils.create_attachment(
+        storename=attach_loc,
+        original_filename=filepath,
+        file_created_datetime=file_created_datetime,
+        guid=attachment_guid,
+        image_type=mime_type,
+        agent_id=agent_id,
+        is_public=properties.get(ST_IS_PUBLIC, True),
+        copyright_date=properties.get(ST_COPYRIGHT_DATE, None),
+        copyright_holder=properties.get(ST_COPYRIGHT_HOLDER, None),
+        credit=properties.get(ST_CREDIT, None),
+        date_imaged=properties.get(ST_DATE_IMAGED, None),
+        license=properties.get(ST_LICENSE, None),
+        license_logo_url=properties.get(ST_LICENSE_LOGO_URL, None),
+        metadata_text=
 
 
 class Importer:
@@ -120,26 +147,7 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self,
-                                   filepath,
-                                   attach_loc,
-                                   collection_object_id,
-                                   agent_id,
-                                   is_public=True,
-                                   copyright_date=None,
-                                   copyright_holder=None,
-                                   credit=None,
-                                   date_imaged=None,
-                                   license=None,
-                                   license_logo_url=None,
-                                   metadata_text=None,
-                                   remarks=None,
-                                   scope_id=None,
-                                   scope_type=None,
-                                   subject_orientation=None,
-                                   subtype=None,
-                                   title=None,
-                                   type=None):
+    def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
 
         attachment_guid = uuid4()  # Ensure you import uuid module
 
@@ -154,21 +162,21 @@ class Importer:
             guid=attachment_guid,
             image_type=mime_type,
             agent_id=agent_id,
-            is_public=is_public,
-            copyright_date=copyright_date,
-            copyright_holder=copyright_holder,
-            credit=credit,
-            date_imaged=date_imaged,
-            license=license,
-            license_logo_url=license_logo_url,
-            metadata_text=metadata_text,
-            remarks=remarks,
-            scope_id=scope_id,
-            scope_type=scope_type,
-            subject_orientation=subject_orientation,
-            subtype=subtype,
-            title=title,
-            type=type
+            is_public=properties.get(ST_IS_PUBLIC, True),
+            copyright_date=properties.get(ST_COPYRIGHT_DATE, None),
+            copyright_holder=properties.get(ST_COPYRIGHT_HOLDER, None),
+            credit=properties.get(ST_CREDIT, None),
+            date_imaged=properties.get(ST_DATE_IMAGED, None),
+            license=properties.get(ST_LICENSE, None),
+            licenselogourl=properties.get(ST_LICENSE_LOGO_URL, None),
+            metadatatext=properties.get(ST_METADATA_TEXT, None),
+            remarks=properties.get(ST_REMARKS, None),
+            scopeid=properties.get(ST_SCOPE_ID, None),
+            scopetype=properties.get(ST_SCOPE_TYPE, None),
+            subjectorientation=properties.get(ST_SUBJECT_ORIENTATION, None),
+            subtype=properties.get(ST_SUBTYPE, None),
+            title=properties.get(ST_TITLE, None),
+            type=properties.get(ST_TYPE, None)
         )
 
         attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
@@ -390,14 +398,20 @@ class Importer:
                 (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted)
 
                 properties = attachment_properties_map.get(cur_filepath, {})
+                is_redacted_property = properties.get('is_redacted', None)
+                if is_redacted_property is not None and is_redacted_property:
+                    is_public = False
+                else:
+                    is_public = not force_redacted
+
                 self.import_to_specify_database(
                     filepath=cur_filepath,
-                    attach_loc=attach_loc,
+                    attach_loc=url,
                     collection_object_id=collection_object_id,
                     agent_id=agent_id,
-                    is_public=(not force_redacted),
+                    is_public=is_public,
                     copyright_holder=properties.get('copyright_holder', None),
-                    remarks=url,
+                    remarks=properties.get('remarks', None),
                     copyright_date=properties.get('copyright_date', None),
                     credit=properties.get('credit', None),
                     date_imaged=properties.get('date_imaged', None),

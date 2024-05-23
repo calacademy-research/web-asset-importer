@@ -7,10 +7,12 @@ import re
 import logging
 from metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
-import traceback
+from constants import *
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
 import warnings
+import csv
+
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -21,6 +23,24 @@ starting_time_stamp = datetime.now()
 
 # specify attachment has copyright date and copyright holder. Create based on copyright
 # extraction.
+
+
+
+
+def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
+
+    # Extract the 4-digit year from EXIF:CreateDate if available
+    exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
+    exif_create_year = None
+    if exif_create_date:
+        exif_match = re.search(r'\b\d{4}\b', exif_create_date)
+        if exif_match:
+            exif_create_year = exif_match.group(0)
+
+    #
+
+
+
 
 
 class IzImporter(Importer):
@@ -41,7 +61,7 @@ class IzImporter(Importer):
         self.log_file = open(CASIZ_FILE_LOG, "w+")
         self.item_mappings = []
         self.log_file.write(f"casiz\tfilename\tCASIZ method\tcopyright method\tcopyright\trejected\tpath on disk\n")
-
+        self.filepath_metadata_map={}
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
 
         super().__init__(self.iz_importer_config, "Invertebrate Zoology")
@@ -258,11 +278,24 @@ class IzImporter(Importer):
             copyright = re.sub(r'\s*_.*$', '', copyright)
         return copyright
 
-
     def get_casiz_from_exif(self, exif_metadata):
+        print("Joe stop here - not using these new data yet")
+        sys.exit(1)
+        # EXIF:Title
+        # IPTC:keywords
+        # XMP-dc:Subject
+        # XMP-lr:HierarchicalSubject
+        # IPTC:Caption-Abstract
+        # XMP-dc:Description
+        # EXIF:IFD0:ImageDescription
+        # file path
+
         if exif_metadata is None:
             return None
 
+        # This code is probably wrong; it should use the same code we're using to extract
+        # ids (wtih and/or) from filename and/or directory - maybe not, that has
+        # pretty specific regular expressions. TBD.
         image_description_key = next((key for key in exif_metadata if "ImageDescription" in key), None)
         if image_description_key:
             image_description = exif_metadata[image_description_key].strip()
@@ -275,7 +308,7 @@ class IzImporter(Importer):
                 self.casiz_numbers = [casiz_number]
                 return casiz_number
 
-    # old and busted
+
     def get_copyright_from_exif(self, exif_metadata):
         if exif_metadata is None:
             return None
@@ -295,10 +328,11 @@ class IzImporter(Importer):
                 return copyright
         return None
 
-    def extract_copyright(self, orig_case_full_path, exif_metadata):
-        orig_case_directory = os.path.dirname(orig_case_full_path)
-        orig_case_filename = os.path.basename(orig_case_full_path)
-        self.copyright = None
+    def extract_copyright(self, orig_case_full_path, exif_metadata, file_key):
+
+        if file_key['CopyrightHolder'] is not None:
+            self.copyright = file_key['CopyrightHolder']
+            return 'file key'
 
         if exif_metadata:
             copyright = self.get_copyright_from_exif(exif_metadata)
@@ -306,6 +340,12 @@ class IzImporter(Importer):
                 self.copyright = copyright
 
                 return 'exif'
+
+        orig_case_directory = os.path.dirname(orig_case_full_path)
+        orig_case_filename = os.path.basename(orig_case_full_path)
+        self.copyright = None
+
+
         if self.attempt_directory_copyright_extraction(orig_case_directory):
             return 'directory'
 
@@ -326,10 +366,13 @@ class IzImporter(Importer):
             result = re.search(self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH, cur_directory)
             if result:
                 found_substring = result.groups()[0]
+                self.title = found_substring
                 self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d+\b', found_substring)]))
                 return True
             if re.search(self.iz_importer_config.DIRECTORY_MATCH, cur_directory):
-                self.casiz_numbers = [self.extract_casiz(directory)]
+                casiz = self.extract_casiz(directory)
+                self.title = f'CASIZ {casiz}'
+                self.casiz_numbers = [casiz]
                 return True
         return False
 
@@ -339,15 +382,32 @@ class IzImporter(Importer):
         # Check for conjunction matches first
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, filename)
         if match:
+            matched_string = match.group(0)
+
+            # Find all CASIZ numbers
+            casiz_numbers = re.findall(rf'{self.iz_importer_config.CASIZ_PREFIX}\d+', matched_string)
+
+            # Extract the conjunctions "and" or "or"
+            conjunctions = re.findall(r'\b(and|or)\b', matched_string, re.IGNORECASE)
+
+            # Combine CASIZ numbers and conjunctions
+            combined_result = ' '.join(
+                [f'{num} {conjunction.upper()}' for num, conjunction in zip(casiz_numbers, conjunctions)] + [
+                    casiz_numbers[-1]])
+
+            self.title = combined_result
+            # Joe untested as of 5/23/24
             # Extract all numeric groups (CASIZ numbers) from the match
             self.casiz_numbers = list(set([int(num) for num in re.findall(r'\b\d{5,12}\b', filename)]))
             print(f"Matched conjunction on {filename}. IDs: {self.casiz_numbers}")
             return True
 
         # Fallback to simple filename match
-        if re.search(self.iz_importer_config.FILENAME_MATCH, filename):
+        match = re.search(self.iz_importer_config.FILENAME_MATCH, filename)
+        if match:
             # Extract CASIZ number using the specific extraction method
             casiz_number = self.extract_casiz(filename)
+            self.title=f"CASIZ {casiz_number}"
             if casiz_number is not None:
                 self.casiz_numbers = [casiz_number]
                 return True
@@ -384,91 +444,287 @@ class IzImporter(Importer):
         return False
 
     def build_filename_map(self, full_path):
-        # Joe - this is a temp limiter so we can quickly debug
-        if 'counter' not in globals():
-            globals()['counter'] = 0
-        if globals()['counter'] < 110:
-            globals()['counter'] += 1
-        else:
+        if not self._check_and_increment_counter():
             return False
 
         orig_case_full_path = full_path
         full_path = full_path.lower()
+
+        if not self._validate_path(full_path):
+            return False
+
+        filename = os.path.basename(full_path)
+
+        if self._should_skip_file(filename, full_path):
+            return False
+
+        if self._is_file_already_processed(full_path, orig_case_full_path):
+            return False
+
+        exif_metadata = self._read_exif_metadata(full_path)
+
+        # sets self.title
+        casiz_source = self.get_casiz_ids(full_path, exif_metadata)
+
+        if not casiz_source:
+            return False
+
+        file_key = self._read_file_key(full_path)
+        if file_key is None:
+            return False
+
+        print(f"Filekey: {file_key}")
+        print(f"exif_metadata: {exif_metadata}")
+
+        # sets self.copyright
+        copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
+
+        # stores self.copyright, self.title, and selected info
+        # into the metadata map.
+        self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
+        self._update_casiz_filepath_map(full_path)
+
+        self.log_file_status(
+            filename=os.path.basename(orig_case_full_path),
+            path=orig_case_full_path,
+            casiznumber_method=casiz_source,
+            id=self.casiz_numbers,
+            copyright_method=copyright_method,
+            copyright=self.copyright
+        )
+
+        return True
+
+
+    # Helper function to parse date
+    def _parse_date(self, date_str):
+        try:
+            return datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            try:
+                return datetime.strptime(date_str, '%m/%d/%Y').date()
+            except ValueError:
+                try:
+                    return datetime.strptime(date_str, '%B %d, %Y').date()
+                except ValueError:
+                    return None
+
+    # Helper function to convert isPublic to boolean
+    def _parse_boolean(self, value):
+        return value.lower() == 'true' if value else False
+
+    def _read_file_key(self, image_path):
+        # Function to find the key.csv file in the current or parent directories
+        def find_key_file(directory):
+            while directory != os.path.dirname(directory):  # Stop at the root directory
+                key_file_path = os.path.join(directory, 'key.csv')
+                if os.path.isfile(key_file_path):
+                    return key_file_path
+                directory = os.path.dirname(directory)
+            return None
+
+        # Get the directory of the image file
+        directory = os.path.dirname(image_path)
+
+        # Find the key.csv file
+        key_file_path = find_key_file(directory)
+        if not key_file_path:
+            self.log_file_status(
+                filename=os.path.basename(image_path),
+                path=image_path,
+                rejected="Missing key.csv"
+            )
+            return None
+
+        # Define the column mappings
+        column_mappings = {
+            'copyrightdate': 'CopyrightDate',
+            'copyrightholder': 'CopyrightHolder',
+            'credit': 'Credit',
+            'license': 'License',
+            'remarks': 'Remarks',
+            'ispublic': 'IsPublic',
+            'subtype': 'subType',
+            'createdbyagent': 'createdByAgent',
+            'metadatatext': 'creator'
+        }
+
+        # Initialize the dictionary
+        result_dict = {}
+
+        for mapped_key in column_mappings.values():
+            result_dict[mapped_key] = None
+
+
+        # Read the key.csv file with appropriate encoding
+        try:
+            with open(key_file_path, encoding='utf-8') as csvfile:
+                reader = csv.reader(csvfile)
+                data = list(reader)
+        except UnicodeDecodeError:
+            with open(key_file_path, encoding='latin1') as csvfile:
+                reader = csv.reader(csvfile)
+                data = list(reader)
+
+        # Populate the dictionary with data from the key.csv file
+        for row in data:
+            if row and len(row) > 1:
+                key = row[0].strip().lower()
+                if key in column_mappings:
+                    value = row[1].strip() if len(row) > 1 and row[1].strip() else None
+                    if key == 'copyrightdate' and value:
+                        value = self._parse_date(value)
+                    elif key == 'ispublic' and value:
+                        value = self._parse_boolean(value)
+                    result_dict[column_mappings[key]] = value
+
+        return result_dict
+
+    def _check_and_increment_counter(self):
+        if 'counter' not in globals():
+            globals()['counter'] = 0
+        if globals()['counter'] < 110:
+            globals()['counter'] += 1
+            return True
+        else:
+            return False
+
+    def _validate_path(self, full_path):
         if 'crrf' in full_path:
             print("Rejecting all CRRF for now - pending mapping")
-            self.log_file_status(filename=os.path.basename(full_path),
-                                 path=full_path,
-                                 rejected="Skipping CRRF for now")
+            self.log_file_status(
+                filename=os.path.basename(full_path),
+                path=full_path,
+                rejected="Skipping CRRF for now"
+            )
+            return False
 
         if not self.include_by_extension(full_path):
             print(f"Will not import, excluded extension: {full_path}")
-            self.log_file_status(filename=os.path.basename(full_path),
-                                 path=full_path,
-                                 rejected="Forbidden extension")
+            self.log_file_status(
+                filename=os.path.basename(full_path),
+                path=full_path,
+                rejected="Forbidden extension"
+            )
             return False
 
-        filename = full_path.split('/')[-1]
+        return True
 
-        # Check if the filename starts with .
+    def _should_skip_file(self, filename, full_path):
         if filename.startswith('.'):
             print(f"Skipping all files that start with .: {full_path}")
-            self.log_file_status(filename=os.path.basename(full_path),
-                                 path=full_path,
-                                 rejected=".filename")
-            return False
+            self.log_file_status(
+                filename=filename,
+                path=full_path,
+                rejected=".filename"
+            )
+            return True
+        return False
 
+    def _is_file_already_processed(self, full_path, orig_case_full_path):
         if self.check_already_attached(full_path):
-            self.log_file_status(filename=os.path.basename(full_path),
-                                 path=full_path,
-                                 rejected="Already imported")
-            return False
+            self.log_file_status(
+                filename=os.path.basename(full_path),
+                path=full_path,
+                rejected="Already imported"
+            )
+            return True
 
         if self.check_already_in_image_db(full_path):
             print(f"Already in image db {orig_case_full_path}")
-            return False
-        exif_metadata = None
+            return True
+
+        return False
+
+    def _read_exif_metadata(self, full_path):
         exif_tools = MetadataTools(full_path)
         if exif_tools is not None:
-            exif_metadata = exif_tools.read_exif()
+            return exif_tools.read_exif()
+        return None
 
-        self.casiz_numbers = None
+    def get_casiz_ids(self, full_path, exif_metadata):
+        # filename
+
+
+        if self.attempt_filename_match(full_path):
+            return 'Filename'
+
         if self.get_casiz_from_exif(exif_metadata) is not None:
-            casiz_source = 'EXIF'
+            return 'EXIF'
+
+        if self.attempt_directory_match(full_path):
+            return 'Directory'
+
+
+
+        self.log_file_status(
+            filename=os.path.basename(full_path),
+            path=full_path,
+            rejected="no casiz match for exif, filename, or directory."
+        )
+        return None
+
+    def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
+
+        # Extract the 4-digit year from EXIF:CreateDate if available
+        exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
+        exif_create_year = None
+        if exif_create_date:
+            exif_match = re.search(r'\b\d{4}\b', exif_create_date)
+            if exif_match:
+                exif_create_year = exif_match.group(0)
+
+        # Extract the 4-digit year from file_key['CopyrightDate'] if available
+        file_key_copyright_date = file_key.get('CopyrightDate', '')
+        file_key_copyright_year = None
+        if file_key_copyright_date:
+            file_key_match = re.search(r'\b\d{4}\b', file_key_copyright_date)
+            if file_key_match:
+                file_key_copyright_year = file_key_match.group(0)
+
+        # Determine the value for copyright_date
+        if file_key_copyright_year:
+            copyright_date = file_key_copyright_year
         else:
-            if self.attempt_directory_match(full_path):
-                casiz_source = 'Directory'
-            else:
-                if self.attempt_filename_match(full_path):
-                    casiz_source = 'Filename'
-                else:
-                    self.log_file_status(filename=os.path.basename(full_path),
-                                         path=full_path,
-                                         rejected="no casiz match for exif, filename, or directory.")
-                    return False
+            copyright_date = exif_create_year
 
-        # -------- copyright --------
-        copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata)
+        # If both are null or zero-length strings, set to None
+        if not copyright_date:
+            copyright_date = None
 
-        self.filepathpath_metadata_map[full_path] = {"copyright": self.copyright,
-                                                     "exif_metadata": exif_metadata,
-                                                     "orig_case_full_path": orig_case_full_path,}
+        if 'IsPublic' not in file_key or file_key['IsPublic'] is None:
+            file_key['IsPublic'] = False
 
-        # This little horror ensures that we're all ints in the list of numbers.
+        self.filepath_metadata_map[full_path] = {
+            "copyright_date": copyright_date,
+            "copyright_holder": self.copyright,
+            "credit": file_key['Credit'],
+            "date_imaged": exif_metadata.get('EXIF:CreateDate'),
+            "license": file_key['License'],
+            "remarks": file_key['Remarks'],
+            "title": self.title,
+            "is_public": file_key['IsPublic'],
+            "metadata_text": file_key['creator'],
+            "subtype": file_key['subType'],
+            "type": 'StillImage',
+            "original_filename": full_path,
+            "created_by_agent_id": file_key['createdByAgent']
+        }
+
+        # self.filepathpath_metadata_map[full_path] = {
+        #     "copyright": self.copyright,
+        #     "exif_metadata": exif_metadata,
+        #     "orig_case_full_path": orig_case_full_path
+        # }
+
+    def _update_casiz_filepath_map(self, full_path):
         self.casiz_numbers = list(
             map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))),
-                self.casiz_numbers))
+                self.casiz_numbers)
+        )
 
         for cur_casiz_number in self.casiz_numbers:
             if cur_casiz_number not in self.casiz_filepath_map:
                 self.casiz_filepath_map[cur_casiz_number] = [full_path]
             else:
                 self.casiz_filepath_map[cur_casiz_number].append(full_path)
-
-        self.log_file_status(filename=os.path.basename(orig_case_full_path),
-                             path=orig_case_full_path,
-                             casiznumber_method=casiz_source,
-                             id=cur_casiz_number,
-                             copyright_method=copyright_method,
-                             copyright=self.copyright)
-        return True
-

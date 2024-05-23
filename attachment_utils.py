@@ -4,7 +4,38 @@ from db_utils import DatabaseInconsistentError
 import logging
 import os
 
-
+ST_ATTACHMENT_LOCATION = 'attachmentlocation'
+ST_ATTACHMENT_STORAGE_CONFIG = 'attachmentstorageconfig'
+ST_CAPTURE_DEVICE = 'capturedevice'
+ST_COPYRIGHT_DATE = 'copyrightdate'
+ST_COPYRIGHT_HOLDER = 'copyrightholder'
+ST_CREDIT = 'credit'
+ST_DATE_IMAGED = 'dateimaged'
+ST_FILE_CREATED_DATE = 'filecreateddate'
+ST_GUID = 'guid'
+ST_IS_PUBLIC = 'ispublic'
+ST_LICENSE = 'license'
+ST_LICENSE_LOGO_URL = 'licenselogourl'
+ST_METADATA_TEXT = 'metadatatext'
+ST_MIME_TYPE = 'mimetype'
+ST_ORIG_FILENAME = 'origfilename'
+ST_REMARKS = 'remarks'
+ST_SCOPE_ID = 'scopeid'
+ST_SCOPE_TYPE = 'scopetype'
+ST_SUBJECT_ORIENTATION = 'subjectorientation'
+ST_SUBTYPE = 'subtype'
+ST_TABLE_ID = 'tableid'
+ST_TIMESTAMP_CREATED = 'timestampcreated'
+ST_TIMESTAMP_MODIFIED = 'timestampmodified'
+ST_TITLE = 'title'
+ST_TYPE = 'type'
+ST_VERSION = 'version'
+ST_VISIBILITY = 'visibility'
+ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID = 'AttachmentImageAttributeID'
+ST_CREATED_BY_AGENT_ID = 'CreatedByAgentID'
+ST_CREATOR_ID = 'CreatorID'
+ST_MODIFIED_BY_AGENT_ID = 'ModifiedByAgentID'
+ST_VISIBILITY_SET_BY_ID = 'VisibilitySetByID'
 class AttachmentUtils:
 
     def __init__(self, db_utils):
@@ -74,23 +105,55 @@ class AttachmentUtils:
         cursor.execute(sql)
         self.db_utils.commit()
         cursor.close()
+
+    # Constants for specify table nomenclature
+    ST_ATTACHMENT_LOCATION = 'attachmentlocation'
+    ST_ATTACHMENT_STORAGE_CONFIG = 'attachmentstorageconfig'
+    ST_CAPTURE_DEVICE = 'capturedevice'
+    ST_COPYRIGHT_DATE = 'copyrightdate'
+    ST_COPYRIGHT_HOLDER = 'copyrightholder'
+    ST_CREDIT = 'credit'
+    ST_DATE_IMAGED = 'dateimaged'
+    ST_FILE_CREATED_DATE = 'filecreateddate'
+    ST_GUID = 'guid'
+    ST_IS_PUBLIC = 'ispublic'
+    ST_LICENSE = 'license'
+    ST_LICENSE_LOGO_URL = 'licenselogourl'
+    ST_METADATA_TEXT = 'metadatatext'
+    ST_MIME_TYPE = 'mimetype'
+    ST_ORIG_FILENAME = 'origfilename'
+    ST_REMARKS = 'remarks'
+    ST_SCOPE_ID = 'scopeid'
+    ST_SCOPE_TYPE = 'scopetype'
+    ST_SUBJECT_ORIENTATION = 'subjectorientation'
+    ST_SUBTYPE = 'subtype'
+    ST_TABLE_ID = 'tableid'
+    ST_TIMESTAMP_CREATED = 'timestampcreated'
+    ST_TIMESTAMP_MODIFIED = 'timestampmodified'
+    ST_TITLE = 'title'
+    ST_TYPE = 'type'
+    ST_VERSION = 'version'
+    ST_VISIBILITY = 'visibility'
+    ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID = 'AttachmentImageAttributeID'
+    ST_CREATED_BY_AGENT_ID = 'CreatedByAgentID'
+    ST_CREATOR_ID = 'CreatorID'
+    ST_MODIFIED_BY_AGENT_ID = 'ModifiedByAgentID'
+    ST_VISIBILITY_SET_BY_ID = 'VisibilitySetByID'
+
     def create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, agent_id,
-                          is_public=True, copyright_date=None, copyright_holder=None,
-                          credit=None, date_imaged=None, license=None, license_logo_url=None, metadata_text=None,
-                          remarks=None, scope_id=None, scope_type=None, subject_orientation=None,
-                          subtype=None, title=None, type=None):
+                          properties):
         # Helper function to handle None values correctly for SQL
         def val(param):
             return param if param is not None else 'NULL'
 
         # Using parameterized SQL queries to prevent SQL injection
-        sql = """
+        sql = f"""
             INSERT INTO attachment (
-                attachmentlocation, attachmentstorageconfig, capturedevice, copyrightdate, copyrightholder, credit,
-                dateimaged, filecreateddate, guid, ispublic, license, licenselogourl, metadatatext, mimetype,
-                origfilename, remarks, scopeid, scopetype, subjectorientation, subtype, tableid, timestampcreated,
-                timestampmodified, title, type, version, visibility, AttachmentImageAttributeID, CreatedByAgentID,
-                CreatorID, ModifiedByAgentID, VisibilitySetByID
+                {ST_ATTACHMENT_LOCATION}, {ST_ATTACHMENT_STORAGE_CONFIG}, {ST_CAPTURE_DEVICE}, {ST_COPYRIGHT_DATE}, {ST_COPYRIGHT_HOLDER}, {ST_CREDIT},
+                {ST_DATE_IMAGED}, {ST_FILE_CREATED_DATE}, {ST_GUID}, {ST_IS_PUBLIC}, {ST_LICENSE}, {ST_LICENSE_LOGO_URL}, {ST_METADATA_TEXT}, {ST_MIME_TYPE},
+                {ST_ORIG_FILENAME}, {ST_REMARKS}, {ST_SCOPE_ID}, {ST_SCOPE_TYPE}, {ST_SUBJECT_ORIENTATION}, {ST_SUBTYPE}, {ST_TABLE_ID}, {ST_TIMESTAMP_CREATED},
+                {ST_TIMESTAMP_MODIFIED}, {ST_TITLE}, {ST_TYPE}, {ST_VERSION}, {ST_VISIBILITY}, {ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID}, {ST_CREATED_BY_AGENT_ID},
+                {ST_CREATOR_ID}, {ST_MODIFIED_BY_AGENT_ID}, {ST_VISIBILITY_SET_BY_ID}
             )
             VALUES (
                 %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 41, CURRENT_TIMESTAMP,
@@ -98,10 +161,27 @@ class AttachmentUtils:
             )
         """
         params = (
-            storename, val(copyright_date), val(copyright_holder), val(credit), val(date_imaged),
-            file_created_datetime.strftime("%Y-%m-%d"), guid, is_public, val(license), val(license_logo_url),
-            val(metadata_text), image_type, original_filename, val(remarks), val(scope_id), val(scope_type),
-            val(subject_orientation), val(subtype), val(title), val(type), agent_id
+            storename,
+            val(properties.get(ST_COPYRIGHT_DATE)),
+            val(properties.get(ST_COPYRIGHT_HOLDER)),
+            val(properties.get(ST_CREDIT)),
+            val(properties.get(ST_DATE_IMAGED)),
+            file_created_datetime.strftime("%Y-%m-%d"),
+            guid,
+            properties.get(ST_IS_PUBLIC, True),
+            val(properties.get(ST_LICENSE)),
+            val(properties.get(ST_LICENSE_LOGO_URL)),
+            val(properties.get(ST_METADATA_TEXT)),
+            image_type,
+            original_filename,
+            val(properties.get(ST_REMARKS)),
+            val(properties.get(ST_SCOPE_ID)),
+            val(properties.get(ST_SCOPE_TYPE)),
+            val(properties.get(ST_SUBJECT_ORIENTATION)),
+            val(properties.get(ST_SUBTYPE)),
+            val(properties.get(ST_TITLE)),
+            val(properties.get(ST_TYPE)),
+            agent_id
         )
 
         cursor = self.db_utils.get_cursor()
