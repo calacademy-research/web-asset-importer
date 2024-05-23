@@ -31,35 +31,6 @@ class TooSmallException(Exception):
 class MissingPathException(Exception):
     pass
 
-# Constants for specify table nomenclature
-
-
-
-def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
-
-    attachment_guid = uuid4()  # Ensure you import uuid module
-
-    file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
-
-    mime_type = self.get_mime_type(filepath)
-
-    self.attachment_utils.create_attachment(
-        storename=attach_loc,
-        original_filename=filepath,
-        file_created_datetime=file_created_datetime,
-        guid=attachment_guid,
-        image_type=mime_type,
-        agent_id=agent_id,
-        is_public=properties.get(ST_IS_PUBLIC, True),
-        copyright_date=properties.get(ST_COPYRIGHT_DATE, None),
-        copyright_holder=properties.get(ST_COPYRIGHT_HOLDER, None),
-        credit=properties.get(ST_CREDIT, None),
-        date_imaged=properties.get(ST_DATE_IMAGED, None),
-        license=properties.get(ST_LICENSE, None),
-        license_logo_url=properties.get(ST_LICENSE_LOGO_URL, None),
-        metadata_text=
-
-
 class Importer:
 
     def __init__(self, db_config_class, collection_name):
@@ -147,7 +118,7 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
+    def import_to_specify_database(self, filepath, url, collection_object_id, agent_id, properties):
 
         attachment_guid = uuid4()  # Ensure you import uuid module
 
@@ -156,57 +127,14 @@ class Importer:
         mime_type = self.get_mime_type(filepath)
 
         self.attachment_utils.create_attachment(
-            storename=attach_loc,
+            attachment_location=url,
             original_filename=filepath,
             file_created_datetime=file_created_datetime,
             guid=attachment_guid,
             image_type=mime_type,
             agent_id=agent_id,
-            is_public=properties.get(ST_IS_PUBLIC, True),
-            copyright_date=properties.get(ST_COPYRIGHT_DATE, None),
-            copyright_holder=properties.get(ST_COPYRIGHT_HOLDER, None),
-            credit=properties.get(ST_CREDIT, None),
-            date_imaged=properties.get(ST_DATE_IMAGED, None),
-            license=properties.get(ST_LICENSE, None),
-            licenselogourl=properties.get(ST_LICENSE_LOGO_URL, None),
-            metadatatext=properties.get(ST_METADATA_TEXT, None),
-            remarks=properties.get(ST_REMARKS, None),
-            scopeid=properties.get(ST_SCOPE_ID, None),
-            scopetype=properties.get(ST_SCOPE_TYPE, None),
-            subjectorientation=properties.get(ST_SUBJECT_ORIENTATION, None),
-            subtype=properties.get(ST_SUBTYPE, None),
-            title=properties.get(ST_TITLE, None),
-            type=properties.get(ST_TYPE, None)
+            properties=properties
         )
-
-        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
-
-        self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
-
-    def old_deleteme_import_to_specify_database(self,
-                                   filepath,
-                                   attach_loc,
-                                   url,
-                                   collection_object_id,
-                                   agent_id,
-                                   copyright=None,
-                                   is_public=True):
-
-        attachment_guid = uuid4()
-
-        file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
-
-        mime_type = self.get_mime_type(filepath)
-
-        self.attachment_utils.create_attachment(storename=attach_loc,
-                                                original_filename=filepath,
-                                                file_created_datetime=file_created_datetime,
-                                                guid=attachment_guid,
-                                                image_type=mime_type,
-                                                url=url,
-                                                agent_id=agent_id,
-                                                copyright=copyright,
-                                                is_public=is_public)
 
         attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
 
@@ -404,26 +332,13 @@ class Importer:
                 else:
                     is_public = not force_redacted
 
+                properties[ST_IS_PUBLIC]=is_public
                 self.import_to_specify_database(
                     filepath=cur_filepath,
                     attach_loc=url,
                     collection_object_id=collection_object_id,
                     agent_id=agent_id,
-                    is_public=is_public,
-                    copyright_holder=properties.get('copyright_holder', None),
-                    remarks=properties.get('remarks', None),
-                    copyright_date=properties.get('copyright_date', None),
-                    credit=properties.get('credit', None),
-                    date_imaged=properties.get('date_imaged', None),
-                    license=properties.get('license', None),
-                    license_logo_url=properties.get('license_logo_url', None),
-                    metadata_text=properties.get('metadata_text', None),
-                    scope_id=properties.get('scope_id', None),
-                    scope_type=properties.get('scope_type', None),
-                    subject_orientation=properties.get('subject_orientation', None),
-                    subtype=properties.get('subtype', None),
-                    title=properties.get('title', None),
-                    type=properties.get('type', None)
+                    properties=properties
                 )
 
                 return attach_loc

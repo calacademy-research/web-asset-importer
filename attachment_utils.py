@@ -2,40 +2,11 @@ import time_utils
 import db_utils
 from db_utils import DatabaseInconsistentError
 import logging
-import os
+from constants import *
 
-ST_ATTACHMENT_LOCATION = 'attachmentlocation'
-ST_ATTACHMENT_STORAGE_CONFIG = 'attachmentstorageconfig'
-ST_CAPTURE_DEVICE = 'capturedevice'
-ST_COPYRIGHT_DATE = 'copyrightdate'
-ST_COPYRIGHT_HOLDER = 'copyrightholder'
-ST_CREDIT = 'credit'
-ST_DATE_IMAGED = 'dateimaged'
-ST_FILE_CREATED_DATE = 'filecreateddate'
-ST_GUID = 'guid'
-ST_IS_PUBLIC = 'ispublic'
-ST_LICENSE = 'license'
-ST_LICENSE_LOGO_URL = 'licenselogourl'
-ST_METADATA_TEXT = 'metadatatext'
-ST_MIME_TYPE = 'mimetype'
-ST_ORIG_FILENAME = 'origfilename'
-ST_REMARKS = 'remarks'
-ST_SCOPE_ID = 'scopeid'
-ST_SCOPE_TYPE = 'scopetype'
-ST_SUBJECT_ORIENTATION = 'subjectorientation'
-ST_SUBTYPE = 'subtype'
-ST_TABLE_ID = 'tableid'
-ST_TIMESTAMP_CREATED = 'timestampcreated'
-ST_TIMESTAMP_MODIFIED = 'timestampmodified'
-ST_TITLE = 'title'
-ST_TYPE = 'type'
-ST_VERSION = 'version'
-ST_VISIBILITY = 'visibility'
-ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID = 'AttachmentImageAttributeID'
-ST_CREATED_BY_AGENT_ID = 'CreatedByAgentID'
-ST_CREATOR_ID = 'CreatorID'
-ST_MODIFIED_BY_AGENT_ID = 'ModifiedByAgentID'
-ST_VISIBILITY_SET_BY_ID = 'VisibilitySetByID'
+
+
+
 class AttachmentUtils:
 
     def __init__(self, db_utils):
@@ -68,79 +39,7 @@ class AttachmentUtils:
 
         return aid
 
-    # not used - can be multiple in IZ, so dropping
-    # def get_collectionobjectid_from_filepath(self, attachment_location):
-    #     sql = f"""
-    #     select cat.CollectionObjectID
-    #            from attachment as at
-    #            , collectionobjectattachment as cat
-    #
-    #            where at.AttachmentLocation='{attachment_location}'
-    #     and cat.AttachmentId = at.AttachmentId
-    #     """
-    #     coid = self.db_utils.get_one_record(sql)
-    #     logging.debug(f"Got collectionObjectId: {coid}")
-    #
-    #     return coid
-
-    def old_deleteme_create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, url, agent_id,
-                          copyright=None, is_public=True):
-        # image type example 'image/png'
-        basename = os.path.basename(original_filename)
-        sql = (f"""
-                INSERT INTO attachment (attachmentlocation, attachmentstorageconfig, capturedevice, copyrightdate,
-                                          copyrightholder, credit, dateimaged, filecreateddate, guid, ispublic, license,
-                                          licenselogourl, metadatatext, mimetype, origfilename, remarks, scopeid,
-                                          scopetype, subjectorientation, subtype, tableid, timestampcreated,
-                                          timestampmodified, title, type, version, visibility, AttachmentImageAttributeID,
-                                          CreatedByAgentID, CreatorID, ModifiedByAgentID, VisibilitySetByID)
-                VALUES ('{storename}', NULL, NULL, NULL, 
-                        '{copyright}', NULL, NULL, '{time_utils.get_pst_date_time_from_datetime(time_utils.get_pst_time(file_created_datetime))}', '{guid}', {is_public}, NULL, 
-                        NULL, NULL, '{image_type}','{original_filename}', '{url}', 4, 
-                        0, NULL, NULL, 41, '{time_utils.get_pst_time_now_string()}',
-                        '{time_utils.get_pst_time_now_string()}', '{".".join(basename.split(".")[:-1])}', NULL, 0, NULL, NULL, 
-                        {agent_id}, NULL, NULL, NULL)
-        """)
-        cursor = self.db_utils.get_cursor()
-        cursor.execute(sql)
-        self.db_utils.commit()
-        cursor.close()
-
-    # Constants for specify table nomenclature
-    ST_ATTACHMENT_LOCATION = 'attachmentlocation'
-    ST_ATTACHMENT_STORAGE_CONFIG = 'attachmentstorageconfig'
-    ST_CAPTURE_DEVICE = 'capturedevice'
-    ST_COPYRIGHT_DATE = 'copyrightdate'
-    ST_COPYRIGHT_HOLDER = 'copyrightholder'
-    ST_CREDIT = 'credit'
-    ST_DATE_IMAGED = 'dateimaged'
-    ST_FILE_CREATED_DATE = 'filecreateddate'
-    ST_GUID = 'guid'
-    ST_IS_PUBLIC = 'ispublic'
-    ST_LICENSE = 'license'
-    ST_LICENSE_LOGO_URL = 'licenselogourl'
-    ST_METADATA_TEXT = 'metadatatext'
-    ST_MIME_TYPE = 'mimetype'
-    ST_ORIG_FILENAME = 'origfilename'
-    ST_REMARKS = 'remarks'
-    ST_SCOPE_ID = 'scopeid'
-    ST_SCOPE_TYPE = 'scopetype'
-    ST_SUBJECT_ORIENTATION = 'subjectorientation'
-    ST_SUBTYPE = 'subtype'
-    ST_TABLE_ID = 'tableid'
-    ST_TIMESTAMP_CREATED = 'timestampcreated'
-    ST_TIMESTAMP_MODIFIED = 'timestampmodified'
-    ST_TITLE = 'title'
-    ST_TYPE = 'type'
-    ST_VERSION = 'version'
-    ST_VISIBILITY = 'visibility'
-    ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID = 'AttachmentImageAttributeID'
-    ST_CREATED_BY_AGENT_ID = 'CreatedByAgentID'
-    ST_CREATOR_ID = 'CreatorID'
-    ST_MODIFIED_BY_AGENT_ID = 'ModifiedByAgentID'
-    ST_VISIBILITY_SET_BY_ID = 'VisibilitySetByID'
-
-    def create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, agent_id,
+    def create_attachment(self, attachment_location, original_filename, file_created_datetime, guid, image_type, agent_id,
                           properties):
         # Helper function to handle None values correctly for SQL
         def val(param):
@@ -161,7 +60,7 @@ class AttachmentUtils:
             )
         """
         params = (
-            storename,
+            attachment_location,
             val(properties.get(ST_COPYRIGHT_DATE)),
             val(properties.get(ST_COPYRIGHT_HOLDER)),
             val(properties.get(ST_CREDIT)),
