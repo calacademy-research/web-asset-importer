@@ -142,7 +142,7 @@ class ImageClient:
             url = r.text
             assert r.status_code == 200
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
-            print("adding to image")
+            logging.info("adding to image")
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=True)

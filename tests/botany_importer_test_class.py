@@ -1,3 +1,5 @@
+import pandas as pd
+
 from botany_importer import BotanyImporter
 from importer import Importer
 from dir_tools import DirTools
@@ -16,6 +18,8 @@ class AltBotanyImporter(BotanyImporter):
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
         self.logger.debug("Botany import mode")
+
+        self.record_full = pd.DataFrame()
 
         for cur_dir in paths:
             dir_tools.process_files_or_directories_recursive(cur_dir)

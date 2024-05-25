@@ -1,6 +1,7 @@
 """test case of the PicturaeImporter class which runs a reduced init and sqlite modified taxon_get function
     for taxon tree testing."""
 import logging
+import pandas as pd
 from uuid import uuid4
 from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
@@ -14,6 +15,7 @@ class AltPicturaeImporterlite(PicturaeImporter):
 
         self.picdb_config = get_config(config="picbatch")
         self.process_csv_files(date=date_string)
+        self.record_full = pd.DataFrame()
         self.init_all_vars()
         self.logger = logging.getLogger("AltPicturaeImporter")
         # keep name as sql_csv_tools since it needs to replace the internally called function

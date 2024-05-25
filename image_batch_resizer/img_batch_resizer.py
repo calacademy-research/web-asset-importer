@@ -1,13 +1,13 @@
 import os
-
 from string_utils import remove_non_numerics
 from PIL import Image
+import shutil
 import multiprocessing
-# from get_configs import get_config
-# config = get_config("Botany_PIC")
-source_dir = "/admin/picturae_drive_mount/CAS_for_OCR"
+source_dir = "/storage_01/picturae/delivery"
+dest_dir = "/admin/picturae_drive_mount/CAS_for_OCR_TEST"
+tmp_folder = "/admin/web-asset-importer/image_batch_resizer/tmp_resize"
 
-def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=None):
+def convert_tiff_folder(source_dir, dest_dir, tmp_dir, quality, min_bar, max_size_kb, resize_to=None):
     """convert_tiff_folder: creates new folder of resized jpegs from a
          folder of tiffs. Uses a walk perform recursively
          args:
@@ -18,12 +18,13 @@ def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=Non
     for root, dirs, files in os.walk(source_dir):
         if 'undatabased' in dirs:
             tiff_dir = os.path.join(root, 'undatabased')
-            output_dir = os.path.join(root, 'resized_jpegs')
-
+            output_dir = os.path.join(dest_dir, os.path.basename(root), 'resized_jpg')
             # Create the output directory if it doesn't exist
             if not os.path.exists(output_dir):
-                os.makedirs(output_dir)
+                os.makedirs(output_dir, exist_ok=True)
             for file_name in os.listdir(tiff_dir):
+                if file_name.endswith(".txt"):
+                    continue
                 barcode = int(remove_non_numerics(file_name))
                 if barcode >= min_bar and "Cover" not in file_name:
                     if file_name.lower().endswith('.tiff') or file_name.lower().endswith('.tif'):
@@ -31,6 +32,7 @@ def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=Non
                         base_name = os.path.splitext(file_name)[0]
                         output_file_name = f"{base_name}.jpg"
                         output_file_path = os.path.join(output_dir, output_file_name)
+                        tmp_file_path = os.path.join(tmp_dir, output_file_name)
 
                         # Skip if output file already exists
                         if os.path.exists(output_file_path) is True:
@@ -56,11 +58,13 @@ def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=Non
                             # Assuming this is the threshold size in KB
 
                             while img_quality > 20:
-                                image.save(output_file_path, 'JPEG', quality=img_quality, optimize=True, subsampling=0)
+                                image.save(tmp_file_path, 'JPEG', quality=img_quality, optimize=True, subsampling=0)
                                 current_size_kb = os.path.getsize(
-                                    output_file_path) / 1024  # Get current file size in KB
+                                    tmp_file_path) / 1024  # Get current file size in KB
 
                                 if current_size_kb <= max_size_kb:
+                                    shutil.copyfile(tmp_file_path, output_file_path)
+                                    os.remove(tmp_file_path)
                                     print(f"Image {file_name} resized successfully")
                                     break
                                 # Adjust quality decrease based on current image size
@@ -76,7 +80,7 @@ def convert_tiff_folder(source_dir, quality, min_bar, max_size_kb, resize_to=Non
 
 if __name__ == "__main__":
     # ideal presets for picturae project, can change for other use cases
-    p = multiprocessing.Process(target=convert_tiff_folder(source_dir, quality=80, min_bar=800000, max_size_kb=999,
-                                                           resize_to=(2838, 3745)))
+    p = multiprocessing.Process(target=convert_tiff_folder(source_dir, dest_dir, tmp_folder, quality=80, min_bar=800000,
+                                                           max_size_kb=999, resize_to=(2838, 3745)))
     p.start()
     p.join()

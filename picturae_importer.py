@@ -90,6 +90,8 @@ class PicturaeImporter(Importer):
 
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
+        self.record_full['batch_md5'] = self.batch_md5
+
         self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
                                                    batch_md5=self.batch_md5,
                                                    report_path=self.picturae_config.ACTIVE_REPORT_PATH,
@@ -105,7 +107,7 @@ class PicturaeImporter(Importer):
         # full collector list is for populating existing and missing agents into collector table
         # new_collector_list is only for adding new agents to agent table.
         empty_lists = ['barcode_list', 'image_list', 'full_collector_list', 'new_collector_list',
-                       'taxon_list', 'new_taxa', 'parent_list']
+                       'taxon_list', 'parent_list', 'new_taxa']
 
         for empty_list in empty_lists:
             setattr(self, empty_list, [])
@@ -137,20 +139,6 @@ class PicturaeImporter(Importer):
                                                        agent_id=self.created_by_agent)
 
         self.batch_sql_tools.insert_table_record(sql=sql)
-
-        condition = f'''WHERE TimestampCreated >= "{starting_time_stamp}" 
-                        AND TimestampCreated <= "{ending_time_stamp}";'''
-
-
-        error_tabs = ['picturaetaxa_added']
-        for tab in error_tabs:
-
-            sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
-                                                               val_list=[self.batch_md5], condition=condition,
-                                                               agent_id=self.created_by_agent)
-
-            self.batch_sql_tools.insert_table_record(sql=sql)
-
 
 
     def exit_timestamp(self):
@@ -195,20 +183,20 @@ class PicturaeImporter(Importer):
 
                 new_bar = row.CatalogNumber
 
-                # os.path.
-                old_path = self.picturae_config.PREFIX + row['image_path']
+                # constructing paths of new duplicate image
+                new_image_path = os.path.dirname(row.image_path) + f"{os.path.sep}{new_bar}.tif"
 
-                new_path = self.picturae_config.PREFIX + os.path.dirname(row['image_path']) + \
-                           f"{os.path.sep}{new_bar}.tif"
+                old_path = self.picturae_config.PREFIX + row.image_path
+
+                new_path = self.picturae_config.PREFIX + new_image_path
 
                 try:
                     if os.path.exists(new_path) is False:
                         shutil.copy2(old_path, new_path)
                     else:
                         pass
-                    new_filename = os.path.basename(new_path)
 
-                    self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_filename
+                    self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_image_path
 
                     self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar} ")
 
@@ -483,6 +471,7 @@ class PicturaeImporter(Importer):
                     # # adding family name to list
                     # if self.family_id is None:
                     #     self.taxon_list.append(self.family_name)
+
             self.new_taxa.extend(self.taxon_list)
         else:
             pass
@@ -1059,6 +1048,7 @@ class PicturaeImporter(Importer):
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
+            self.new_taxa = list(set(self.new_taxa))
             self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full,
                                                           agent_id=self.created_by_agent)
         # uploading attachments
@@ -1077,9 +1067,8 @@ class PicturaeImporter(Importer):
         self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
                                                      time_stamp=starting_time_stamp)
 
-        # writing time stamps to txt file
-
         self.logger.info("process finished")
+
 
         # unlocking database
         # sql = f"""UPDATE mysql.user

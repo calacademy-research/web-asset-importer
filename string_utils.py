@@ -16,7 +16,11 @@ def str_to_bool(value: str):
         returns:
             boolean conversion of string value.
     """
-    return value == 'true' or value == "t"
+    if isinstance(value, bool):
+        return value
+    else:
+        value = str(value)
+        return value.lower() == 'true' or value.lower() == "t"
 
 
 def remove_non_numerics(string: str):

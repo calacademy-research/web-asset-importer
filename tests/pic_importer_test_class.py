@@ -1,7 +1,6 @@
 """test case of the PicturaeImporter class which runs a reduced init method to use in unittests"""
 import logging
-import os
-
+import pandas as pd
 from sql_csv_utils import SqlCsvTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
@@ -12,6 +11,7 @@ class AltPicturaeImporter(PicturaeImporter):
         Importer.__init__(self, db_config_class=self.picturae_config, collection_name="Botany")
         self.picdb_config = get_config(config="picbatch")
         self.process_csv_files(date_string)
+        self.record_full = pd.DataFrame()
         self.init_all_vars()
         self.sql_csv_tools = SqlCsvTools(config=self.picturae_config)
         self.logger = logging.getLogger("AltPicturaeImporter")
