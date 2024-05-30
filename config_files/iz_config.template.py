@@ -15,7 +15,6 @@ MAXIMUM_ID_DIGITS = 12
 AGENT_ID = 123456
 
 # path variables
-IMAGE_SUFFIX = "[0-9]*([-_])*[0-9a-zA-Z]?.(jpg|jpeg|tiff|tif)"
 MINIMUM_ID_DIGITS = 5
 MAXIMUM_ID_DIGITS = 10
 IMAGE_EXTENSION = r'(\.(jpg|jpeg|tiff|tif|png))$'

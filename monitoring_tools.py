@@ -5,7 +5,6 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
-from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
