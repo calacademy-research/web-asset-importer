@@ -16,6 +16,7 @@ from os import listdir
 from os.path import isfile, join
 import traceback
 import hashlib
+import atexit
 from metadata_tools import MetadataTools
 
 class ConvertException(Exception):
@@ -41,6 +42,7 @@ class Importer:
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
         self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
+        self.execute_at_exit()
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -48,6 +50,17 @@ class Importer:
         cur_filename = cur_filename.split(".")[:-1]
         cur_filename = ".".join(cur_filename)
         return cur_filename, cur_file_ext
+
+    def remove_tmp_jpg(self):
+        """removes tmp folder after process termination"""
+        if os.path.exists(self.TMP_JPG):
+            self.logger.info(f"Removing ./TMP folder at {self.TMP_JPG}")
+            shutil.rmtree(self.TMP_JPG)
+
+    def execute_at_exit(self):
+        """executes any custom cleanup processes
+           after importer exits with exit code."""
+        atexit.register(self.remove_tmp_jpg)
 
     @staticmethod
     def get_file_md5(filename):
@@ -61,9 +74,7 @@ class Importer:
         basename = os.path.basename(tiff_filepath)
         if not os.path.exists(self.TMP_JPG):
             os.mkdir(self.TMP_JPG)
-        else:
-            shutil.rmtree(self.TMP_JPG)
-            os.mkdir(self.TMP_JPG)
+
         file_name_no_extention, extention = self.split_filepath(basename)
         if extention != 'tif':
             self.logger.error(f"Bad filename, can't convert {tiff_filepath}")
