@@ -127,8 +127,7 @@ def main(args):
             full_import = args.full_import
             IchthyologyImporter(full_import=full_import)
         elif args.collection == "IZ":
-            full_import = args.full_import
-            IzImporter(full_import=full_import)
+            IzImporter()
     elif args.subcommand == 'purge':
         logger.debug("Purge!")
 

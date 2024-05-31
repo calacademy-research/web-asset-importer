@@ -369,7 +369,6 @@ class IzImporter(Importer):
     def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
         exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
         exif_create_year = self._extract_year_from_date(exif_create_date)
-
         file_key_copyright_date = file_key.get('CopyrightDate', '')
         file_key_copyright_year = self._extract_year_from_date(file_key_copyright_date)
 
@@ -395,8 +394,11 @@ class IzImporter(Importer):
         }
 
     def _extract_year_from_date(self, date_str):
-        match = re.search(r'\b\d{4}\b', date_str)
-        return match.group(0) if match else None
+        if date_str is not None:
+            match = re.search(r'\b\d{4}\b', date_str)
+            if match:
+                return match.group(0)
+        return None
 
     def _update_casiz_filepath_map(self, full_path):
         self.casiz_numbers = list(map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))), self.casiz_numbers))

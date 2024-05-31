@@ -25,7 +25,7 @@ class MetadataTools:
 
     def read_exif(self):
         """Reads all EXIF tags from an image using ExifTool with advanced formatting and returns them as a dictionary."""
-        command = ['exiftool', '-a', '-g', '-G', self.path]
+        command = ['/usr/local/bin/exiftool', '-a', '-g', '-G', self.path]
         try:
             result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
             if result.stderr:
