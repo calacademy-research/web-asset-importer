@@ -1,4 +1,3 @@
-
 from attachment_utils import AttachmentUtils
 import datetime
 from uuid import uuid4
@@ -32,6 +31,7 @@ class TooSmallException(Exception):
 class MissingPathException(Exception):
     pass
 
+
 class Importer:
 
     def __init__(self, db_config_class, collection_name):
@@ -44,6 +44,7 @@ class Importer:
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
         self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
+
         self.execute_at_exit()
 
     def split_filepath(self, filepath):
@@ -84,7 +85,8 @@ class Importer:
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
-        proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['magick', '-quality', '99', tiff_filepath, jpg_dest],
+                                stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
         onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f))]
@@ -132,7 +134,7 @@ class Importer:
 
     def import_to_specify_database(self, filepath, url, collection_object_id, agent_id, properties):
 
-        attachment_guid = uuid4()  # Ensure you import uuid module
+        attachment_guid = str(uuid4())
 
         file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
 
@@ -142,13 +144,14 @@ class Importer:
             attachment_location=url,
             original_filename=filepath,
             file_created_datetime=file_created_datetime,
-            guid=attachment_guid,
+            guid=str(attachment_guid),
             image_type=mime_type,
             agent_id=agent_id,
             properties=properties
         )
 
-        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+#        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+        attachment_id = self.attachment_utils.get_attachment_id(str(attachment_guid))
 
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
 
@@ -248,18 +251,14 @@ class Importer:
 
         deleteme = self.convert_image_if_required(filepath)
 
-
-
         if deleteme is not None:
             upload_me = deleteme
         else:
             upload_me = filepath
 
-
         # attaching necessary exif data post-conversion
         # if self.db_config_class.EXIF_DICT:
         #     MetadataTools(path=upload_me, config=self.db_config_class)
-
 
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
@@ -344,7 +343,7 @@ class Importer:
                 else:
                     is_public = not force_redacted
 
-                properties[ST_IS_PUBLIC]=is_public
+                properties[ST_IS_PUBLIC] = is_public
                 self.import_to_specify_database(
                     filepath=cur_filepath,
                     url=url,
@@ -369,7 +368,6 @@ class Importer:
                     f"Upload failure to image server for file: \n\t{cur_filepath}")
                 self.logger.error(f"Exception: {e}")
                 traceback.print_exc()
-
 
     def check_for_valid_image(self, full_path):
         # self.logger.debug(f"Ich importer verify file: {full_path}")

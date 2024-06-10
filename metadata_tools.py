@@ -5,10 +5,6 @@ from timeout import timeout
 import errno
 import os
 import logging
-from iptcinfo3 import IPTCInfo
-import exifread
-import PIL
-from PIL import Image, ExifTags
 import subprocess
 import traceback
 

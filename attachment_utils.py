@@ -5,8 +5,6 @@ import logging
 from constants import *
 
 
-
-
 class AttachmentUtils:
 
     def __init__(self, db_utils):
@@ -39,11 +37,13 @@ class AttachmentUtils:
 
         return aid
 
-    def create_attachment(self, attachment_location, original_filename, file_created_datetime, guid, image_type, agent_id,
+    def create_attachment(self, attachment_location,
+                          original_filename, file_created_datetime, guid, image_type,
+                          agent_id,
                           properties):
         # Helper function to handle None values correctly for SQL
-        def val(param):
-            return param if param is not None else 'NULL'
+        def val(value):
+            return None if value in [None, 'NULL'] else value
 
         # Using parameterized SQL queries to prevent SQL injection
         sql = f"""
