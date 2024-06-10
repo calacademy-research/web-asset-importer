@@ -28,7 +28,7 @@ class PicturaeImporter(Importer):
            along with attached images
     """
 
-    def __init__(self, paths, config, date_string=None):
+    def __init__(self, config):
 
         self.picturae_config = config
 
@@ -38,34 +38,64 @@ class PicturaeImporter(Importer):
 
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
-        self.init_all_vars(date_string=date_string, paths=paths)
+        self.csv_folder = self.picturae_config.CSV_FOLDER
 
-        self.record_full = pd.read_csv(self.file_path)
+        self.process_csv_files()
+
+        self.init_all_vars()
 
         self.num_barcodes = len(self.record_full)
 
         self.run_all_methods()
 
 
-    def init_all_vars(self, date_string, paths):
+    def process_csv_files(self):
+
+        self.csv_folder = self.picturae_config.CSV_FOLDER
+
+        self.file_path = None
+        max_digits = -1
+
+        for file in os.listdir(self.csv_folder):
+            if file.endswith('.csv'):
+                full_file_path = os.path.join(self.csv_folder, file)
+                file_digits = int(remove_non_numerics(file))
+                if file_digits > max_digits:
+                    max_digits = file_digits
+                    self.file_path = full_file_path
+
+        if self.file_path:
+            self.logger.info(f"File with the highest numeric digits: {self.file_path}")
+        else:
+            raise ValueError("No CSV files found")
+
+
+        self.record_full = pd.read_csv(self.file_path)
+
+        # creating paths list for botany importer out of root directories in CSV file
+
+        paths = list(self.record_full['image_path'].apply(os.path.dirname).unique())
+
+        updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+
+        self.paths = updated_paths
+
+
+    def init_all_vars(self):
         """setting init variables:
             a list of variables and data structures to be initialized at the beginning of the class.
             args:
                 date_string: the date input recieved from init params
                 paths: the paths string recieved from the init params"""
 
-        self.date_use = date_string
-
-        self.scan_folder = re.sub(pattern=self.picturae_config.FOLDER_REGEX, repl=f"_{self.date_use}_",
-                                  string=self.picturae_config.PIC_SCAN_FOLDERS)
-
-        self.file_path = self.picturae_config.PREFIX + self.scan_folder + f"PIC_record_{self.date_use}.csv"
-
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
+
+        self.record_full['batch_md5'] = self.batch_md5
 
         self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
                                                    batch_md5=self.batch_md5,
-                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH)
+                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH,
+                                                   active=True)
 
         # setting up db sql_tools for each connection
 
@@ -77,7 +107,7 @@ class PicturaeImporter(Importer):
         # full collector list is for populating existing and missing agents into collector table
         # new_collector_list is only for adding new agents to agent table.
         empty_lists = ['barcode_list', 'image_list', 'full_collector_list', 'new_collector_list',
-                       'taxon_list', 'new_taxa', 'parent_list']
+                       'taxon_list', 'parent_list', 'new_taxa']
 
         for empty_list in empty_lists:
             setattr(self, empty_list, [])
@@ -99,30 +129,16 @@ class PicturaeImporter(Importer):
 
         self.created_by_agent = self.picturae_config.IMPORTER_AGENT_ID
 
-        self.paths = paths
-
-
 
     def run_timestamps(self, batch_size: int):
         """updating md5 fields for new taxon and taxon mismatch batches"""
         ending_time_stamp = datetime.now()
 
         sql = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                       batch_md5=self.batch_md5, batch_size=batch_size)
+                                                       batch_md5=self.batch_md5, batch_size=batch_size,
+                                                       agent_id=self.created_by_agent)
 
         self.batch_sql_tools.insert_table_record(sql=sql)
-
-        condition = f'''WHERE TimestampCreated >= "{starting_time_stamp}" 
-                        AND TimestampCreated <= "{ending_time_stamp}";'''
-
-
-        error_tabs = ['picturaetaxa_added']
-        for tab in error_tabs:
-
-            sql = self.batch_sql_tools.create_update_statement(tab_name=tab, col_list=['batch_MD5'],
-                                                               val_list=[self.batch_md5], condition=condition)
-
-            self.batch_sql_tools.insert_table_record(sql=sql)
 
 
     def exit_timestamp(self):
@@ -167,20 +183,20 @@ class PicturaeImporter(Importer):
 
                 new_bar = row.CatalogNumber
 
-                old_path = self.picturae_config.PREFIX + self.scan_folder + \
-                           f"undatabased{os.path.sep}" + f"{parent_bar}.tif"
+                # constructing paths of new duplicate image
+                new_image_path = os.path.dirname(row.image_path) + f"{os.path.sep}{new_bar}.tif"
 
-                new_path = self.picturae_config.PREFIX + self.scan_folder + \
-                           f"undatabased{os.path.sep}" + f"{new_bar}.tif"
+                old_path = self.picturae_config.PREFIX + row.image_path
+
+                new_path = self.picturae_config.PREFIX + new_image_path
 
                 try:
                     if os.path.exists(new_path) is False:
                         shutil.copy2(old_path, new_path)
                     else:
                         pass
-                    new_filename = os.path.basename(new_path)
 
-                    self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_filename
+                    self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_image_path
 
                     self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar} ")
 
@@ -196,7 +212,7 @@ class PicturaeImporter(Importer):
                                 overwriting data functions
         """
         for row in self.record_full.itertuples(index=False):
-            image_path = self.paths[0] + str(row.image_path)
+            image_path = self.picturae_config.PREFIX + str(row.image_path)
             if not row.image_valid:
                 raise ValueError(f"image {row.image_path} is not valid ")
 
@@ -316,9 +332,10 @@ class PicturaeImporter(Importer):
                 break
 
             if pd.notna(agent_id) and agent_id != '':
-                collector_dict = {f'collector_first_name': first,
-                                  f'collector_middle_initial': middle,
-                                  f'collector_last_name': last,
+                # note do not convert agent_id to string it will mess with sql
+                collector_dict = {f'collector_first_name': str(first),
+                                  f'collector_middle_initial': str(middle),
+                                  f'collector_last_name': str(last),
                                   f'collector_title': '',
                                   f'agent_id': agent_id}
 
@@ -348,18 +365,20 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': first_name,
-                                  f'collector_middle_initial': middle,
-                                  f'collector_last_name': last_name,
-                                  f'collector_title': title,
+                collector_dict = {f'collector_first_name': str(first_name),
+                                  f'collector_middle_initial': str(middle),
+                                  f'collector_last_name': str(last_name),
+                                  f'collector_title': str(title),
                                   f'agent_id': agent_id}
 
+
                 self.full_collector_list.append(collector_dict)
+
                 if agent_id is None:
                     self.new_collector_list.append(collector_dict)
 
         if not self.full_collector_list or \
-                self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown":
+                (self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown"):
             self.full_collector_list[0]["collector_last_name"] = "unspecified"
 
 
@@ -452,6 +471,7 @@ class PicturaeImporter(Importer):
                     # # adding family name to list
                     # if self.family_id is None:
                     #     self.taxon_list.append(self.family_name)
+
             self.new_taxa.extend(self.taxon_list)
         else:
             pass
@@ -839,6 +859,7 @@ class PicturaeImporter(Importer):
             table = 'collector'
 
             agent_id = agent_dict['agent_id']
+
             if agent_id != '' and pd.notna(agent_id):
                 agent_id = agent_dict['agent_id']
             else:
@@ -909,6 +930,7 @@ class PicturaeImporter(Importer):
                 none
         """
         folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
+
         for folder_path in folder_paths:
             prefix = ".hidden_"
             for file_name in os.listdir(folder_path):
@@ -989,7 +1011,7 @@ class PicturaeImporter(Importer):
         # setting directory
 
         # creating backup copy of upload csv before modifying
-        copy_path = self.picturae_config.PREFIX + self.scan_folder + f"PIC_record_{self.date_use}_copy.csv"
+        copy_path = self.csv_folder + f"PIC_archive{os.path.sep}{os.path.basename(self.file_path)}"
 
         if not os.path.exists(copy_path):
             shutil.copyfile(self.file_path, copy_path)
@@ -1026,7 +1048,9 @@ class PicturaeImporter(Importer):
 
         # creating new taxon list
         if len(self.new_taxa) > 0:
-            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full)
+            self.new_taxa = list(set(self.new_taxa))
+            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full,
+                                                          agent_id=self.created_by_agent)
         # uploading attachments
 
         value_list = [len(self.new_taxa)]
@@ -1036,18 +1060,15 @@ class PicturaeImporter(Importer):
 
         self.upload_attachments()
 
-        # resaving after importing images to prevent double uploading
+        # deleting from main folder after importing images to prevent double uploading
 
-        self.record_full['image_present_db'] = True
-
-        self.record_full.to_csv(self.file_path)
+        os.remove(self.file_path)
 
         self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
                                                      time_stamp=starting_time_stamp)
 
-        # writing time stamps to txt file
-
         self.logger.info("process finished")
+
 
         # unlocking database
         # sql = f"""UPDATE mysql.user

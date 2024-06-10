@@ -38,6 +38,7 @@ class ImageClient:
         self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
         if config is not None:
+            self.config = config
             self.monitoring_tools = MonitoringTools(config=config, report_path=config.REPORT_PATH)
 
     def split_filepath(self, filepath):
@@ -130,6 +131,12 @@ class ImageClient:
         url = self.build_url("fileupload")
         self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
         r = requests.post(url, files=files, data=data)
+
+        if "undatabased" in original_path.lower() and self.monitoring_tools.path != self.config.ACTIVE_REPORT_PATH:
+            self.monitoring_tools.path = self.config.ACTIVE_REPORT_PATH
+        else:
+            pass
+
         if r.status_code != 200:
             self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
@@ -137,6 +144,7 @@ class ImageClient:
                 raise DuplicateImageException
             else:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
+
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=False)
@@ -152,8 +160,10 @@ class ImageClient:
             r = requests.get(self.build_url("getfileref"), params=params)
             url = r.text
             assert r.status_code == 200
-            self.logger.info(f"Uploaded: {local_filename},{attach_loc},{url}")
-            print("adding to image")
+
+            logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
+            logging.info("adding to image")
+
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
                                                         barcode=remove_non_numerics(os.path.basename(local_filename)),
                                                         success=True)

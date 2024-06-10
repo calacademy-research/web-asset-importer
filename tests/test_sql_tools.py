@@ -21,8 +21,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
     def setUp(self):
         """setting up instance of PicturaeImporter"""
-        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash,
-                                                                   paths=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
 
         self.sqlite_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 

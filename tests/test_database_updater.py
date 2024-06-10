@@ -14,7 +14,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
     def setUp(self):
         """setup: creates dummy database and backup copy of sqlite database"""
 
-        self.alt_importer_lite = AltPicturaeImporterlite(paths=self.md5_hash, date_string=self.md5_hash)
+        self.alt_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
 
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")

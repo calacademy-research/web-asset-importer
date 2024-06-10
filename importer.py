@@ -8,7 +8,6 @@ from db_utils import InvalidFilenameError
 import collections
 import filetype
 
-TMP_JPG = "./tmp_jpg"
 import logging
 import subprocess
 from specify_db import SpecifyDb
@@ -19,6 +18,8 @@ import traceback
 import hashlib
 from image_client import DuplicateImageException
 from constants import *
+import atexit
+
 
 class ConvertException(Exception):
     pass
@@ -42,6 +43,8 @@ class Importer:
         self.image_client = ImageClient(config=db_config_class)
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
+        self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
+        self.execute_at_exit()
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -49,6 +52,17 @@ class Importer:
         cur_filename = cur_filename.split(".")[:-1]
         cur_filename = ".".join(cur_filename)
         return cur_filename, cur_file_ext
+
+    def remove_tmp_jpg(self):
+        """removes tmp folder after process termination"""
+        if os.path.exists(self.TMP_JPG):
+            self.logger.info(f"Removing ./TMP folder at {self.TMP_JPG}")
+            shutil.rmtree(self.TMP_JPG)
+
+    def execute_at_exit(self):
+        """executes any custom cleanup processes
+           after importer exits with exit code."""
+        atexit.register(self.remove_tmp_jpg)
 
     @staticmethod
     def get_file_md5(filename):
@@ -60,31 +74,29 @@ class Importer:
 
     def tiff_to_jpg(self, tiff_filepath):
         basename = os.path.basename(tiff_filepath)
-        if not os.path.exists(TMP_JPG):
-            os.mkdir(TMP_JPG)
-        else:
-            shutil.rmtree(TMP_JPG)
-            os.mkdir(TMP_JPG)
+        if not os.path.exists(self.TMP_JPG):
+            os.mkdir(self.TMP_JPG)
+
         file_name_no_extention, extention = self.split_filepath(basename)
         if extention != 'tif':
             self.logger.error(f"Bad filename, can't convert {tiff_filepath}")
             raise ConvertException(f"Bad filename, can't convert {tiff_filepath}")
 
-        jpg_dest = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
+        jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
         proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
-        onlyfiles = [f for f in listdir(TMP_JPG) if isfile(join(TMP_JPG, f))]
+        onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f))]
         if len(onlyfiles) == 0:
             raise ConvertException(f"No files produced from conversion")
         files_dict = {}
         for file in onlyfiles:
-            files_dict[file] = os.path.getsize(os.path.join(TMP_JPG, file))
+            files_dict[file] = os.path.getsize(os.path.join(self.TMP_JPG, file))
         sort_orders = sorted(files_dict.items(), key=lambda x: x[1], reverse=True)
         top = sort_orders[0][0]
-        target = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
-        os.rename(os.path.join(TMP_JPG, top), target)
+        target = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
+        os.rename(os.path.join(self.TMP_JPG, top), target)
         if len(onlyfiles) > 2:
             self.logger.info("multi-file case")
 
@@ -210,9 +222,9 @@ class Importer:
         tif_found = False
         deleteme = None
         filename, filename_ext = self.split_filepath(filepath)
-        if filename_ext == "jpg" or filename_ext == "jpeg":
+        if filename_ext.lower() == "jpg" or filename_ext.lower() == "jpeg":
             jpg_found = filepath
-        if filename_ext == "tif" or filename_ext == "tiff":
+        if filename_ext.lower() == "tif" or filename_ext.lower() == "tiff":
             tif_found = filepath
         if not jpg_found and tif_found:
             self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")

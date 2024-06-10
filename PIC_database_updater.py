@@ -11,6 +11,7 @@ class UpdatePICFields:
 
         csv_path = f"nfn_csv/{date}/NFN_{date}.csv"
         self.config = config
+        self.AGENT_ID = self.config.IMPORTER_AGENT_ID
         self.force_update = force_update
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
@@ -67,7 +68,8 @@ class UpdatePICFields:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
-                                                             val_list=[accession], condition=condition)
+                                                             val_list=[accession], condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
         else:
@@ -86,7 +88,8 @@ class UpdatePICFields:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
-                                                             val_list=[herb_code], condition=condition)
+                                                             val_list=[herb_code], condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
         else:
@@ -116,7 +119,8 @@ class UpdatePICFields:
 
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                             val_list=val_list, condition=condition)
+                                                             val_list=val_list, condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -142,7 +146,8 @@ class UpdatePICFields:
             condition = f"""WHERE CollectingEventID = {collecting_event_id}"""
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
-                                                             val_list=[habitat_string], condition=condition)
+                                                             val_list=[habitat_string], condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -167,7 +172,8 @@ class UpdatePICFields:
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
                                                              val_list=[loc_string],
-                                                             condition=condition
+                                                             condition=condition,
+                                                             agent_id=self.AGENT_ID
                                                              )
 
             self.sql_csv_tools.insert_table_record(sql=sql)
@@ -200,7 +206,8 @@ class UpdatePICFields:
                                                                                             'MinElevation',
                                                                                             'OriginalElevationUnit'],
                                                              val_list=[max_elev, min_elev, elev_unit],
-                                                             condition=condition
+                                                             condition=condition,
+                                                             agent_id=self.AGENT_ID
                                                              )
 
             self.sql_csv_tools.insert_table_record(sql=sql)
@@ -309,7 +316,8 @@ class UpdatePICFields:
                                                              col_list=['Township', 'RangeDesc', 'Section'],
                                                              val_list=[row['Township'], row['Range'],
                                                                        row['Section']],
-                                                             condition=condition)
+                                                             condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -335,7 +343,8 @@ class UpdatePICFields:
                                                              col_list=['UtmEasting', 'UtmNorthing', 'UtmDatum'],
                                                              val_list=[row['UtmEasting'], row['UtmNorthing'],
                                                                        row['UtmDatum']],
-                                                             condition=condition)
+                                                             condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -355,7 +364,7 @@ class UpdatePICFields:
                 self.update_herbarium_code(barcode=row['barcode'], herb_code=row['Modifier'])
 
             # checking lat/long values for update
-            if 'Longitude1' or 'Latitude2' or 'LatText1' or 'LatText2' or 'Datum' in self.update_frame:
+            if 'Longitude1' and 'Latitude2' and 'LatText1' and 'LatText2' and 'OriginalLatLongUnit' in self.update_frame:
                 up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2',
                                                             'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text', 'Datum'])
 

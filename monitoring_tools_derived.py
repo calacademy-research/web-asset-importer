@@ -1,9 +1,9 @@
 from monitoring_tools import MonitoringTools
 import time_utils
 class MonitoringToolsDir(MonitoringTools):
-    def __init__(self, batch_md5, config, report_path):
+    def __init__(self, batch_md5, config, report_path, active):
         self.batch_md5 = batch_md5
-        MonitoringTools.__init__(self, config=config, report_path=report_path)
+        MonitoringTools.__init__(self, config=config, report_path=report_path, active=active)
 
     def add_format_batch_report(self, custom_terms=None):
         """add_format_batch_report:

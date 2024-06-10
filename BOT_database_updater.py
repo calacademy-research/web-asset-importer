@@ -11,6 +11,7 @@ class UpdateBotDbFields:
         csv_path = f"nfn_csv/{date}/NFN_{date}.csv"
         self.config = config
         self.force_update = force_update
+        self.AGENT_ID = config.AGENT_ID
         logging.basicConfig(level=logging.DEBUG)
         self.logger = logging.getLogger('UpdateDbFields')
         self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
@@ -35,9 +36,12 @@ class UpdateBotDbFields:
                 self.update_herbarium_code(barcode=row['barcode'], herb_code=row['Modifier'])
 
             # checking lat/long values for update
-            if 'Longitude1' or 'Latitude2' or 'LatText1' or 'LatText2' or 'Datum' in self.update_frame:
+            if (('Longitude1' and 'Latitude1') or ('Longitude2' and 'Latitude2')) and \
+                    (('Lat1Text' and 'Long1Text') or ('Lat2Text' and 'Long2Text')) and \
+                    'OriginalLatLongUnit' in self.update_frame:
                 up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2',
-                                                            'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text', 'Datum'])
+                                                            'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text',
+                                                            'OriginalLatLongUnit', 'SrcLatLongUnit', 'Datum'])
 
                 self.update_coords(row=row, colname_list=up_list)
 
@@ -114,7 +118,8 @@ class UpdateBotDbFields:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
-                                                             val_list=[accession], condition=condition)
+                                                             val_list=[accession], condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
         else:
@@ -133,7 +138,8 @@ class UpdateBotDbFields:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
             sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
-                                                             val_list=[herb_code], condition=condition)
+                                                             val_list=[herb_code], condition=condition,
+                                                             agent_id=self.AGENT_ID)
 
             self.sql_csv_tools.insert_table_record(sql=sql)
         else:
@@ -181,7 +187,8 @@ class UpdateBotDbFields:
                     condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
                     sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['LocalityID'],
-                                                                     val_list=[self.locality_id], condition=condition)
+                                                                     val_list=[self.locality_id], condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
                     self.sql_csv_tools.insert_table_record(sql=sql)
         else:
@@ -209,7 +216,8 @@ class UpdateBotDbFields:
         condition = f"""WHERE LocalityID = '{self.locality_id}';"""
 
         sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                         val_list=val_list, condition=condition)
+                                                         val_list=val_list, condition=condition,
+                                                         agent_id=self.AGENT_ID)
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -229,7 +237,8 @@ class UpdateBotDbFields:
         condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
         sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
-                                                         val_list=[habitat_string], condition=condition)
+                                                         val_list=[habitat_string], condition=condition,
+                                                         agent_id=self.AGENT_ID)
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -243,7 +252,8 @@ class UpdateBotDbFields:
 
         sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
                                                          val_list=[loc_string],
-                                                         condition=condition
+                                                         condition=condition,
+                                                         agent_id=self.AGENT_ID
                                                          )
 
         self.sql_csv_tools.insert_table_record(sql=sql)
@@ -276,7 +286,8 @@ class UpdateBotDbFields:
 
         sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
                                                          val_list=val_list,
-                                                         condition=condition
+                                                         condition=condition,
+                                                         agent_id=self.AGENT_ID
                                                          )
 
         self.sql_csv_tools.insert_table_record(sql=sql)
@@ -430,7 +441,8 @@ class UpdateBotDbFields:
         sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
                                                          col_list=col_list,
                                                          val_list=row[col_list],
-                                                         condition=condition)
+                                                         condition=condition,
+                                                         agent_id=self.AGENT_ID)
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 
@@ -448,7 +460,8 @@ class UpdateBotDbFields:
         sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
                                                          col_list=col_list,
                                                          val_list=row[col_list],
-                                                         condition=condition)
+                                                         condition=condition,
+                                                         agent_id=self.AGENT_ID)
 
         self.sql_csv_tools.insert_table_record(sql=sql)
 

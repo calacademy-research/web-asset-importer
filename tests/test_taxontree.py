@@ -20,7 +20,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
 
     def setUp(self):
-        self.test_picturae_importer_lite = AltPicturaeImporterlite(paths=self.md5_hash, date_string=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 

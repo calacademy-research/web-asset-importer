@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 from sql_csv_utils import SqlCsvTools
 import logging
@@ -13,10 +15,12 @@ class RemovePartialAttachments(Importer):
         self.logger = logging.getLogger("RemovePartialAttachments")
         self.logger.setLevel(logging.DEBUG)
         self.sql_csv_tools = SqlCsvTools(config=self.config)
+        self.attachment_tab = pd.read_csv('casbotany_attachment.csv', low_memory=False)
 
-        self.attachment_tab = pd.read_csv('temp_utility_scripts/casbotany_attachment.csv')
+        self.image_tab = pd.read_csv('image_db.csv', low_memory=False)
 
-        self.image_tab = pd.read_csv('temp_utility_scripts/image_db.csv')
+        self.internal_list = []
+
 
         # self.remove_missing_collection_ob_attach()
         #
@@ -24,7 +28,9 @@ class RemovePartialAttachments(Importer):
 
         # self.remove_attachements_no_record()
 
-        self.check_success()
+        self.remove_list_of_internal_filepaths(internal_path_list=self.internal_list)
+
+        # self.check_success()
 
     def remove_missing_collection_ob_attach(self):
         """remove_missing_collection_ob_attach: removes all attachments and image_db paths
@@ -49,6 +55,7 @@ class RemovePartialAttachments(Importer):
         attachment_id_list = [str(item) for item in attachment_id_list]
 
         column_list = ', '.join(attachment_id_list)
+
 
         file_path_count = []
 
@@ -84,7 +91,7 @@ class RemovePartialAttachments(Importer):
         # combine_tab.to_csv("/admin/web-asset-importer/temp_utility_scripts/combine_tab.csv")
         print(f"number of filepaths to be removed from image db {len(combine_tab)}")
         #
-        # cont_prompter()
+        cont_prompter()
 
         barcode_test_count = []
         filepath_test_count = []
@@ -105,7 +112,7 @@ class RemovePartialAttachments(Importer):
             self.logger.info(f"removing unattached filepath: {row['internal_filename']}")
             self.image_client.delete_from_image_server(attach_loc=internal_filename, collection='Botany')
             filepath_test_count.append(internal_filename)
-            if remove_assoc is True:
+            if remove_assoc is True and internal_filepaths:
                 for filepath in internal_filepaths:
                     self.logger.info(f"removing associated filepath: {filepath[0]}")
                     filepath_test_count.append(filepath[0])
@@ -117,18 +124,31 @@ class RemovePartialAttachments(Importer):
 
             # this will work well only after the first function which
             # eliminates attachments without collectionobjectattachments
-            for attachment_id in attachment_ids:
-                self.logger.info(f"removing collectionobjectattachment and attachment: {attachment_id[0]}")
-                attachment_id_test_count.append(attachment_id[0])
-                sql = f"""DELETE FROM collectionobjectattachment WHERE AttachmentID = {attachment_id[0]};"""
-                self.sql_csv_tools.insert_table_record(sql=sql)
-                sql = f"""DELETE FROM attachment WHERE AttachmentID = {attachment_id[0]};"""
-                self.sql_csv_tools.insert_table_record(sql=sql)
+            if attachment_ids:
+                for attachment_id in attachment_ids:
+                    self.logger.info(f"removing collectionobjectattachment and attachment: {attachment_id[0]}")
+                    attachment_id_test_count.append(attachment_id[0])
+                    sql = f"""DELETE FROM collectionobjectattachment WHERE AttachmentID = {attachment_id[0]};"""
+                    self.sql_csv_tools.insert_table_record(sql=sql)
+                    sql = f"""DELETE FROM attachment WHERE AttachmentID = {attachment_id[0]};"""
+                    self.sql_csv_tools.insert_table_record(sql=sql)
 
         self.logger.warning(f"Number of barcodes processed: {len(barcode_test_count)}")
         self.logger.warning(f"Number filepaths deleted from image_server: {len(filepath_test_count)}")
         self.logger.warning(f"Number of attachments/collectionobjectattachments deleted: {len(attachment_id_test_count)}")
 
+
+    def remove_list_of_internal_filepaths(self, internal_path_list: list):
+        """use with caution, simple function used to remove every internal filepath in a given list from image server"""
+        print(f"preparing to remove {len(internal_path_list)} paths from image server")
+        cont_prompter()
+        for internal_filepath in internal_path_list:
+            self.logger.info(f"removing unattached filepath: {internal_filepath}")
+            try:
+                self.image_client.delete_from_image_server(attach_loc=internal_filepath, collection='Botany')
+            except Exception as e:
+                self.logger.info(e)
+                continue
 
     def remove_attachements_no_record(self):
         """remove_attachments_no_record: used to remove attachment DB records with no image DB record."""
@@ -171,3 +191,8 @@ class RemovePartialAttachments(Importer):
         combine_tab = pd.merge(self.attachment_tab, self.image_tab, on="internal_filename", how='outer', indicator=True)
 
         combine_tab = combine_tab[combine_tab['_merge'] == 'right_only']
+
+
+config = get_config(config="Botany")
+rpa = RemovePartialAttachments(config=config)
+

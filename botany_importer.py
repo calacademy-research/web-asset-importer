@@ -28,8 +28,8 @@ class BotanyImporter(Importer):
         super().__init__(config, "Botany")
         # limit is for debugging
         self.botany_importer_config = config
-        # print(self.botany_importer_config)
         self.existing_barcodes = existing_barcodes
+        self.full_import = full_import
         dir_tools = DirTools(self.build_filename_map, limit=None)
         self.barcode_map = {}
         self.logger.debug("Botany import mode")
@@ -44,7 +44,7 @@ class BotanyImporter(Importer):
         # else:
         #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
 
-        if not full_import:
+        if not self.full_import:
             self.monitoring_tools = MonitoringTools(config=self.botany_importer_config,
                                                     report_path=self.botany_importer_config.REPORT_PATH)
 
@@ -53,7 +53,7 @@ class BotanyImporter(Importer):
         self.process_loaded_files()
 
 
-        if not full_import:
+        if not self.full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
 
@@ -87,12 +87,16 @@ class BotanyImporter(Importer):
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
 
+        if self.full_import and not self.existing_barcodes:
+            agent_id = self.botany_importer_config.IMPORTER_AGENT_ID
+        else:
+            agent_id = self.botany_importer_config.AGENT_ID
 
         if not self.existing_barcodes or (self.existing_barcodes and collection_object_id is not None):
 
             self.import_to_imagedb_and_specify(filepath_list,
                                                collection_object_id,
-                                               self.botany_importer_config.AGENT_ID,
+                                               agent_id,
                                                force_redacted)
 
 
