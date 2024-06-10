@@ -91,28 +91,30 @@ class IzImporter(Importer):
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map), self.collection_name, attach_loc)
-                sys.exit(1)
 
     def _get_exif_mapping(self, attachment_properties_map):
-        return {
-            EXIF_ARTIST: attachment_properties_map[ST_METADATA_TEXT],
-            EXIF_COPYRIGHT: attachment_properties_map[ST_COPYRIGHT_HOLDER],
-            EXIF_CREATE_DATE: attachment_properties_map[ST_DATE_IMAGED],
-            EXIF_IMAGE_DESCRIPTION: attachment_properties_map[ST_TITLE],
-            IPTC_CREDIT: attachment_properties_map[ST_CREDIT],
-            IPTC_COPYRIGHT_NOTICE: attachment_properties_map[ST_COPYRIGHT_HOLDER],
-            IPTC_BY_LINE: attachment_properties_map[ST_METADATA_TEXT],
-            IPTC_CAPTION_ABSTRACT: attachment_properties_map[ST_TITLE],
+        exif_mapping = {
+            EXIF_ARTIST: attachment_properties_map.get(ST_METADATA_TEXT),
+            EXIF_COPYRIGHT: attachment_properties_map.get(ST_COPYRIGHT_HOLDER),
+            EXIF_CREATE_DATE: attachment_properties_map.get(ST_DATE_IMAGED),
+            EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(ST_TITLE),
+            IPTC_CREDIT: attachment_properties_map.get(ST_CREDIT),
+            IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(ST_COPYRIGHT_HOLDER),
+            IPTC_BY_LINE: attachment_properties_map.get(ST_METADATA_TEXT),
+            IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(ST_TITLE),
             PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
-            XMP_RIGHTS: attachment_properties_map[ST_LICENSE],
-            XMP_CREDIT: attachment_properties_map[ST_CREDIT],
-            XMP_CREATOR: attachment_properties_map[ST_METADATA_TEXT],
-            XMP_USAGE: attachment_properties_map[ST_LICENSE],
-            XMP_USAGE_TERMS: attachment_properties_map[ST_LICENSE],
-            XMP_CREATE_DATE: attachment_properties_map[ST_FILE_CREATED_DATE],
-            XMP_TITLE: attachment_properties_map[ST_TITLE],
-            XMP_DATE_CREATED: attachment_properties_map[ST_DATE_IMAGED]
+            XMP_RIGHTS: attachment_properties_map.get(ST_LICENSE),
+            XMP_CREDIT: attachment_properties_map.get(ST_CREDIT),
+            XMP_CREATOR: attachment_properties_map.get(ST_METADATA_TEXT),
+            XMP_USAGE: attachment_properties_map.get(ST_LICENSE),
+            XMP_USAGE_TERMS: attachment_properties_map.get(ST_LICENSE),
+            XMP_CREATE_DATE: attachment_properties_map.get(ST_FILE_CREATED_DATE),
+            XMP_TITLE: attachment_properties_map.get(ST_TITLE),
+            XMP_DATE_CREATED: attachment_properties_map.get(ST_DATE_IMAGED)
         }
+
+        # Remove keys with None values
+        return {k: v for k, v in exif_mapping.items() if v is not None}
 
     def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None, copyright_method=None, copyright=None, conjunction=None):
         if rejected is None:
