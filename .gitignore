@@ -60,3 +60,4 @@ settings.development.py
 *JPG*
 *TIF*
 *.xlsx
+file_log.tsv

@@ -335,7 +335,7 @@ class Importer:
                 properties[ST_IS_PUBLIC]=is_public
                 self.import_to_specify_database(
                     filepath=cur_filepath,
-                    attach_loc=url,
+                    url=url,
                     collection_object_id=collection_object_id,
                     agent_id=agent_id,
                     properties=properties
