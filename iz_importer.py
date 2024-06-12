@@ -355,7 +355,7 @@ class IzImporter(Importer):
     def _read_exif_metadata(self, full_path):
         exif_tools = MetadataTools(full_path)
         if exif_tools is not None:
-            return exif_tools.read_exif()
+            return exif_tools.read_exif_tags()
         return None
 
     def get_casiz_ids(self, full_path, exif_metadata):
