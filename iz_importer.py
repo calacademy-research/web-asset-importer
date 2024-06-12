@@ -9,9 +9,11 @@ from importer import Importer
 from directory_tree import DirectoryTree
 from metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
-from constants import *
+
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
+from EXIF_constants import EXIFConstants
+from specify_constants import SpecifyConstants
 
 logging.basicConfig(level=logging.WARNING)
 
@@ -85,32 +87,33 @@ class IzImporter(Importer):
                 self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, self.AGENT_ID)
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
-                agent = attachment_properties_map.get(ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
+                agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
                 attach_loc = self.import_to_imagedb_and_specify([cur_filepath], collection_object_id, agent, attachment_properties_map=attachment_properties_map, force_redacted=True)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map), self.collection_name, attach_loc)
 
+
     def _get_exif_mapping(self, attachment_properties_map):
         exif_mapping = {
-            EXIF_ARTIST: attachment_properties_map.get(ST_METADATA_TEXT),
-            EXIF_COPYRIGHT: attachment_properties_map.get(ST_COPYRIGHT_HOLDER),
-            EXIF_CREATE_DATE: attachment_properties_map.get(ST_DATE_IMAGED),
-            EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(ST_TITLE),
-            IPTC_CREDIT: attachment_properties_map.get(ST_CREDIT),
-            IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(ST_COPYRIGHT_HOLDER),
-            IPTC_BY_LINE: attachment_properties_map.get(ST_METADATA_TEXT),
-            IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(ST_TITLE),
-            PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
-            XMP_RIGHTS: attachment_properties_map.get(ST_LICENSE),
-            XMP_CREDIT: attachment_properties_map.get(ST_CREDIT),
-            XMP_CREATOR: attachment_properties_map.get(ST_METADATA_TEXT),
-            XMP_USAGE: attachment_properties_map.get(ST_LICENSE),
-            XMP_USAGE_TERMS: attachment_properties_map.get(ST_LICENSE),
-            XMP_CREATE_DATE: attachment_properties_map.get(ST_FILE_CREATED_DATE),
-            XMP_TITLE: attachment_properties_map.get(ST_TITLE),
-            XMP_DATE_CREATED: attachment_properties_map.get(ST_DATE_IMAGED)
+            EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.EXIF_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+            EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
+            EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+            EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
+            EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.XMP_CREATOR: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.XMP_USAGE: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_FILE_CREATED_DATE),
+            EXIFConstants.XMP_TITLE: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.XMP_DATE_CREATED: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED)
         }
 
         # Remove keys with None values
@@ -177,12 +180,12 @@ class IzImporter(Importer):
 
     def get_casiz_from_exif(self, exif_metadata):
         priority_tags = [
-            IPTC_KEYWORDS,
-            XMP_DC_SUBJECT,
-            XMP_LR_HIERARCHICAL_SUBJECT,
-            IPTC_CAPTION_ABSTRACT,
-            XMP_DC_DESCRIPTION,
-            EXIF_IFD0_IMAGE_DESCRIPTION
+            EXIFConstants.IPTC_KEYWORDS,
+            EXIFConstants.XMP_DC_SUBJECT,
+            EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT,
+            EXIFConstants.IPTC_CAPTION_ABSTRACT,
+            EXIFConstants.XMP_DC_DESCRIPTION,
+            EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION
         ]
 
         if exif_metadata is None:

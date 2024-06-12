@@ -16,7 +16,7 @@ from os.path import isfile, join
 import traceback
 import hashlib
 from image_client import DuplicateImageException
-from constants import *
+from EXIF_constants import *
 import atexit
 
 
