@@ -2,7 +2,7 @@ import time_utils
 import db_utils
 from db_utils import DatabaseInconsistentError
 import logging
-from EXIF_constants import *
+from metadata_tools.EXIF_constants import *
 
 
 class AttachmentUtils:

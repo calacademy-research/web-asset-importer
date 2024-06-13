@@ -8,7 +8,7 @@ import string_utils
 import sys
 from specify_db import SpecifyDb
 import logging
-
+from typing import Union
 
 class DatabaseConnectionError(Exception):
     pass
@@ -217,7 +217,7 @@ class SqlCsvTools:
         cursor.close()
 
     def create_batch_record(self, start_time: datetime, end_time: datetime,
-                            batch_size: int, batch_md5: str, agent_id: str | int):
+                            batch_size: int, batch_md5: str, agent_id: Union[str | int]):
         """create_timestamps:
                 uses starting and ending timestamps to create window for sql database purge,
                 adds 10 second buffer on either end to allow sql queries to populate.
@@ -299,7 +299,7 @@ class SqlCsvTools:
 
             return result_id
 
-    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: str | int):
+    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: Union[str | int]):
         """new_taxa_record: creates record level data for any new taxa added to the database,
                             populates useful table for qc and troubleshooting
         args:
@@ -320,7 +320,7 @@ class SqlCsvTools:
 
                 self.insert_table_record(sql=sql)
 
-    def create_new_tax_tab(self, row, tab_name: str, agent_id: str | int):
+    def create_new_tax_tab(self, row, tab_name: str, agent_id: Union[str | int]):
         """create_new_tax: does a similar function as create_unmatch_tab,
                             but instead uploads a table of taxa newly added
                             to the database for QC monitoring(make sure no wonky taxa are added)

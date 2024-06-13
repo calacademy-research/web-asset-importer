@@ -7,12 +7,12 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from metadata_tools import MetadataTools
+from metadata_tools.metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
-from EXIF_constants import EXIFConstants
+from metadata_tools.EXIF_constants import EXIFConstants
 from specify_constants import SpecifyConstants
 
 logging.basicConfig(level=logging.WARNING)
