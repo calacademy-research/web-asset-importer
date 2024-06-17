@@ -2,7 +2,8 @@ import time_utils
 import db_utils
 from db_utils import DatabaseInconsistentError
 import logging
-from metadata_tools.EXIF_constants import *
+from metadata_tools.EXIF_constants import EXIFConstants
+from specify_constants import SpecifyConstants
 
 
 class AttachmentUtils:
@@ -48,11 +49,11 @@ class AttachmentUtils:
         # Using parameterized SQL queries to prevent SQL injection
         sql = f"""
             INSERT INTO attachment (
-                {ST_ATTACHMENT_LOCATION}, {ST_ATTACHMENT_STORAGE_CONFIG}, {ST_CAPTURE_DEVICE}, {ST_COPYRIGHT_DATE}, {ST_COPYRIGHT_HOLDER}, {ST_CREDIT},
-                {ST_DATE_IMAGED}, {ST_FILE_CREATED_DATE}, {ST_GUID}, {ST_IS_PUBLIC}, {ST_LICENSE}, {ST_LICENSE_LOGO_URL}, {ST_METADATA_TEXT}, {ST_MIME_TYPE},
-                {ST_ORIG_FILENAME}, {ST_REMARKS}, {ST_SCOPE_ID}, {ST_SCOPE_TYPE}, {ST_SUBJECT_ORIENTATION}, {ST_SUBTYPE}, {ST_TABLE_ID}, {ST_TIMESTAMP_CREATED},
-                {ST_TIMESTAMP_MODIFIED}, {ST_TITLE}, {ST_TYPE}, {ST_VERSION}, {ST_VISIBILITY}, {ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID}, {ST_CREATED_BY_AGENT_ID},
-                {ST_CREATOR_ID}, {ST_MODIFIED_BY_AGENT_ID}, {ST_VISIBILITY_SET_BY_ID}
+                {SpecifyConstants.ST_ATTACHMENT_LOCATION}, {SpecifyConstants.ST_ATTACHMENT_STORAGE_CONFIG}, {SpecifyConstants.ST_CAPTURE_DEVICE}, {SpecifyConstants.ST_COPYRIGHT_DATE}, {SpecifyConstants.ST_COPYRIGHT_HOLDER}, {SpecifyConstants.ST_CREDIT},
+                {SpecifyConstants.ST_DATE_IMAGED}, {SpecifyConstants.ST_FILE_CREATED_DATE}, {SpecifyConstants.ST_GUID}, {SpecifyConstants.ST_IS_PUBLIC}, {SpecifyConstants.ST_LICENSE}, {SpecifyConstants.ST_LICENSE_LOGO_URL}, {SpecifyConstants.ST_METADATA_TEXT}, {SpecifyConstants.ST_MIME_TYPE},
+                {SpecifyConstants.ST_ORIG_FILENAME}, {SpecifyConstants.ST_REMARKS}, {SpecifyConstants.ST_SCOPE_ID}, {SpecifyConstants.ST_SCOPE_TYPE}, {SpecifyConstants.ST_SUBJECT_ORIENTATION}, {SpecifyConstants.ST_SUBTYPE}, {SpecifyConstants.ST_TABLE_ID}, {SpecifyConstants.ST_TIMESTAMP_CREATED},
+                {SpecifyConstants.ST_TIMESTAMP_MODIFIED}, {SpecifyConstants.ST_TITLE}, {SpecifyConstants.ST_TYPE}, {SpecifyConstants.ST_VERSION}, {SpecifyConstants.ST_VISIBILITY}, {SpecifyConstants.ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID}, {SpecifyConstants.ST_CREATED_BY_AGENT_ID},
+                {SpecifyConstants.ST_CREATOR_ID}, {SpecifyConstants.ST_MODIFIED_BY_AGENT_ID}, {SpecifyConstants.ST_VISIBILITY_SET_BY_ID}
             )
             VALUES (
                 %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 41, CURRENT_TIMESTAMP,
@@ -61,25 +62,25 @@ class AttachmentUtils:
         """
         params = (
             attachment_location,
-            val(properties.get(ST_COPYRIGHT_DATE)),
-            val(properties.get(ST_COPYRIGHT_HOLDER)),
-            val(properties.get(ST_CREDIT)),
-            val(properties.get(ST_DATE_IMAGED)),
+            val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE)),
+            val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER)),
+            val(properties.get(SpecifyConstants.ST_CREDIT)),
+            val(properties.get(SpecifyConstants.ST_DATE_IMAGED)),
             file_created_datetime.strftime("%Y-%m-%d"),
             guid,
-            properties.get(ST_IS_PUBLIC, True),
-            val(properties.get(ST_LICENSE)),
-            val(properties.get(ST_LICENSE_LOGO_URL)),
-            val(properties.get(ST_METADATA_TEXT)),
+            properties.get(SpecifyConstants.ST_IS_PUBLIC, True),
+            val(properties.get(SpecifyConstants.ST_LICENSE)),
+            val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL)),
+            val(properties.get(SpecifyConstants.ST_METADATA_TEXT)),
             image_type,
             original_filename,
-            val(properties.get(ST_REMARKS)),
-            val(properties.get(ST_SCOPE_ID)),
-            val(properties.get(ST_SCOPE_TYPE)),
-            val(properties.get(ST_SUBJECT_ORIENTATION)),
-            val(properties.get(ST_SUBTYPE)),
-            val(properties.get(ST_TITLE)),
-            val(properties.get(ST_TYPE)),
+            val(properties.get(SpecifyConstants.ST_REMARKS)),
+            val(properties.get(SpecifyConstants.ST_SCOPE_ID)),
+            val(properties.get(SpecifyConstants.ST_SCOPE_TYPE)),
+            val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION)),
+            val(properties.get(SpecifyConstants.ST_SUBTYPE)),
+            val(properties.get(SpecifyConstants.ST_TITLE)),
+            val(properties.get(SpecifyConstants.ST_TYPE)),
             agent_id
         )
 

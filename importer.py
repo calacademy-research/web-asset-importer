@@ -16,7 +16,8 @@ from os.path import isfile, join
 import traceback
 import hashlib
 from image_client import DuplicateImageException
-from EXIF_constants import *
+from metadata_tools.EXIF_constants import EXIFConstants
+from specify_constants import SpecifyConstants
 import atexit
 
 
@@ -343,7 +344,7 @@ class Importer:
                 else:
                     is_public = not force_redacted
 
-                properties[ST_IS_PUBLIC] = is_public
+                properties[SpecifyConstants.ST_IS_PUBLIC] = is_public
                 self.import_to_specify_database(
                     filepath=cur_filepath,
                     url=url,
