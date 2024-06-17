@@ -188,14 +188,13 @@ class ImageClient:
 
     def write_exif_image_metadata(self, exif_dict, collection, filename):
 
-        api_target = f'updateexifdata'
         data = {'filename': filename,
                 'coll': collection,
                 'exif_dict': json.dumps(exif_dict),
                 'token': self.generate_token(filename)
                 }
 
-        url = self.build_url(api_target)
+        url = self.build_url('updateexifdata')
 
         response = requests.post(url, data=data)
 
