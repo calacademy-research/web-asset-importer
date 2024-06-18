@@ -5,7 +5,6 @@ import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
-from jinja2 import Template
 import smtplib
 
 class MonitoringTools:
@@ -13,12 +12,15 @@ class MonitoringTools:
 
         self.path = report_path
         self.config = config
-        self.logger = logging.getLogger("MonitoringTools")
+
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
+
 
         if active is True:
             self.AGENT_ID = self.config.IMPORTER_AGENT_ID
         else:
             self.AGENT_ID = self.config.AGENT_ID
+
 
         if not pd.isna(config) and config != {}:
             self.check_config_present()
@@ -26,6 +28,7 @@ class MonitoringTools:
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
+            args:
             args:
                 path: path of .txt or html file to clear"""
         with open(self.path, 'w') as file:

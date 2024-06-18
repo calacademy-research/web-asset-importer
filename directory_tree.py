@@ -5,6 +5,7 @@ from get_configs import get_config
 iz_importer_config = get_config(config="IZ")
 
 
+
 class DirectoryTree():
 
     def __init__(self, directories, pickle_for_debug=False):
@@ -71,6 +72,7 @@ class DirectoryTree():
 
     def process_files(self, func):
         for node in self.root_node.descendants:
+            # for node in self.self.iz_importer_config.IZ_SCAN_FOLDERS
             if not node.is_leaf:
                 continue
             func(self.get_node_path(node))

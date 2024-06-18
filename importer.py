@@ -1,4 +1,3 @@
-
 from attachment_utils import AttachmentUtils
 import datetime
 from uuid import uuid4
@@ -16,8 +15,11 @@ from os import listdir
 from os.path import isfile, join
 import traceback
 import hashlib
+from image_client import DuplicateImageException
+from metadata_tools.EXIF_constants import EXIFConstants
+from specify_constants import SpecifyConstants
 import atexit
-from metadata_tools import MetadataTools
+
 
 class ConvertException(Exception):
     pass
@@ -35,13 +37,15 @@ class Importer:
 
     def __init__(self, db_config_class, collection_name):
         self.db_config_class = db_config_class
-        self.logger = logging.getLogger('Client.importer')
+
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
         self.image_client = ImageClient(config=db_config_class)
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
         self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
+
         self.execute_at_exit()
 
     def split_filepath(self, filepath):
@@ -82,7 +86,8 @@ class Importer:
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
-        proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
+        proc = subprocess.Popen(['magick', '-quality', '99', tiff_filepath, jpg_dest],
+                                stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
         onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f))]
@@ -128,32 +133,26 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self,
-                                   filepath,
-                                   attach_loc,
-                                   url,
-                                   collection_object_id,
-                                   agent_id,
-                                   copyright=None,
-                                   is_public=True):
+    def import_to_specify_database(self, filepath, url, collection_object_id, agent_id, properties):
 
-        attachment_guid = uuid4()
+        attachment_guid = str(uuid4())
 
         file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
 
         mime_type = self.get_mime_type(filepath)
 
-        self.attachment_utils.create_attachment(storename=attach_loc,
-                                                original_filename=filepath,
-                                                file_created_datetime=file_created_datetime,
-                                                guid=attachment_guid,
-                                                image_type=mime_type,
-                                                url=url,
-                                                agent_id=agent_id,
-                                                copyright=copyright,
-                                                is_public=is_public)
+        self.attachment_utils.create_attachment(
+            attachment_location=url,
+            original_filename=filepath,
+            file_created_datetime=file_created_datetime,
+            guid=str(attachment_guid),
+            image_type=mime_type,
+            agent_id=agent_id,
+            properties=properties
+        )
 
-        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+#        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+        attachment_id = self.attachment_utils.get_attachment_id(str(attachment_guid))
 
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
 
@@ -253,18 +252,14 @@ class Importer:
 
         deleteme = self.convert_image_if_required(filepath)
 
-
-
         if deleteme is not None:
             upload_me = deleteme
         else:
             upload_me = filepath
 
-
         # attaching necessary exif data post-conversion
         # if self.db_config_class.EXIF_DICT:
         #     MetadataTools(path=upload_me, config=self.db_config_class)
-
 
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
@@ -327,8 +322,10 @@ class Importer:
                                       collection_object_id,
                                       agent_id,
                                       force_redacted=False,
-                                      copyright_filepath_map=None,
+                                      attachment_properties_map=None,
                                       skip_redacted_check=False):
+        if attachment_properties_map is None:
+            attachment_properties_map = {}
         for cur_filepath in filepath_list:
             if skip_redacted_check:
                 is_redacted = False
@@ -340,23 +337,31 @@ class Importer:
             try:
                 (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted)
 
-                copyright = None
-                if copyright_filepath_map is not None:
-                    if cur_filepath in copyright_filepath_map:
-                        copyright = copyright_filepath_map[cur_filepath]
-                self.import_to_specify_database(cur_filepath,
-                                                attach_loc,
-                                                url,
-                                                collection_object_id,
-                                                agent_id,
-                                                copyright=copyright,
-                                                is_public=(not force_redacted))
+                properties = attachment_properties_map.get(cur_filepath, {})
+                is_redacted_property = properties.get('is_redacted', None)
+                if is_redacted_property is not None and is_redacted_property:
+                    is_public = False
+                else:
+                    is_public = not force_redacted
+
+                properties[SpecifyConstants.ST_IS_PUBLIC] = is_public
+                self.import_to_specify_database(
+                    filepath=cur_filepath,
+                    url=url,
+                    collection_object_id=collection_object_id,
+                    agent_id=agent_id,
+                    properties=properties
+                )
+
+                return attach_loc
 
             except TimeoutError:
                 self.logger.error(f"Timeout converting {cur_filepath}")
 
             except subprocess.TimeoutExpired:
                 self.logger.error(f"Timeout converting {cur_filepath}")
+            except DuplicateImageException:
+                self.logger.error(f"Image already imported {cur_filepath}")
             except ConvertException:
                 self.logger.error(f"Conversion failure for {cur_filepath}; skipping.")
             except Exception as e:

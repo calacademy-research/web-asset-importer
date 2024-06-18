@@ -59,6 +59,12 @@ def move_first_substring(string: str, n_char: int):
         return string[n_char+1:] + string[0:n_char+1]
 
 
+def remove_barcode_suffix(num):
+    """Remove barcode notation of _ followed by any number for duplicate record sheets."""
+    if isinstance(num, int):
+        num = str(num)
+    return re.sub(r'_\d+$', '', num)
+
 def assign_collector_titles(first_last, name: str, config):
     """assign_titles:
             function designed to separate out titles in names into a new title column
