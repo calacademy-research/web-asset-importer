@@ -5,7 +5,7 @@ from image_client import ImageClient
 from get_configs import get_config
 class BotanyPurger():
     def __init__(self):
-        self.logger = logging.getLogger('Client.purger')
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.botany_importer_config = get_config(config="Botany_PIC")
         self.specify_db = SpecifyDb(self.botany_importer_config)
         self.attachment_utils = AttachmentUtils(self.specify_db)

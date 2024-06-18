@@ -14,7 +14,7 @@ class UpdatePICFields:
         self.AGENT_ID = self.config.IMPORTER_AGENT_ID
         self.force_update = force_update
         logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger('UpdateDbFields')
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
         self.update_frame = pd.read_csv(csv_path)
         self.config = config

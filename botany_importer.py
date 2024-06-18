@@ -24,7 +24,7 @@ starting_time_stamp = datetime.now()
 class BotanyImporter(Importer):
 
     def __init__(self, paths, config, full_import, existing_barcodes=False):
-        self.logger = logging.getLogger('Client.BotanyImporter')
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         super().__init__(config, "Botany")
         # limit is for debugging
         self.botany_importer_config = config
@@ -78,7 +78,6 @@ class BotanyImporter(Importer):
         if collection_object_id is None and not self.existing_barcodes:
             self.logger.debug(f"No record found for catalog number {barcode}, creating skeleton.")
             self.create_skeleton(barcode)
-            force_redacted = True
             self.logger.warning(f"Skeletons temporarily disabled in botany")
             return
         #  we can have multiple filepaths per barcode in the case of barcode-a, barcode-b etc.
