@@ -86,7 +86,7 @@ class Importer:
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
-        proc = subprocess.Popen(['magick', '-quality', '99', tiff_filepath, jpg_dest],
+        proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest],
                                 stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
