@@ -133,7 +133,7 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self, filepath, url, collection_object_id, agent_id, properties):
+    def import_to_specify_database(self, filepath, attach_loc, url, collection_object_id, agent_id, properties):
 
         attachment_guid = str(uuid4())
 
@@ -142,8 +142,9 @@ class Importer:
         mime_type = self.get_mime_type(filepath)
 
         self.attachment_utils.create_attachment(
-            attachment_location=url,
+            attachment_location=attach_loc,
             original_filename=filepath,
+            url=url,
             file_created_datetime=file_created_datetime,
             guid=str(attachment_guid),
             image_type=mime_type,
@@ -323,7 +324,8 @@ class Importer:
                                       agent_id,
                                       force_redacted=False,
                                       attachment_properties_map=None,
-                                      skip_redacted_check=False):
+                                      skip_redacted_check=False,
+                                      fill_remarks=True):
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
@@ -345,8 +347,11 @@ class Importer:
                     is_public = not force_redacted
 
                 properties[SpecifyConstants.ST_IS_PUBLIC] = is_public
+                if fill_remarks is False:
+                    url = None
                 self.import_to_specify_database(
                     filepath=cur_filepath,
+                    attach_loc=attach_loc,
                     url=url,
                     collection_object_id=collection_object_id,
                     agent_id=agent_id,

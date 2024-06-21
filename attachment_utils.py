@@ -40,7 +40,7 @@ class AttachmentUtils:
         return aid
 
     def create_attachment(self, attachment_location,
-                          original_filename, file_created_datetime, guid, image_type,
+                          original_filename, url, file_created_datetime, guid, image_type,
                           agent_id,
                           properties):
         # Helper function to handle None values correctly for SQL
@@ -61,7 +61,7 @@ class AttachmentUtils:
                     {SpecifyConstants.ST_CREATOR_ID}, {SpecifyConstants.ST_MODIFIED_BY_AGENT_ID}, {SpecifyConstants.ST_VISIBILITY_SET_BY_ID}
                 )
                 VALUES (
-                    %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 41, CURRENT_TIMESTAMP,
+                    %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 4, 0, %s, %s, 41, CURRENT_TIMESTAMP,
                     CURRENT_TIMESTAMP, %s, %s, 0, NULL, NULL, %s, NULL, NULL, NULL
                 )
             """
@@ -79,9 +79,7 @@ class AttachmentUtils:
             val(properties.get(SpecifyConstants.ST_METADATA_TEXT)),
             image_type,
             original_filename,
-            val(properties.get(SpecifyConstants.ST_REMARKS)),
-            val(properties.get(SpecifyConstants.ST_SCOPE_ID)),
-            val(properties.get(SpecifyConstants.ST_SCOPE_TYPE)),
+            url,
             val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION)),
             val(properties.get(SpecifyConstants.ST_SUBTYPE)),
             title_value,

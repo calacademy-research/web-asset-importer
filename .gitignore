@@ -61,3 +61,4 @@ settings.development.py
 *TIF*
 *.xlsx
 file_log.tsv
+*.txt*
