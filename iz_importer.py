@@ -20,6 +20,7 @@ logging.basicConfig(level=logging.WARNING)
 CASIZ_FILE_LOG = "file_log.tsv"
 starting_time_stamp = datetime.now()
 
+
 class IzImporter(Importer):
     class ItemMapping:
         def __init__(self):
@@ -47,14 +48,15 @@ class IzImporter(Importer):
         self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=False)
         self.directory_tree_core.process_files(self.build_filename_map)
 
-
-        self.monitoring_tools = MonitoringTools(config=self.iz_importer_config, report_path=self.iz_importer_config.REPORT_PATH)
+        self.monitoring_tools = MonitoringTools(config=self.iz_importer_config,
+                                                report_path=self.iz_importer_config.REPORT_PATH)
         self.monitoring_tools.create_monitoring_report()
 
         print("Starting to process loaded core files...")
         self.process_loaded_files()
 
-        self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}", time_stamp=starting_time_stamp)
+        self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                                                     time_stamp=starting_time_stamp)
 
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
@@ -84,16 +86,20 @@ class IzImporter(Importer):
         for cur_filepath in filepath_list:
             attachment_id = self.attachment_utils.get_attachmentid_from_filepath(cur_filepath)
             if attachment_id is not None:
-                self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, self.AGENT_ID)
+                self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id,
+                                                                         self.AGENT_ID)
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
-                attach_loc = self.import_to_imagedb_and_specify([cur_filepath], collection_object_id, agent, attachment_properties_map=attachment_properties_map, force_redacted=True)
+                attach_loc = self.import_to_imagedb_and_specify([cur_filepath], collection_object_id, agent,
+                                                                attachment_properties_map=attachment_properties_map,
+                                                                force_redacted=True,
+                                                                fill_remarks=False)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
-                self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map), self.collection_name, attach_loc)
-
+                self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map),
+                                                            self.collection_name, attach_loc)
 
     def _get_exif_mapping(self, attachment_properties_map):
         exif_mapping = {
@@ -119,7 +125,8 @@ class IzImporter(Importer):
         # Remove keys with None values
         return {k: v for k, v in exif_mapping.items() if v is not None}
 
-    def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None, copyright_method=None, copyright=None, conjunction=None):
+    def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None,
+                        copyright_method=None, copyright=None, conjunction=None):
         if rejected is None:
             rejected = "*"
         if casiznumber_method is None:
@@ -130,8 +137,10 @@ class IzImporter(Importer):
             id = "-"
         if conjunction:
             id = conjunction
-        print(f"Logged: {id} copyright method: {copyright_method} copyright: '{copyright}' rejected:{rejected} filename: {filename} Path: {path}")
-        self.log_file.write(f"{id}\t{filename}\t{casiznumber_method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
+        print(
+            f"Logged: {id} copyright method: {copyright_method} copyright: '{copyright}' rejected:{rejected} filename: {filename} Path: {path}")
+        self.log_file.write(
+            f"{id}\t{filename}\t{casiznumber_method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
 
     def extract_casiz_single(self, candidate_string):
         ints = re.findall(self.iz_importer_config.CASIZ_NUMBER, candidate_string)
@@ -144,9 +153,6 @@ class IzImporter(Importer):
         if len(ints) > 0:
             return ints[0][1]
         return None
-
-
-
 
     def extract_casiz_from_string(self, input_string):
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
@@ -164,7 +170,6 @@ class IzImporter(Importer):
                 return True
 
         return False
-
 
     def extract_copyright_from_string(self, copyright_string):
         copyright = None
@@ -196,7 +201,6 @@ class IzImporter(Importer):
                 possible_description = exif_metadata[tag].strip()
                 if self.extract_casiz_from_string(possible_description):
                     return self.casiz_numbers
-
 
         return None
 
@@ -242,7 +246,8 @@ class IzImporter(Importer):
         directory = os.path.dirname(full_path)
         directories = directory.split('/')
         for cur_directory in reversed(directories):
-            for pattern in [self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH, self.iz_importer_config.DIRECTORY_MATCH]:
+            for pattern in [self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH,
+                            self.iz_importer_config.DIRECTORY_MATCH]:
                 result = re.search(pattern, cur_directory)
                 if result:
                     found_substring = result.groups()[0]
@@ -309,7 +314,9 @@ class IzImporter(Importer):
         self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
         self._update_casiz_filepath_map(full_path)
 
-        self.log_file_status(filename=os.path.basename(orig_case_full_path), path=orig_case_full_path, casiznumber_method=casiz_source, id=self.casiz_numbers, copyright_method=copyright_method, copyright=self.copyright)
+        self.log_file_status(filename=os.path.basename(orig_case_full_path), path=orig_case_full_path,
+                             casiznumber_method=casiz_source, id=self.casiz_numbers, copyright_method=copyright_method,
+                             copyright=self.copyright)
         return True
 
     def _check_and_increment_counter(self):
@@ -368,7 +375,8 @@ class IzImporter(Importer):
         if self.attempt_directory_match(full_path):
             return 'Directory'
 
-        self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="no casiz match for exif, filename, or directory.")
+        self.log_file_status(filename=os.path.basename(full_path), path=full_path,
+                             rejected="no casiz match for exif, filename, or directory.")
         return None
 
     def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
@@ -406,7 +414,9 @@ class IzImporter(Importer):
         return None
 
     def _update_casiz_filepath_map(self, full_path):
-        self.casiz_numbers = list(map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))), self.casiz_numbers))
+        self.casiz_numbers = list(
+            map(lambda x: int(x) if str(x).isdigit() else int(''.join(filter(str.isdigit, str(x)))),
+                self.casiz_numbers))
 
         for cur_casiz_number in self.casiz_numbers:
             if cur_casiz_number not in self.casiz_filepath_map:

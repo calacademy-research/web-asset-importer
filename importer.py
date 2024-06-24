@@ -258,10 +258,6 @@ class Importer:
         else:
             upload_me = filepath
 
-        # attaching necessary exif data post-conversion
-        # if self.db_config_class.EXIF_DICT:
-        #     MetadataTools(path=upload_me, config=self.db_config_class)
-
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
 
