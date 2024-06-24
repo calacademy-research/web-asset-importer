@@ -65,7 +65,7 @@ class MonitoringToolsDir(MonitoringTools):
             <table>
                 <tr>
                     <th style="width: 50%">File Path</th>
-                    <th>Barcode</th>
+                    <th>ID</th>
                     <th>Success</th>
                 </tr>
 

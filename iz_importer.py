@@ -94,7 +94,8 @@ class IzImporter(Importer):
                 attach_loc = self.import_to_imagedb_and_specify([cur_filepath], collection_object_id, agent,
                                                                 attachment_properties_map=attachment_properties_map,
                                                                 force_redacted=True,
-                                                                fill_remarks=False)
+                                                                fill_remarks=False,
+                                                                id=casiz_number)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
