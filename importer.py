@@ -16,7 +16,6 @@ from os.path import isfile, join
 import traceback
 import hashlib
 from image_client import DuplicateImageException
-from metadata_tools.EXIF_constants import EXIFConstants
 from specify_constants import SpecifyConstants
 import atexit
 
@@ -249,7 +248,7 @@ class Importer:
 
         return deleteme
 
-    def upload_filepath_to_image_database(self, filepath, redacted=False):
+    def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
 
         deleteme = self.convert_image_if_required(filepath)
 
@@ -264,7 +263,8 @@ class Importer:
         url, attach_loc = self.image_client.upload_to_image_server(upload_me,
                                                                    redacted,
                                                                    self.collection_name,
-                                                                   filepath)
+                                                                   filepath,
+                                                                   id=id)
         if deleteme is not None:
             os.remove(deleteme)
         return (url, attach_loc)
@@ -321,7 +321,8 @@ class Importer:
                                       force_redacted=False,
                                       attachment_properties_map=None,
                                       skip_redacted_check=False,
-                                      fill_remarks=True):
+                                      fill_remarks=True,
+                                      id=None):
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
@@ -333,7 +334,7 @@ class Importer:
                 is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
 
             try:
-                (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted)
+                (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
                 properties = attachment_properties_map.get(cur_filepath, {})
                 is_redacted_property = properties.get('is_redacted', None)

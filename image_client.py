@@ -19,8 +19,10 @@ TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 class UploadFailureException(Exception):
     pass
 
+
 class DuplicateImageException(Exception):
     pass
+
 
 class DeleteFailureException(Exception):
     pass
@@ -96,8 +98,7 @@ class ImageClient:
             print(f"Deletion failed, aborted: {r.status_code}:{r.text}")
             raise DeleteFailureException
 
-
-    def upload_to_image_server(self, full_path, redacted, collection, original_path=None):
+    def upload_to_image_server(self, full_path, redacted, collection, id=None, original_path=None):
         if full_path is None or redacted is None or collection is None:
             errstring = f"Bad input failures to upload to image server: {full_path} {redacted} {collection}"
             print(errstring, file=sys.stderr, flush=True)
@@ -133,7 +134,8 @@ class ImageClient:
             self.monitoring_tools.path = self.config.ACTIVE_REPORT_PATH
         else:
             pass
-
+        if id is None:
+            id = remove_non_numerics(os.path.basename(local_filename)),
         if r.status_code != 200:
             self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
@@ -143,7 +145,7 @@ class ImageClient:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                        barcode=remove_non_numerics(os.path.basename(local_filename)),
+                                                        id=id,
                                                         success=False)
             raise UploadFailureException
         else:
@@ -162,7 +164,7 @@ class ImageClient:
             logging.info("adding to image")
 
             self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                        barcode=remove_non_numerics(os.path.basename(local_filename)),
+                                                        id=id,
                                                         success=True)
 
         self.logger.debug("Upload to file server complete")
@@ -180,8 +182,6 @@ class ImageClient:
         }
 
         return self.decode_response(params)
-
-
 
     def write_exif_image_metadata(self, exif_dict, collection, filename):
 

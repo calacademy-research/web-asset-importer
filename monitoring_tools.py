@@ -42,16 +42,16 @@ class MonitoringTools:
             if not hasattr(self.config, term):
                 raise ValueError(f"Config is missing term '{term}'")
 
-    def add_imagepath_to_html(self, image_path, barcode, success):
+    def add_imagepath_to_html(self, image_path, id, success):
         """add_filepath_to_monitor_txt: adds single line to end of txt file,
             in this case with 4 spaces,
             to keep alignment with generic template
             args:
                 image_path: path to image file added
-                barcpode: the barcode associated with that image
+                id: the id associated with that image
                 success: indicates whether image at filepath failed to upload to image server or not
         """
-        monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{barcode}</td><td>{success}</td></tr>"
+        monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{id}</td><td>{success}</td></tr>"
 
         with open(self.path, "r") as file:
             html_content = file.readlines()
@@ -146,7 +146,7 @@ class MonitoringTools:
                           <table>
                               <tr>
                                   <th style="width: 50%">File Path</th>
-                                  <th>Barcode</th>
+                                  <th>ID</th>
                                   <th>Success</th>
                               </tr>
                             
