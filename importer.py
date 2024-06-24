@@ -333,6 +333,7 @@ class Importer:
             else:
                 is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
 
+            try:
                 (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
                 properties = attachment_properties_map.get(cur_filepath, {})
