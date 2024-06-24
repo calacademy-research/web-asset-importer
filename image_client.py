@@ -135,7 +135,7 @@ class ImageClient:
         else:
             pass
         if id is None:
-            id = remove_non_numerics(os.path.basename(local_filename)),
+            id = 'N/A'
         if r.status_code != 200:
             self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
