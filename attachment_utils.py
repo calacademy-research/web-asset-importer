@@ -76,7 +76,7 @@ class AttachmentUtils:
                     {SpecifyConstants.ST_CREATOR_ID}, {SpecifyConstants.ST_MODIFIED_BY_AGENT_ID}, {SpecifyConstants.ST_VISIBILITY_SET_BY_ID}
                 )
                 VALUES (
-                    %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 4, 0, %s, %s, 41, CURRENT_TIMESTAMP,
+                    %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 4, 0, %s, %s, 1, CURRENT_TIMESTAMP,
                     CURRENT_TIMESTAMP, %s, %s, 0, NULL, NULL, %s, NULL, NULL, NULL
                 )
             """
