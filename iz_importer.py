@@ -393,20 +393,21 @@ class IzImporter(Importer):
             file_key['IsPublic'] = False
 
         self.filepath_metadata_map[full_path] = {
-            "copyright_date": copyright_date,
-            "copyright_holder": self.copyright,
-            "credit": file_key['Credit'],
-            "date_imaged": exif_metadata.get('EXIF:CreateDate'),
-            "license": file_key['License'],
-            "remarks": file_key['Remarks'],
-            "title": self.title,
-            "is_public": file_key['IsPublic'],
-            "metadata_text": file_key['creator'],
-            "subtype": file_key['subType'],
-            "type": 'StillImage',
-            "original_filename": full_path,
-            "created_by_agent_id": file_key['createdByAgent']
+            SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
+            SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
+            SpecifyConstants.ST_CREDIT: file_key['Credit'],
+            SpecifyConstants.ST_DATE_IMAGED: exif_metadata.get('EXIF:CreateDate'),
+            SpecifyConstants.ST_LICENSE: file_key['License'],
+            SpecifyConstants.ST_REMARKS: file_key['Remarks'],
+            SpecifyConstants.ST_TITLE: self.title,
+            SpecifyConstants.ST_IS_PUBLIC: file_key['IsPublic'],
+            SpecifyConstants.ST_METADATA_TEXT: file_key['creator'],
+            SpecifyConstants.ST_SUBTYPE: file_key['subType'],
+            SpecifyConstants.ST_TYPE: 'StillImage',
+            SpecifyConstants.ST_ORIG_FILENAME: full_path,
+            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent']
         }
+
 
     def _extract_year_from_date(self, date_str):
         if date_str is not None:
