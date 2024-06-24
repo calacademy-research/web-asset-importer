@@ -336,14 +336,13 @@ class Importer:
             try:
                 (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
-                properties = attachment_properties_map.get(cur_filepath, {})
-                is_redacted_property = properties.get('is_redacted', None)
+                is_redacted_property = attachment_properties_map.get(not SpecifyConstants.ST_IS_PUBLIC, None)
                 if is_redacted_property is not None and is_redacted_property:
                     is_public = False
                 else:
                     is_public = not force_redacted
 
-                properties[SpecifyConstants.ST_IS_PUBLIC] = is_public
+                attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC] = is_public
                 if fill_remarks is False:
                     url = None
                 self.import_to_specify_database(
@@ -352,7 +351,7 @@ class Importer:
                     url=url,
                     collection_object_id=collection_object_id,
                     agent_id=agent_id,
-                    properties=properties
+                    properties=attachment_properties_map
                 )
 
                 return attach_loc

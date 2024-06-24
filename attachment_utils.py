@@ -39,17 +39,32 @@ class AttachmentUtils:
 
         return aid
 
+    @staticmethod
+    def truncate(value, max_length, field_name):
+        if value is not None and max_length is not None and len(value) > max_length:
+            truncated_value = value[:max_length]
+            logging.warning(f"Value '{value}' for field '{field_name}' exceeds max length of {max_length} and has been truncated to '{truncated_value}'")
+            return truncated_value
+        return value
+
+    def val(self, value, field_name):
+        if value in [None, 'NULL']:
+            return None
+        max_length_attr = f"MAXLEN_{field_name.upper()}"
+        max_length = getattr(SpecifyConstants, max_length_attr, None)
+        return self.truncate(value, max_length, field_name)
+
     def create_attachment(self, attachment_location,
                           original_filename, url, file_created_datetime, guid, image_type,
                           agent_id,
                           properties):
-        # Helper function to handle None values correctly for SQL
-        def val(value):
-            return None if value in [None, 'NULL'] else value
+
 
         # parsing title
         basename = os.path.basename(original_filename)
         title_value = f'{".".join(basename.split(".")[:-1])}'
+
+
 
         # Using parameterized SQL queries to prevent SQL injection
         sql = f"""
@@ -67,25 +82,47 @@ class AttachmentUtils:
             """
         params = (
             attachment_location,
-            val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE)),
-            val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER)),
-            val(properties.get(SpecifyConstants.ST_CREDIT)),
-            val(properties.get(SpecifyConstants.ST_DATE_IMAGED)),
+            self.val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE), 'ST_COPYRIGHT_DATE'),
+            self.val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER), 'ST_COPYRIGHT_HOLDER'),
+            self.val(properties.get(SpecifyConstants.ST_CREDIT), 'ST_CREDIT'),
+            self.val(properties.get(SpecifyConstants.ST_DATE_IMAGED), 'ST_DATE_IMAGED'),
             file_created_datetime.strftime("%Y-%m-%d"),
             guid,
             properties.get(SpecifyConstants.ST_IS_PUBLIC, True),
-            val(properties.get(SpecifyConstants.ST_LICENSE)),
-            val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL)),
-            val(properties.get(SpecifyConstants.ST_METADATA_TEXT)),
+            self.val(properties.get(SpecifyConstants.ST_LICENSE), 'ST_LICENSE'),
+            self.val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL), 'ST_LICENSE_LOGO_URL'),
+            self.val(properties.get(SpecifyConstants.ST_METADATA_TEXT), 'ST_METADATA_TEXT'),
             image_type,
             original_filename,
             url,
-            val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION)),
-            val(properties.get(SpecifyConstants.ST_SUBTYPE)),
+            self.val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION), 'ST_SUBJECT_ORIENTATION'),
+            self.val(properties.get(SpecifyConstants.ST_SUBTYPE), 'ST_SUBTYPE'),
             title_value,
-            val(properties.get(SpecifyConstants.ST_TYPE)),
+            self.val(properties.get(SpecifyConstants.ST_TYPE), 'ST_TYPE'),
             agent_id
         )
+
+        #         params = (
+        #             attachment_location,
+        #             val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE)),
+        #             val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER)),
+        #             val(properties.get(SpecifyConstants.ST_CREDIT)),
+        #             val(properties.get(SpecifyConstants.ST_DATE_IMAGED)),
+        #             file_created_datetime.strftime("%Y-%m-%d"),
+        #             guid,
+        #             properties.get(SpecifyConstants.ST_IS_PUBLIC, True),
+        #             val(properties.get(SpecifyConstants.ST_LICENSE)),
+        #             val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL)),
+        #             val(properties.get(SpecifyConstants.ST_METADATA_TEXT)),
+        #             image_type,
+        #             original_filename,
+        #             url,
+        #             val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION)),
+        #             val(properties.get(SpecifyConstants.ST_SUBTYPE)),
+        #             title_value,
+        #             val(properties.get(SpecifyConstants.ST_TYPE)),
+        #             agent_id
+        #         )
 
         cursor = self.db_utils.get_cursor()
         cursor.execute(sql, params)
@@ -96,7 +133,6 @@ class AttachmentUtils:
         # 68835 Joe russack ich
         # 95728 Joe russack botany
         cursor = self.db_utils.get_cursor()
-
 
         sql = (f"""INSERT INTO collectionobjectattachment 
             (collectionmemberid, 
