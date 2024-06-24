@@ -151,7 +151,7 @@ class Importer:
             properties=properties
         )
 
-#        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+        #        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
         attachment_id = self.attachment_utils.get_attachment_id(str(attachment_guid))
 
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
@@ -333,7 +333,6 @@ class Importer:
             else:
                 is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
 
-            try:
                 (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
                 properties = attachment_properties_map.get(cur_filepath, {})

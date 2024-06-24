@@ -98,7 +98,7 @@ class ImageClient:
             print(f"Deletion failed, aborted: {r.status_code}:{r.text}")
             raise DeleteFailureException
 
-    def upload_to_image_server(self, full_path, redacted, collection, id=None, original_path=None):
+    def upload_to_image_server(self, full_path, redacted, collection, original_path=None, id=None):
         if full_path is None or redacted is None or collection is None:
             errstring = f"Bad input failures to upload to image server: {full_path} {redacted} {collection}"
             print(errstring, file=sys.stderr, flush=True)
