@@ -162,7 +162,7 @@ class IzImporter(Importer):
             self.title = os.path.splitext(input_string)[0]
             return True
 
-        match = re.search(self.iz_importer_config.FILENAME_MATCH, input_string)
+        match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
         if match:
             casiz_number = self.extract_casiz_single(input_string)
             self.title = os.path.splitext(input_string)[0]
@@ -200,6 +200,7 @@ class IzImporter(Importer):
         for tag in priority_tags:
             if tag in exif_metadata:
                 possible_description = exif_metadata[tag].strip()
+                possible_description = possible_description.lower()
                 if self.extract_casiz_from_string(possible_description):
                     return self.casiz_numbers
 
