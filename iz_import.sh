@@ -1,12 +1,13 @@
 #!/usr/bin/bash
-LOCKFILE=/tmp/botany_import.lock
+LOCKFILE=/tmp/iz_import.lock
+
 
 cleanup() {
     rm -f "$LOCKFILE"
 }
 
 if [ -e "$LOCKFILE" ]; then
-    echo "Botany import is already running. Exiting."
+    echo "IZ import is already running. Exiting."
     exit 1
 else
     # Create the lock file
@@ -17,6 +18,6 @@ else
 
     # Main import process
     cd "$(dirname "$0")" || exit
-    source ./env/bin/activate
-    python3 ./client_tools.py -vvvv Botany import >& botany_import_log.txt &
+    #source ./env/bin/activate
+    python3 ./client_tools.py -vvvv IZ import >& iz_import_log.txt &
 fi

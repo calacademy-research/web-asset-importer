@@ -97,7 +97,8 @@ class BotanyImporter(Importer):
             self.import_to_imagedb_and_specify(filepath_list,
                                                collection_object_id,
                                                agent_id,
-                                               force_redacted)
+                                               force_redacted,
+                                               id=barcode)
 
 
 
