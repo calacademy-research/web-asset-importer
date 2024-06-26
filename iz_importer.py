@@ -123,6 +123,32 @@ class IzImporter(Importer):
             EXIFConstants.XMP_DATE_CREATED: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED)
         }
 
+        exif_mapping = {
+            EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
+            EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+            EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
+            EXIFConstants.XMP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.XMP_CREATOR: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
+            EXIFConstants.XMP_USAGE: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_FILE_CREATED_DATE),
+            EXIFConstants.XMP_TITLE: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
+            EXIFConstants.XMP_DATE_CREATED: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
+
+            # New 
+            EXIFConstants.EXIF_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+            EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+            EXIFConstants.IFD0_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
+
+            EXIFConstants.XMP_RIGHTS_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE)
+
+        }
+
         # Remove keys with None values
         return {k: v for k, v in exif_mapping.items() if v is not None}
 
