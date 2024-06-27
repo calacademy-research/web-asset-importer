@@ -103,25 +103,6 @@ class IzImporter(Importer):
                                                             self.collection_name, attach_loc)
 
     def _get_exif_mapping(self, attachment_properties_map):
-        exif_mapping = {
-            EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
-            EXIFConstants.EXIF_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
-            EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
-            EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
-            EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
-            EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
-            EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
-            EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
-            EXIFConstants.XMP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
-            EXIFConstants.XMP_CREATOR: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
-            EXIFConstants.XMP_USAGE: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
-            EXIFConstants.XMP_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
-            EXIFConstants.XMP_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_FILE_CREATED_DATE),
-            EXIFConstants.XMP_TITLE: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.XMP_DATE_CREATED: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED)
-        }
 
         exif_mapping = {
             EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
@@ -140,7 +121,7 @@ class IzImporter(Importer):
             EXIFConstants.XMP_TITLE: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
             EXIFConstants.XMP_DATE_CREATED: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
 
-            # New 
+            # New
             EXIFConstants.EXIF_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IFD0_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
