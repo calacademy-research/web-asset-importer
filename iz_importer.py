@@ -91,11 +91,12 @@ class IzImporter(Importer):
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
-                attach_loc = self.import_to_imagedb_and_specify([cur_filepath], collection_object_id, agent,
-                                                                attachment_properties_map=attachment_properties_map,
-                                                                force_redacted=True,
-                                                                fill_remarks=False,
-                                                                id=casiz_number)
+                attach_loc = self.import_single_file_to_image_db_and_specify([cur_filepath], collection_object_id,
+                                                                             agent,
+                                                                             attachment_properties_map=attachment_properties_map,
+                                                                             force_redacted=True,
+                                                                             fill_remarks=False,
+                                                                             id=casiz_number)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
@@ -414,7 +415,6 @@ class IzImporter(Importer):
             SpecifyConstants.ST_ORIG_FILENAME: full_path,
             SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent']
         }
-
 
     def _extract_year_from_date(self, date_str):
         if date_str is not None:

@@ -78,7 +78,7 @@ class ImageClient:
     def generate_token(self, filename):
         """Generate the auth token for the given filename and timestamp. """
         timestamp = self.get_timestamp()
-        print(f"image client timestamp: {timestamp}", flush=True)
+        # print(f"image client timestamp: {timestamp}", flush=True)
         msg = str(timestamp).encode() + filename.encode()
         mac = hmac.new(server_host_settings.SERVER_KEY.encode(), msg=msg, digestmod='md5')
         return ':'.join((mac.hexdigest(), str(timestamp)))

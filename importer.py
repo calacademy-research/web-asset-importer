@@ -314,6 +314,64 @@ class Importer:
                 keep_filepaths.append(cur_filepath)
         return keep_filepaths
 
+
+    def import_single_file_to_image_db_and_specify(self, cur_filepath, collection_object_id, agent_id,
+                                                   force_redacted, attachment_properties_map,
+                                                   skip_redacted_check, fill_remarks, id):
+        if skip_redacted_check:
+            is_redacted = False
+        elif force_redacted:
+            is_redacted = True
+        else:
+            is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
+
+        try:
+            (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
+
+            is_redacted_property = attachment_properties_map.get(not SpecifyConstants.ST_IS_PUBLIC, None)
+            if is_redacted_property is not None and is_redacted_property:
+                is_public = False
+            else:
+                is_public = not force_redacted
+
+            attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC] = is_public
+            if fill_remarks is False:
+                url = None
+            self.import_to_specify_database(
+                filepath=cur_filepath,
+                attach_loc=attach_loc,
+                url=url,
+                collection_object_id=collection_object_id,
+                agent_id=agent_id,
+                properties=attachment_properties_map
+            )
+
+            return attach_loc
+
+        except TimeoutError:
+            self.logger.error(f"Timeout converting {cur_filepath}")
+            return None
+
+        except subprocess.TimeoutExpired:
+            self.logger.error(f"Timeout converting {cur_filepath}")
+            return None
+
+        except DuplicateImageException:
+            self.logger.error(f"Image already imported {cur_filepath}")
+            return None
+
+        except ConvertException:
+            self.logger.error(f"Conversion failure for {cur_filepath}; skipping.")
+            return None
+
+        except Exception as e:
+            self.logger.error(
+                f"Upload failure to image server for file: \n\t{cur_filepath}")
+            self.logger.error(f"Exception: {e}")
+            traceback.print_exc()
+            return None
+
+
     def import_to_imagedb_and_specify(self,
                                       filepath_list,
                                       collection_object_id,
@@ -326,50 +384,11 @@ class Importer:
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
-            if skip_redacted_check:
-                is_redacted = False
-            elif force_redacted:
-                is_redacted = True
-            else:
-                is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
+            self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id, agent_id,
+                                                            force_redacted, attachment_properties_map,
+                                                            skip_redacted_check, fill_remarks, id)
 
-            try:
-                (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
-                is_redacted_property = attachment_properties_map.get(not SpecifyConstants.ST_IS_PUBLIC, None)
-                if is_redacted_property is not None and is_redacted_property:
-                    is_public = False
-                else:
-                    is_public = not force_redacted
-
-                attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC] = is_public
-                if fill_remarks is False:
-                    url = None
-                self.import_to_specify_database(
-                    filepath=cur_filepath,
-                    attach_loc=attach_loc,
-                    url=url,
-                    collection_object_id=collection_object_id,
-                    agent_id=agent_id,
-                    properties=attachment_properties_map
-                )
-
-                return attach_loc
-
-            except TimeoutError:
-                self.logger.error(f"Timeout converting {cur_filepath}")
-
-            except subprocess.TimeoutExpired:
-                self.logger.error(f"Timeout converting {cur_filepath}")
-            except DuplicateImageException:
-                self.logger.error(f"Image already imported {cur_filepath}")
-            except ConvertException:
-                self.logger.error(f"Conversion failure for {cur_filepath}; skipping.")
-            except Exception as e:
-                self.logger.error(
-                    f"Upload failure to image server for file: \n\t{cur_filepath}")
-                self.logger.error(f"Exception: {e}")
-                traceback.print_exc()
 
     def check_for_valid_image(self, full_path):
         # self.logger.debug(f"Ich importer verify file: {full_path}")
