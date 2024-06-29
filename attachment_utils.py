@@ -180,7 +180,7 @@ class AttachmentUtils:
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:
-            print(f"Error fetching attchment internal id: {internal_id}\n sql:{sql}")
+            logging.error(f"Error fetching attachment internal id: {internal_id}\n sql:{sql}")
             raise db_utils.DatabaseInconsistentError()
 
         retval = retval[1]
@@ -219,3 +219,21 @@ class AttachmentUtils:
                 if val is True or val == 1 or val == b'\x01':
                     return True
         return False
+
+    def get_is_taxon_id_redacted(self, taxon_id):
+        """retrieves redacted boolean with taxon id from vtaxon2"""
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid = {taxon_id};"""
+        cursor = self.db_utils.get_cursor()
+        cursor.execute(sql)
+        retval = cursor.fetchone()
+        cursor.close()
+        if retval is None:
+            logging.error(f"Error fetching taxon id: {taxon_id}\n sql:{sql}")
+            return False
+        else:
+            for val in retval:
+                if val is True or val == 1 or val == b'\x01':
+                    return True
+        return False
+
+
