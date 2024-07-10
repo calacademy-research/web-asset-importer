@@ -26,12 +26,12 @@ class AttachmentUtils:
 
         return coid
 
-    def get_attachmentid_from_filepath(self, orig_filepath):
-        orig_filepath = repr(orig_filepath)
+    def get_attachmentid_from_filepath(self, orig_file):
+        orig_filename = repr(orig_file)
         sql = f"""
         select at.AttachmentID
                from attachment as at
-               where at.OrigFilename={orig_filepath}
+               where at.OrigFilename={orig_filename}
         """
         aid = self.db_utils.get_one_record(sql)
         if aid is not None:

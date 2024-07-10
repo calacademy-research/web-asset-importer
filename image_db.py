@@ -5,6 +5,7 @@ from retrying import retry
 import settings
 from datetime import datetime
 import logging
+import traceback
 
 TIME_FORMAT_NO_OFFSET = "%Y-%m-%d %H:%M:%S"
 TIME_FORMAT = TIME_FORMAT_NO_OFFSET + "%z"
@@ -15,7 +16,7 @@ class ImageDb():
         self.cnx = None
 
     def log(self, msg):
-        if settings.DEBUG:
+        if settings.DEBUG_APP:
             print(msg)
 
     def retry_if_operational_error(exception):
@@ -52,6 +53,7 @@ class ImageDb():
                                                host=settings.SQL_HOST,
                                                port=settings.SQL_PORT,
                                                database=settings.SQL_DATABASE)
+
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
                 self.log(
@@ -178,8 +180,7 @@ class ImageDb():
 
         cursor.execute(query)
         record_list = []
-        for (
-                id, original_filename, url, universal_url, internal_filename, collection, original_path, notes,
+        for (id, original_filename, url, universal_url, internal_filename, collection, original_path, notes,
                 redacted, datetime_record, orig_md5) in cursor:
             record_list.append({'id': id,
                                 'original_filename': original_filename,
@@ -193,7 +194,6 @@ class ImageDb():
                                 'datetime': datetime.strptime(datetime_record, TIME_FORMAT),
                                 'orig_md5': orig_md5
                                 })
-            print(f"of: {record_list}")
 
         cursor.close()
         return record_list
@@ -230,8 +230,6 @@ class ImageDb():
                                 'datetime': datetime_record.strftime(TIME_FORMAT),
                                 'orig_md5': orig_md5
                                 })
-            print(f"of: {record_list}")
-
         cursor.close()
         return record_list
 
@@ -245,15 +243,29 @@ class ImageDb():
             query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
             FROM images 
             WHERE {column} LIKE '{pattern}'"""
+
         if collection is not None:
             query += f""" AND collection = '{collection}'"""
+
         self.log(f"Query get_image_record_by_{column}: {query}")
 
+
         cursor.execute(query)
+
+        rows = cursor.fetchall()
+
+        if rows:
+            pass
+        else:
+            self.log("No rows were returned.")
+
+        self.log(f"Fetched rows: {rows}")
+
         record_list = []
-        for (
-                id, original_filename, url, universal_url, internal_filename, collection, original_path, notes,
-                redacted, datetime_record, orig_md5) in cursor:
+
+        for row in rows:
+            (id, original_filename, url, universal_url, internal_filename, collection, original_path, notes,
+             redacted, datetime_record, orig_md5) = row
             record_list.append({'id': id,
                                 'original_filename': original_filename,
                                 'url': url,

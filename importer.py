@@ -17,6 +17,7 @@ import traceback
 import hashlib
 from image_client import DuplicateImageException
 from specify_constants import SpecifyConstants
+from image_db import ImageDb
 import atexit
 
 
@@ -41,6 +42,7 @@ class Importer:
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
         self.image_client = ImageClient(config=db_config_class)
+        self.image_db = ImageDb()
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
         self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
@@ -345,7 +347,6 @@ class Importer:
                 agent_id=agent_id,
                 properties=attachment_properties_map
             )
-
             return attach_loc
 
         except TimeoutError:
@@ -376,17 +377,76 @@ class Importer:
                                       filepath_list,
                                       collection_object_id,
                                       agent_id,
+                                      collection,
                                       force_redacted=False,
                                       attachment_properties_map=None,
                                       skip_redacted_check=False,
                                       fill_remarks=True,
                                       id=None):
+
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
-            self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id, agent_id,
-                                                            force_redacted, attachment_properties_map,
-                                                            skip_redacted_check, fill_remarks, id)
+            cleanup_needed = False
+            try:
+                attachment_loc = self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id,
+                                                                                 agent_id, force_redacted,
+                                                                                 attachment_properties_map,
+                                                                                 skip_redacted_check, fill_remarks, id)
+            except Exception as e:
+                self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
+                self.logger.error(f"Removing partial records at {cur_filepath}")
+                cleanup_needed = True
+            else:
+                cleanup_needed = attachment_loc is None
+            finally:
+                if cleanup_needed:
+                    self.cleanup_incomplete_import(
+                        cur_filepath=cur_filepath, collection_object_id=collection_object_id,
+                        exact=True, collection=collection)
+
+    def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
+        """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of
+        the import fail during import_to_imagedb_and_specify."""
+
+        record_list = self.image_db.get_image_record_by_original_path(original_path=cur_filepath, exact=exact,
+                                                                      collection=collection)
+
+        attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_file=os.path.basename(cur_filepath))
+
+        # cleanup if image db record created
+        if record_list:
+            for record in record_list:
+                record_dict = dict(record)
+                internal_filename = record_dict['internal_filename']
+                self.image_client.delete_from_image_server(internal_filename, collection)
+
+                # check and cleanup of any attachment records
+                if attach_id:
+                    sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
+                    and AttachmentID = {attach_id};'''
+
+                    self.specify_db_connection.execute(sql)
+
+                    sql = f'''DELETE FROM attachment WHERE AttachmentLocation = {internal_filename};'''
+
+                    self.specify_db_connection.execute(sql)
+                else:
+                    self.logger.info(f"image-db record removed, no specify attachment created")
+
+        # cleanup if image db record failed to create but attachment creates
+        elif attach_id and not record_list:
+
+            sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
+                            and AttachmentID = {attach_id};'''
+
+            self.specify_db_connection.execute(sql)
+
+            sql = f'''DELETE FROM attachment WHERE AttachmentID = {attach_id};'''
+
+            self.specify_db_connection.execute(sql)
+        else:
+            self.logger.info(f"no cleanup required after incomplete upload of: {cur_filepath}")
 
 
 
