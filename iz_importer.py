@@ -91,12 +91,15 @@ class IzImporter(Importer):
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
+                is_public = attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC]
+                # see comments in import_single_file_to_image_db_and_specify;
+                # This is a bit silly but we're faking up the "redact" flag using the logic here.
                 attach_loc = self.import_single_file_to_image_db_and_specify(cur_filepath=cur_filepath,
                                                                              collection_object_id=collection_object_id,
                                                                              agent_id=agent,
-                                                                             skip_redacted_check=False,
+                                                                             skip_redacted_check=is_public,
                                                                              attachment_properties_map=attachment_properties_map,
-                                                                             force_redacted=False,
+                                                                             force_redacted=not is_public,
                                                                              fill_remarks=False,
                                                                              id=casiz_number)
                 if attach_loc is None:
@@ -401,6 +404,8 @@ class IzImporter(Importer):
 
         if 'IsPublic' not in file_key or file_key['IsPublic'] is None or file_key['IsPublic'] is False:
             file_key['IsPublic'] = False
+        else:
+            file_key['IsPublic'] = True
 
         self.filepath_metadata_map[full_path] = {
             SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,

@@ -318,12 +318,17 @@ class Importer:
     def import_single_file_to_image_db_and_specify(self, cur_filepath, collection_object_id, agent_id,
                                                    force_redacted, attachment_properties_map,
                                                    skip_redacted_check, fill_remarks, id):
+        # TODO: We need to rework this - this botany specific check needs to be moved up
+        # to the botany importer, and we just pass in "is redacted" as a parameter, the
+        # collection specific importer makes the call.
+        # holding back on that until we have full test suite running in jenkins; don't want to
+        # risk breaking botany import.
         if skip_redacted_check:
             is_redacted = False
         elif force_redacted:
             is_redacted = True
         else:
-            is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
+            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(collection_object_id)
 
         try:
             (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
