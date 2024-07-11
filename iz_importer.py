@@ -91,10 +91,12 @@ class IzImporter(Importer):
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
-                attach_loc = self.import_single_file_to_image_db_and_specify([cur_filepath], collection_object_id,
-                                                                             agent,
+                attach_loc = self.import_single_file_to_image_db_and_specify(cur_filepath=cur_filepath,
+                                                                             collection_object_id=collection_object_id,
+                                                                             agent_id=agent,
+                                                                             skip_redacted_check=False,
                                                                              attachment_properties_map=attachment_properties_map,
-                                                                             force_redacted=True,
+                                                                             force_redacted=False,
                                                                              fill_remarks=False,
                                                                              id=casiz_number)
                 if attach_loc is None:
