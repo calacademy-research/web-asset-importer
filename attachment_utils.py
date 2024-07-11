@@ -191,7 +191,7 @@ class AttachmentUtils:
                 return True
         return False
 
-    def get_is_collection_object_redacted(self, collection_object_id):
+    def get_is_botany_collection_object_redacted(self, collection_object_id):
         sql = f"""SELECT co.YesNo2          AS `CO redact locality`
              , vt.RedactLocality  AS `taxon_redact_locality`
              , vta.RedactLocality AS `accepted_taxon_redact_locality`
