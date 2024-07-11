@@ -399,7 +399,7 @@ class IzImporter(Importer):
 
         copyright_date = file_key_copyright_year or exif_create_year or None
 
-        if 'IsPublic' not in file_key or file_key['IsPublic'] is None:
+        if 'IsPublic' not in file_key or file_key['IsPublic'] is None or file_key['IsPublic'] is False:
             file_key['IsPublic'] = False
 
         self.filepath_metadata_map[full_path] = {
