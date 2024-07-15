@@ -132,7 +132,7 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self, filepath, attach_loc, url, collection_object_id, agent_id, properties):
+    def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
 
         attachment_guid = str(uuid4())
 
@@ -143,7 +143,6 @@ class Importer:
         self.attachment_utils.create_attachment(
             attachment_location=attach_loc,
             original_filename=filepath,
-            url=url,
             file_created_datetime=file_created_datetime,
             guid=str(attachment_guid),
             image_type=mime_type,
@@ -317,7 +316,7 @@ class Importer:
 
     def import_single_file_to_image_db_and_specify(self, cur_filepath, collection_object_id, agent_id,
                                                    force_redacted, attachment_properties_map,
-                                                   skip_redacted_check, fill_remarks, id):
+                                                   skip_redacted_check, id):
         # TODO: We need to rework this - this botany specific check needs to be moved up
         # to the botany importer, and we just pass in "is redacted" as a parameter, the
         # collection specific importer makes the call.
@@ -340,12 +339,10 @@ class Importer:
                 is_public = not force_redacted
 
             attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC] = is_public
-            if fill_remarks is False:
-                url = None
+
             self.import_to_specify_database(
                 filepath=cur_filepath,
                 attach_loc=attach_loc,
-                url=url,
                 collection_object_id=collection_object_id,
                 agent_id=agent_id,
                 properties=attachment_properties_map
@@ -384,14 +381,13 @@ class Importer:
                                       force_redacted=False,
                                       attachment_properties_map=None,
                                       skip_redacted_check=False,
-                                      fill_remarks=True,
                                       id=None):
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
             self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id, agent_id,
                                                             force_redacted, attachment_properties_map,
-                                                            skip_redacted_check, fill_remarks, id)
+                                                            skip_redacted_check, id)
 
 
 
