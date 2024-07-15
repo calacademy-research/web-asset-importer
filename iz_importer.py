@@ -1,4 +1,3 @@
-import sys
 import os
 import re
 import csv
@@ -9,6 +8,7 @@ from importer import Importer
 from directory_tree import DirectoryTree
 from metadata_tools.metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
+from metadata_tools.metadata_tools import MetadataTools
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -19,6 +19,10 @@ logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
 starting_time_stamp = datetime.now()
+
+
+class AgentNotFoundException(Exception):
+    pass
 
 
 class IzImporter(Importer):
@@ -100,13 +104,15 @@ class IzImporter(Importer):
                                                                              skip_redacted_check=is_public,
                                                                              attachment_properties_map=attachment_properties_map,
                                                                              force_redacted=not is_public,
-                                                                             fill_remarks=False,
                                                                              id=casiz_number)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map),
                                                             self.collection_name, attach_loc)
+
+                md = MetadataTools(path=cur_filepath)
+                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map))
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -326,7 +332,12 @@ class IzImporter(Importer):
             return False
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
-        self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
+        try:
+            self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
+        except AgentNotFoundException as e:
+            self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Can't locate agent {e}".format(e=e))
+            return False
+
         self._update_casiz_filepath_map(full_path)
 
         self.log_file_status(filename=os.path.basename(orig_case_full_path), path=orig_case_full_path,
@@ -406,7 +417,11 @@ class IzImporter(Importer):
             file_key['IsPublic'] = False
         else:
             file_key['IsPublic'] = True
+        agent_id = None
+        if 'creator' in file_key and file_key['creator'] is not None and len(file_key['creator']) > 1:
+            agent_id = self.find_agent_id_from_string(file_key['creator'])
 
+        # This gets passed to import_single_file_to_image_db_and_specify and set in specify.
         self.filepath_metadata_map[full_path] = {
             SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
             SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
@@ -416,12 +431,54 @@ class IzImporter(Importer):
             SpecifyConstants.ST_REMARKS: file_key['Remarks'],
             SpecifyConstants.ST_TITLE: self.title,
             SpecifyConstants.ST_IS_PUBLIC: file_key['IsPublic'],
-            SpecifyConstants.ST_METADATA_TEXT: file_key['creator'],
             SpecifyConstants.ST_SUBTYPE: file_key['subType'],
             SpecifyConstants.ST_TYPE: 'StillImage',
             SpecifyConstants.ST_ORIG_FILENAME: full_path,
-            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent']
+            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent'],
+            SpecifyConstants.ST_METADATA_TEXT: file_key['creator']
         }
+        if agent_id is not None:
+            self.filepath_metadata_map[full_path][SpecifyConstants.ST_CREATOR_ID] = agent_id
+
+    def find_agent_id_from_string(self, input_string):
+        import difflib
+
+        def fuzzy_match(query, choices, cutoff=0.8):
+            matches = difflib.get_close_matches(query, choices, n=1, cutoff=cutoff)
+            return matches[0] if matches else None
+
+        # Split the input string into firstname and lastname
+        names = input_string.strip().split()
+        if len(names) < 2:
+            return None
+
+        firstname = names[0].lower()
+        lastname = names[-1].lower()
+
+        # Get a list of possible agent names from the database
+        sql = "SELECT AgentID, FirstName, LastName FROM casiz.agent"
+        cursor = self.specify_db_connection.get_cursor()
+        cursor.execute(sql)
+        agents = cursor.fetchall()
+        cursor.close()
+
+        # Normalize agent names for comparison
+        agent_names = [(agent[0], agent[1].lower() if agent[1] else '', agent[2].lower() if agent[2] else '') for agent
+                       in agents]
+
+        # Find a fuzzy match for the firstname and lastname
+        possible_firstnames = [agent[1] for agent in agent_names]
+        possible_lastnames = [agent[2] for agent in agent_names]
+
+        matched_firstname = fuzzy_match(firstname, possible_firstnames)
+        matched_lastname = fuzzy_match(lastname, possible_lastnames)
+
+        if matched_firstname and matched_lastname:
+            for agent_id, fname, lname in agent_names:
+                if fname == matched_firstname and lname == matched_lastname:
+                    return agent_id
+
+        return None
 
     def _extract_year_from_date(self, date_str):
         if date_str is not None:
@@ -454,8 +511,8 @@ class IzImporter(Importer):
         key_file_path = find_key_file(directory)
         if not key_file_path:
             self.log_file_status(filename=os.path.basename(image_path), path=image_path, rejected="Missing key.csv")
-            return None
 
+        # returned_dict:file_based_key_value
         column_mappings = {
             'copyrightdate': 'CopyrightDate',
             'copyrightholder': 'CopyrightHolder',
