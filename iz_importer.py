@@ -172,6 +172,9 @@ class IzImporter(Importer):
         ints = re.findall(self.iz_importer_config.CASIZ_MATCH, candidate_string)
         if len(ints) > 0:
             return ints[0][1]
+        ints = re.findall(self.iz_importer_config.CASIZ_MATCH_SHORT, candidate_string)
+        if len(ints) > 0:
+            return ints[0][1]
         return None
 
     def extract_casiz_from_string(self, input_string):
@@ -182,6 +185,8 @@ class IzImporter(Importer):
             return True
 
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
+        if not match:
+            match = re.search(self.iz_importer_config.CASIZ_MATCH_SHORT, input_string)
         if match:
             casiz_number = self.extract_casiz_single(input_string)
             self.title = os.path.splitext(input_string)[0]
@@ -333,7 +338,7 @@ class IzImporter(Importer):
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:
-            self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
+            self._update_metadata_map(full_path, exif_metadata, file_key)
         except AgentNotFoundException as e:
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Can't locate agent {e}".format(e=e))
             return False
@@ -405,7 +410,7 @@ class IzImporter(Importer):
                              rejected="no casiz match for exif, filename, or directory.")
         return None
 
-    def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
+    def _update_metadata_map(self, full_path, exif_metadata, file_key):
         exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
         exif_create_year = self._extract_year_from_date(exif_create_date)
         file_key_copyright_date = file_key.get('CopyrightDate', '')
