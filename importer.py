@@ -387,7 +387,7 @@ class Importer:
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
-            cleanup_needed = False
+            # cleanup_needed = False
             try:
                 attachment_loc = self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id,
                                                                                  agent_id, force_redacted,
@@ -395,15 +395,15 @@ class Importer:
                                                                                  skip_redacted_check, fill_remarks, id)
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
-                self.logger.error(f"Removing partial records at {cur_filepath}")
-                cleanup_needed = True
-            else:
-                cleanup_needed = attachment_loc is None
-            finally:
-                if cleanup_needed:
-                    self.cleanup_incomplete_import(
-                        cur_filepath=cur_filepath, collection_object_id=collection_object_id,
-                        exact=True, collection=collection)
+                # self.logger.error(f"Removing partial records at {cur_filepath}")
+                # cleanup_needed = True
+            # else:
+            #     cleanup_needed = attachment_loc is None
+            # finally:
+            #     if cleanup_needed:
+            #         self.cleanup_incomplete_import(
+            #             cur_filepath=cur_filepath, collection_object_id=collection_object_id,
+            #             exact=True, collection=collection)
 
     def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
         """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of
