@@ -55,7 +55,7 @@ class AttachmentUtils:
         return self.truncate(value, max_length, field_name)
 
     def create_attachment(self, attachment_location,
-                          original_filename, url, file_created_datetime, guid, image_type,
+                          original_filename, file_created_datetime, guid, image_type,
                           agent_id,
                           properties):
 
@@ -94,35 +94,13 @@ class AttachmentUtils:
             self.val(properties.get(SpecifyConstants.ST_METADATA_TEXT), 'ST_METADATA_TEXT'),
             image_type,
             original_filename,
-            url,
+            self.val(properties.get(SpecifyConstants.ST_REMARKS), 'ST_REMARKS'),
             self.val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION), 'ST_SUBJECT_ORIENTATION'),
             self.val(properties.get(SpecifyConstants.ST_SUBTYPE), 'ST_SUBTYPE'),
             title_value,
             self.val(properties.get(SpecifyConstants.ST_TYPE), 'ST_TYPE'),
             agent_id
         )
-
-        #         params = (
-        #             attachment_location,
-        #             val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE)),
-        #             val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER)),
-        #             val(properties.get(SpecifyConstants.ST_CREDIT)),
-        #             val(properties.get(SpecifyConstants.ST_DATE_IMAGED)),
-        #             file_created_datetime.strftime("%Y-%m-%d"),
-        #             guid,
-        #             properties.get(SpecifyConstants.ST_IS_PUBLIC, True),
-        #             val(properties.get(SpecifyConstants.ST_LICENSE)),
-        #             val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL)),
-        #             val(properties.get(SpecifyConstants.ST_METADATA_TEXT)),
-        #             image_type,
-        #             original_filename,
-        #             url,
-        #             val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION)),
-        #             val(properties.get(SpecifyConstants.ST_SUBTYPE)),
-        #             title_value,
-        #             val(properties.get(SpecifyConstants.ST_TYPE)),
-        #             agent_id
-        #         )
 
         cursor = self.db_utils.get_cursor()
         cursor.execute(sql, params)
@@ -191,7 +169,7 @@ class AttachmentUtils:
                 return True
         return False
 
-    def get_is_collection_object_redacted(self, collection_object_id):
+    def get_is_botany_collection_object_redacted(self, collection_object_id):
         sql = f"""SELECT co.YesNo2          AS `CO redact locality`
              , vt.RedactLocality  AS `taxon_redact_locality`
              , vta.RedactLocality AS `accepted_taxon_redact_locality`

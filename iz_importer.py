@@ -1,4 +1,3 @@
-import sys
 import os
 import re
 import csv
@@ -9,6 +8,7 @@ from importer import Importer
 from directory_tree import DirectoryTree
 from metadata_tools.metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
+from metadata_tools.metadata_tools import MetadataTools
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -19,6 +19,10 @@ logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
 starting_time_stamp = datetime.now()
+
+
+class AgentNotFoundException(Exception):
+    pass
 
 
 class IzImporter(Importer):
@@ -91,17 +95,24 @@ class IzImporter(Importer):
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
-                attach_loc = self.import_single_file_to_image_db_and_specify([cur_filepath], collection_object_id,
-                                                                             agent,
+                is_public = attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC]
+                # see comments in import_single_file_to_image_db_and_specify;
+                # This is a bit silly but we're faking up the "redact" flag using the logic here.
+                attach_loc = self.import_single_file_to_image_db_and_specify(cur_filepath=cur_filepath,
+                                                                             collection_object_id=collection_object_id,
+                                                                             agent_id=agent,
+                                                                             skip_redacted_check=is_public,
                                                                              attachment_properties_map=attachment_properties_map,
-                                                                             force_redacted=True,
-                                                                             fill_remarks=False,
+                                                                             force_redacted=not is_public,
                                                                              id=casiz_number)
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map),
                                                             self.collection_name, attach_loc)
+
+                md = MetadataTools(path=cur_filepath)
+                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map))
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -161,16 +172,22 @@ class IzImporter(Importer):
         ints = re.findall(self.iz_importer_config.CASIZ_MATCH, candidate_string)
         if len(ints) > 0:
             return ints[0][1]
+
         return None
 
     def extract_casiz_from_string(self, input_string):
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
-            self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', input_string))))
+            # self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', input_string))))
+            self.casiz_numbers = list(set(map(int, re.findall(
+                rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b',
+                input_string))))
+
             self.title = os.path.splitext(input_string)[0]
             return True
 
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
+
         if match:
             casiz_number = self.extract_casiz_single(input_string)
             self.title = os.path.splitext(input_string)[0]
@@ -263,7 +280,7 @@ class IzImporter(Importer):
                     found_substring = result.groups()[0]
                     self.title = cur_directory
                     if pattern == self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH:
-                        self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', found_substring))))
+                        self.casiz_numbers = list(set(map(int, re.findall(rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b', found_substring))))
                     else:
                         casiz_number = self.extract_casiz_single(cur_directory)
                         if casiz_number is not None:
@@ -321,7 +338,12 @@ class IzImporter(Importer):
             return False
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
-        self._update_metadata_map(full_path, exif_metadata, orig_case_full_path, file_key)
+        try:
+            self._update_metadata_map(full_path, exif_metadata, file_key)
+        except AgentNotFoundException as e:
+            self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Can't locate agent {e}".format(e=e))
+            return False
+
         self._update_casiz_filepath_map(full_path)
 
         self.log_file_status(filename=os.path.basename(orig_case_full_path), path=orig_case_full_path,
@@ -389,7 +411,7 @@ class IzImporter(Importer):
                              rejected="no casiz match for exif, filename, or directory.")
         return None
 
-    def _update_metadata_map(self, full_path, exif_metadata, orig_case_full_path, file_key):
+    def _update_metadata_map(self, full_path, exif_metadata, file_key):
         exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
         exif_create_year = self._extract_year_from_date(exif_create_date)
         file_key_copyright_date = file_key.get('CopyrightDate', '')
@@ -397,9 +419,15 @@ class IzImporter(Importer):
 
         copyright_date = file_key_copyright_year or exif_create_year or None
 
-        if 'IsPublic' not in file_key or file_key['IsPublic'] is None:
+        if 'IsPublic' not in file_key or file_key['IsPublic'] is None or file_key['IsPublic'] is False:
             file_key['IsPublic'] = False
+        else:
+            file_key['IsPublic'] = True
+        agent_id = None
+        if 'creator' in file_key and file_key['creator'] is not None and len(file_key['creator']) > 1:
+            agent_id = self.find_agent_id_from_string(file_key['creator'])
 
+        # This gets passed to import_single_file_to_image_db_and_specify and set in specify.
         self.filepath_metadata_map[full_path] = {
             SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
             SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
@@ -409,12 +437,54 @@ class IzImporter(Importer):
             SpecifyConstants.ST_REMARKS: file_key['Remarks'],
             SpecifyConstants.ST_TITLE: self.title,
             SpecifyConstants.ST_IS_PUBLIC: file_key['IsPublic'],
-            SpecifyConstants.ST_METADATA_TEXT: file_key['creator'],
             SpecifyConstants.ST_SUBTYPE: file_key['subType'],
             SpecifyConstants.ST_TYPE: 'StillImage',
             SpecifyConstants.ST_ORIG_FILENAME: full_path,
-            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent']
+            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent'],
+            SpecifyConstants.ST_METADATA_TEXT: file_key['creator']
         }
+        if agent_id is not None:
+            self.filepath_metadata_map[full_path][SpecifyConstants.ST_CREATOR_ID] = agent_id
+
+    def find_agent_id_from_string(self, input_string):
+        import difflib
+
+        def fuzzy_match(query, choices, cutoff=0.8):
+            matches = difflib.get_close_matches(query, choices, n=1, cutoff=cutoff)
+            return matches[0] if matches else None
+
+        # Split the input string into firstname and lastname
+        names = input_string.strip().split()
+        if len(names) < 2:
+            return None
+
+        firstname = names[0].lower()
+        lastname = names[-1].lower()
+
+        # Get a list of possible agent names from the database
+        sql = "SELECT AgentID, FirstName, LastName FROM casiz.agent"
+        cursor = self.specify_db_connection.get_cursor()
+        cursor.execute(sql)
+        agents = cursor.fetchall()
+        cursor.close()
+
+        # Normalize agent names for comparison
+        agent_names = [(agent[0], agent[1].lower() if agent[1] else '', agent[2].lower() if agent[2] else '') for agent
+                       in agents]
+
+        # Find a fuzzy match for the firstname and lastname
+        possible_firstnames = [agent[1] for agent in agent_names]
+        possible_lastnames = [agent[2] for agent in agent_names]
+
+        matched_firstname = fuzzy_match(firstname, possible_firstnames)
+        matched_lastname = fuzzy_match(lastname, possible_lastnames)
+
+        if matched_firstname and matched_lastname:
+            for agent_id, fname, lname in agent_names:
+                if fname == matched_firstname and lname == matched_lastname:
+                    return agent_id
+
+        return None
 
     def _extract_year_from_date(self, date_str):
         if date_str is not None:
@@ -447,8 +517,8 @@ class IzImporter(Importer):
         key_file_path = find_key_file(directory)
         if not key_file_path:
             self.log_file_status(filename=os.path.basename(image_path), path=image_path, rejected="Missing key.csv")
-            return None
 
+        # returned_dict:file_based_key_value
         column_mappings = {
             'copyrightdate': 'CopyrightDate',
             'copyrightholder': 'CopyrightHolder',
