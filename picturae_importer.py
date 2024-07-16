@@ -679,7 +679,7 @@ class PicturaeImporter(Importer):
             author_insert, tree_item_id, rank_end, \
                             parent_id, taxon_guid, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
 
-            if self.attachment_utils.get_is_taxon_id_redacted(taxon_id=parent_id):
+            if BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection, taxon_id=parent_id):
                 self.redacted = True
 
             column_list = ['TimestampCreated',
@@ -741,7 +741,8 @@ class PicturaeImporter(Importer):
                                                                     id_col='CollectingEventID',
                                                                     key_col='GUID', match=self.collecting_event_guid)
         if self.redacted is False:
-            self.redacted = self.attachment_utils.get_is_taxon_id_redacted(taxon_id=self.taxon_id)
+            self.redacted = BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection,
+                                                                    taxon_id=self.taxon_id)
 
         table = 'collectionobject'
 

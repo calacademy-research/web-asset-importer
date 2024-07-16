@@ -6,7 +6,6 @@ from image_client import ImageClient
 from db_utils import InvalidFilenameError
 import collections
 import filetype
-
 import logging
 import subprocess
 from specify_db import SpecifyDb
@@ -329,7 +328,7 @@ class Importer:
         elif force_redacted:
             is_redacted = True
         else:
-            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(collection_object_id)
+            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(collection_object_id=collection_object_id)
 
         try:
             (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
@@ -388,22 +387,12 @@ class Importer:
         if attachment_properties_map is None:
             attachment_properties_map = {}
         for cur_filepath in filepath_list:
-            # cleanup_needed = False
             try:
                 self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id, agent_id,
                                                                 force_redacted, attachment_properties_map,
                                                                 skip_redacted_check, id)
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
-                # self.logger.error(f"Removing partial records at {cur_filepath}")
-                # cleanup_needed = True
-            # else:
-            #     cleanup_needed = attachment_loc is None
-            # finally:
-            #     if cleanup_needed:
-            #         self.cleanup_incomplete_import(
-            #             cur_filepath=cur_filepath, collection_object_id=collection_object_id,
-            #             exact=True, collection=collection)
 
     def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
         """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of
@@ -412,7 +401,7 @@ class Importer:
         record_list = self.image_db.get_image_record_by_original_path(original_path=cur_filepath, exact=exact,
                                                                       collection=collection)
 
-        attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_file=os.path.basename(cur_filepath))
+        attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_filepath=os.path.basename(cur_filepath))
 
         # cleanup if image db record created
         if record_list:

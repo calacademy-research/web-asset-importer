@@ -26,8 +26,8 @@ class AttachmentUtils:
 
         return coid
 
-    def get_attachmentid_from_filepath(self, orig_file):
-        orig_filename = repr(orig_file)
+    def get_attachmentid_from_filepath(self, orig_filepath):
+        orig_filename = repr(orig_filepath)
         sql = f"""
         select at.AttachmentID
                from attachment as at
@@ -197,21 +197,3 @@ class AttachmentUtils:
                 if val is True or val == 1 or val == b'\x01':
                     return True
         return False
-
-    def get_is_taxon_id_redacted(self, taxon_id):
-        """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid = {taxon_id};"""
-        cursor = self.db_utils.get_cursor()
-        cursor.execute(sql)
-        retval = cursor.fetchone()
-        cursor.close()
-        if retval is None:
-            logging.error(f"Error fetching taxon id: {taxon_id}\n sql:{sql}")
-            return False
-        else:
-            for val in retval:
-                if val is True or val == 1 or val == b'\x01':
-                    return True
-        return False
-
-
