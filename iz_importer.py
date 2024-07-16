@@ -172,21 +172,22 @@ class IzImporter(Importer):
         ints = re.findall(self.iz_importer_config.CASIZ_MATCH, candidate_string)
         if len(ints) > 0:
             return ints[0][1]
-        ints = re.findall(self.iz_importer_config.CASIZ_MATCH_SHORT, candidate_string)
-        if len(ints) > 0:
-            return ints[0][1]
+
         return None
 
     def extract_casiz_from_string(self, input_string):
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
-            self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', input_string))))
+            # self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', input_string))))
+            self.casiz_numbers = list(set(map(int, re.findall(
+                rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b',
+                input_string))))
+
             self.title = os.path.splitext(input_string)[0]
             return True
 
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
-        if not match:
-            match = re.search(self.iz_importer_config.CASIZ_MATCH_SHORT, input_string)
+
         if match:
             casiz_number = self.extract_casiz_single(input_string)
             self.title = os.path.splitext(input_string)[0]
@@ -279,7 +280,7 @@ class IzImporter(Importer):
                     found_substring = result.groups()[0]
                     self.title = cur_directory
                     if pattern == self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH:
-                        self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', found_substring))))
+                        self.casiz_numbers = list(set(map(int, re.findall(rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b', found_substring))))
                     else:
                         casiz_number = self.extract_casiz_single(cur_directory)
                         if casiz_number is not None:
