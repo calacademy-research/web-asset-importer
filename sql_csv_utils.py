@@ -133,7 +133,7 @@ class SqlCsvTools:
 
         elif len(parts) < 3:
             taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname,
-                                          match_type=str)
+                                           match_type=str)
 
             return taxon_id
         else:
@@ -164,7 +164,7 @@ class SqlCsvTools:
 
         result = self.get_record(sql=sql)
 
-        if isinstance(result, (list, dict, set)):
+        if isinstance(result, (list, dict, set, tuple)):
             return result[0]
         else:
             return result

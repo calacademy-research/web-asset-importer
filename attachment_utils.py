@@ -27,11 +27,11 @@ class AttachmentUtils:
         return coid
 
     def get_attachmentid_from_filepath(self, orig_filepath):
-        orig_filepath = repr(orig_filepath)
+        orig_filename = repr(orig_filepath)
         sql = f"""
         select at.AttachmentID
                from attachment as at
-               where at.OrigFilename={orig_filepath}
+               where at.OrigFilename={orig_filename}
         """
         aid = self.db_utils.get_one_record(sql)
         if aid is not None:
@@ -158,7 +158,7 @@ class AttachmentUtils:
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:
-            print(f"Error fetching attchment internal id: {internal_id}\n sql:{sql}")
+            logging.error(f"Error fetching attachment internal id: {internal_id}\n sql:{sql}")
             raise db_utils.DatabaseInconsistentError()
 
         retval = retval[1]

@@ -9,6 +9,8 @@ from dir_tools import DirTools
 from uuid import uuid4
 from time_utils import get_pst_time_now_string
 from monitoring_tools import MonitoringTools
+from attachment_utils import DatabaseInconsistentError
+from db_utils import DbUtils
 # I:\botany\PLANT FAMILIES
 #
 # I:\botany\TYPE IMAGES
@@ -23,26 +25,23 @@ starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
-    def __init__(self, paths, config, full_import, existing_barcodes=False):
+    def __init__(self, paths, config, full_import, existing_barcodes=False, force_redacted = False,
+                 skip_redacted_check = False):
         self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         super().__init__(config, "Botany")
         # limit is for debugging
         self.botany_importer_config = config
         self.existing_barcodes = existing_barcodes
         self.full_import = full_import
-        dir_tools = DirTools(self.build_filename_map, limit=None)
+        self.dir_tools = DirTools(self.build_filename_map, limit=None)
+        self.paths = paths
         self.barcode_map = {}
         self.logger.debug("Botany import mode")
+        self.monitoring_tools = None
 
-        # FILENAME = "bio_importer.bin"
-        # if not os.path.exists(FILENAME):
-        for cur_dir in paths:
-            dir_tools.process_files_or_directories_recursive(cur_dir)
 
-        #     outfile = open(FILENAME, 'wb')
-        #     pickle.dump(self.barcode_map, outfile)
-        # else:
-        #     self.barcode_map = pickle.load(open(FILENAME, "rb"))
+        for cur_dir in self.paths:
+            self.dir_tools.process_files_or_directories_recursive(cur_dir)
 
         if not self.full_import:
             self.monitoring_tools = MonitoringTools(config=self.botany_importer_config,
@@ -52,10 +51,13 @@ class BotanyImporter(Importer):
 
         self.process_loaded_files()
 
-
         if not self.full_import:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
+                                                    time_stamp=starting_time_stamp)
+
+
+        # FILENAME = "bio_importer.bin"
+        # if not os.path.exists(FILENAME):
 
 
     def process_loaded_files(self):
@@ -183,49 +185,19 @@ class BotanyImporter(Importer):
         self.specify_db_connection.commit()
         cursor.close()
 
-
-    # def import_image(self, is_redacted, full_path):
-    #     try:
-    #         collection_object_id = self.get_collection_object_id(full_path)
-    #         if collection_object_id is None:
-    #             self.create_skeleton(full_path)
-    #             print(f"Not importing {full_path}; Created skeleton", file=sys.stderr, flush=True)
-    #             is_redacted = True
-    #         else:
-    #             if is_redacted != True:
-    #                 is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
-    #
-    #         url, attach_loc = self.image_client.upload_to_image_server(full_path, is_redacted, 'Botany')
-    #         agent_id = 95728  # joe russack in botany
-    #
-    #         self.import_to_specify_database(full_path, attach_loc, url, collection_object_id, agent_id)
-    #     except UploadFailureException:
-    #         print(f"Upload failure to image server for file: {full_path}")
-    #     except DatabaseInconsistentError:
-    #         print(f"Database inconsistent for collection object id: {collection_object_id}, file: {full_path}",
-    #               file=sys.stderr, flush=True)
-
-    # def verify_and_import(self, full_path):
-    #     if not os.path.isfile(full_path):
-    #         self.logger.debug(f"Not a file: {full_path}")
-    #     else:
-    #         if self.file_regex_match:
-    #             check_regex = os.path.basename(full_path)
-    #             matched = re.match(self.file_regex_match, check_regex)
-    #             is_match = bool(matched)
-    #             self.logger.debug(f"Check regex {self.file_regex_match} on:{check_regex} in dir {full_path}: {is_match}")
-    #             if not is_match:
-    #                 return
-    #
-    #         if filetype.is_image(full_path):
-    #             if self.image_client.check_image_db_if_already_imported('Botany', os.path.basename(full_path)):
-    #                 print(f"Image {full_path} already imported, skipping..", file=sys.stderr, flush=True)
-    #                 return
-    #             if self.is_private:
-    #                 is_redacted = True
-    #             else:
-    #                 is_redacted = False
-    #             self.import_image(is_redacted, full_path)
-    #
-    #         else:
-    #             self.logger.f"File found, but not image, skipping: {full_path}")
+    @staticmethod
+    def get_is_taxon_id_redacted(conn, taxon_id):
+        """retrieves redacted boolean with taxon id from vtaxon2"""
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid = {taxon_id};"""
+        cursor = conn.get_cursor()
+        cursor.execute(sql)
+        retval = cursor.fetchone()
+        cursor.close()
+        if retval is None:
+            logging.error(f"Error fetching taxon id: {taxon_id}\n sql:{sql}")
+            return False
+        else:
+            for val in retval:
+                if val is True or val == 1 or val == b'\x01':
+                    return True
+        return False

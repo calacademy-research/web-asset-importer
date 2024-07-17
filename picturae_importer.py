@@ -122,7 +122,8 @@ class PicturaeImporter(Importer):
                      'geography_string', 'GeographyID', 'locality_id',
                      'full_name', 'tax_name', 'locality',
                      'determination_guid', 'collection_ob_id', 'collection_ob_guid',
-                     'name_id', 'author_sci', 'family', 'gen_spec_id', 'family_id', 'parent_author']
+                     'name_id', 'author_sci', 'family', 'gen_spec_id', 'family_id', 'parent_author',
+                     'redacted']
 
         for param in init_list:
             setattr(self, param, None)
@@ -417,6 +418,8 @@ class PicturaeImporter(Importer):
 
         self.tax_notes = row.cover_notes
 
+        self.redacted = False
+
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
@@ -676,6 +679,9 @@ class PicturaeImporter(Importer):
             author_insert, tree_item_id, rank_end, \
                             parent_id, taxon_guid, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
 
+            if BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection, taxon_id=parent_id):
+                self.redacted = True
+
             column_list = ['TimestampCreated',
                            'TimestampModified',
                            'Version',
@@ -727,10 +733,17 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectionobject record to database.
         """
+        self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
+                                                         key_col='FullName', match=self.full_name)
+
 
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                                     id_col='CollectingEventID',
                                                                     key_col='GUID', match=self.collecting_event_guid)
+        if self.redacted is False:
+            self.redacted = BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection,
+                                                                    taxon_id=self.taxon_id)
+
         table = 'collectionobject'
 
         if self.sheet_notes or self.tax_notes:
@@ -754,7 +767,8 @@ class PicturaeImporter(Importer):
                        'CreatedByAgentID',
                        'CatalogerID',
                        'Remarks',
-                       'ReservedText'
+                       'ReservedText',
+                       'YesNo2'
                        ]
 
         value_list = [f"{time_utils.get_pst_time_now_string()}",
@@ -773,7 +787,8 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{self.created_by_agent}",
                       f"{notes}",
-                      f"{self.picturae_config.PROJECT_NAME}"]
+                      f"{self.picturae_config.PROJECT_NAME}",
+                      self.redacted]
 
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -798,8 +813,6 @@ class PicturaeImporter(Importer):
                                                                  id_col='CollectionObjectID',
                                                                  key_col='GUID', match=self.collection_ob_guid)
 
-        self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
-                                                         key_col='FullName', match=self.full_name)
         if self.taxon_id is not None:
 
             column_list = ['TimestampCreated',
@@ -958,6 +971,7 @@ class PicturaeImporter(Importer):
 
         for row in self.record_full.itertuples(index=False):
             if row.CatalogNumber in self.barcode_list:
+
                 self.populate_fields(row)
 
                 # updating barcode present
