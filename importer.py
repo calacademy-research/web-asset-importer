@@ -74,19 +74,19 @@ class Importer:
                 md5_hash.update(chunk)
         return md5_hash.hexdigest()
 
-    def tiff_to_jpg(self, tiff_filepath):
-        basename = os.path.basename(tiff_filepath)
+    def convert_to_jpg(self, image_filepath):
+        basename = os.path.basename(image_filepath)
         if not os.path.exists(self.TMP_JPG):
             os.mkdir(self.TMP_JPG)
 
         file_name_no_extention, extention = self.split_filepath(basename)
-        if extention != 'tif':
-            self.logger.error(f"Bad filename, can't convert {tiff_filepath}")
-            raise ConvertException(f"Bad filename, can't convert {tiff_filepath}")
+        if extention not in ['tif', 'dng','tiff','jpeg']:
+            self.logger.error(f"Bad filename, can't convert {image_filepath}")
+            raise ConvertException(f"Bad filename, can't convert {image_filepath}")
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
-        proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest],
+        proc = subprocess.Popen(['convert', '-quality', '99', image_filepath, jpg_dest],
                                 stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
@@ -233,7 +233,7 @@ class Importer:
         if not jpg_found and tif_found:
             self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")
 
-            jpg_found, output = self.tiff_to_jpg(tif_found)
+            jpg_found, output = self.convert_to_jpg(tif_found)
             if not os.path.exists(jpg_found):
                 self.logger.error(f"  Conversion failure for {tif_found}; skipping.")
                 self.logger.debug(f"Imagemagik output: \n\n{output}\n\n")
@@ -242,7 +242,7 @@ class Importer:
             if not jpg_found and tif_found:
                 self.logger.debug(f"  No valid files for {filepath.full_path}")
                 raise InvalidFilenameError
-        if os.path.getsize(jpg_found) < 1000:
+        if jpg_found is not False and os.path.getsize(jpg_found) < 1000:
             self.logger.info(f"This image is too small; {os.path.getsize(jpg_found)}, skipping.")
             return TooSmallException
 
