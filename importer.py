@@ -226,10 +226,13 @@ class Importer:
         valid_non_jpg_found = False
         deleteme = None
         filename, filename_ext = self.split_filepath(filepath)
-        if filename_ext.lower() == "jpg" or filename_ext.lower() == "jpeg":
+        filename_ext = filename_ext.lower()
+
+        if filename_ext in ["jpg", "jpeg"]:
             jpg_found = filepath
-        if filename_ext.lower() == "tif" or filename_ext.lower() == "tiff" or filename_ext.lower() == "dng":
+        elif filename_ext in ["tif", "tiff", "dng"]:
             valid_non_jpg_found = filepath
+
         if not jpg_found and valid_non_jpg_found:
             self.logger.debug(f"  Must create jpg for {filepath} from {valid_non_jpg_found}")
 
@@ -239,15 +242,12 @@ class Importer:
                 self.logger.debug(f"Imagemagik output: \n\n{output}\n\n")
                 raise MissingPathException
             deleteme = jpg_found
-            if not jpg_found and valid_non_jpg_found:
-                self.logger.debug(f"  No valid files for {filepath.full_path}")
-                raise InvalidFilenameError
-        if jpg_found is not False and os.path.getsize(jpg_found) < 1000:
+
+        if jpg_found and os.path.getsize(jpg_found) < 1000:
             self.logger.info(f"This image is too small; {os.path.getsize(jpg_found)}, skipping.")
-            return TooSmallException
+            raise TooSmallException
 
         return deleteme
-
     def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
 
         deleteme = self.convert_image_if_required(filepath)
