@@ -223,31 +223,31 @@ class Importer:
 
     def convert_image_if_required(self, filepath):
         jpg_found = False
-        tif_found = False
+        valid_non_jpg_found = False
         deleteme = None
         filename, filename_ext = self.split_filepath(filepath)
-        if filename_ext.lower() == "jpg" or filename_ext.lower() == "jpeg":
-            jpg_found = filepath
-        if filename_ext.lower() == "tif" or filename_ext.lower() == "tiff":
-            tif_found = filepath
-        if not jpg_found and tif_found:
-            self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")
+        filename_ext = filename_ext.lower()
 
-            jpg_found, output = self.convert_to_jpg(tif_found)
+        if filename_ext in ["jpg", "jpeg"]:
+            jpg_found = filepath
+        elif filename_ext in ["tif", "tiff", "dng"]:
+            valid_non_jpg_found = filepath
+
+        if not jpg_found and valid_non_jpg_found:
+            self.logger.debug(f"  Must create jpg for {filepath} from {valid_non_jpg_found}")
+
+            jpg_found, output = self.convert_to_jpg(valid_non_jpg_found)
             if not os.path.exists(jpg_found):
-                self.logger.error(f"  Conversion failure for {tif_found}; skipping.")
+                self.logger.error(f"  Conversion failure for {valid_non_jpg_found}; skipping.")
                 self.logger.debug(f"Imagemagik output: \n\n{output}\n\n")
                 raise MissingPathException
             deleteme = jpg_found
-            if not jpg_found and tif_found:
-                self.logger.debug(f"  No valid files for {filepath.full_path}")
-                raise InvalidFilenameError
-        if jpg_found is not False and os.path.getsize(jpg_found) < 1000:
+
+        if jpg_found and os.path.getsize(jpg_found) < 1000:
             self.logger.info(f"This image is too small; {os.path.getsize(jpg_found)}, skipping.")
-            return TooSmallException
+            raise TooSmallException
 
         return deleteme
-
     def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
 
         deleteme = self.convert_image_if_required(filepath)

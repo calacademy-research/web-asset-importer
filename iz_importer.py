@@ -6,7 +6,6 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from metadata_tools.metadata_tools import MetadataTools
 from monitoring_tools import MonitoringTools
 from metadata_tools.metadata_tools import MetadataTools
 
