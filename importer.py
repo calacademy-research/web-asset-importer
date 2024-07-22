@@ -74,6 +74,14 @@ class Importer:
                 md5_hash.update(chunk)
         return md5_hash.hexdigest()
 
+    def _convert_dng_to_tiff(self, source_path, target_path):
+        proc = subprocess.Popen(['darktable-cli', '--import', source_path, target_path],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = proc.communicate(timeout=60)
+        if proc.returncode != 0:
+            self.logger.error(f"Error in converting {source_path} to {target_path}: {error.decode('utf-8')}")
+            raise ConvertException(f"Error in converting {source_path} to {target_path}")
+
     def convert_to_jpg(self, image_filepath):
         basename = os.path.basename(image_filepath)
         if not os.path.exists(self.TMP_JPG):
@@ -83,6 +91,11 @@ class Importer:
         if extention not in ['tif', 'dng','tiff','jpeg']:
             self.logger.error(f"Bad filename, can't convert {image_filepath}")
             raise ConvertException(f"Bad filename, can't convert {image_filepath}")
+
+        if extention == 'dng':
+            temp_tiff_path = os.path.join('/tmp', file_name_no_extention + "_temp.tif")
+            self._convert_dng_to_tiff(image_filepath, temp_tiff_path)
+            image_filepath = temp_tiff_path
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
@@ -102,6 +115,9 @@ class Importer:
         os.rename(os.path.join(self.TMP_JPG, top), target)
         if len(onlyfiles) > 2:
             self.logger.info("multi-file case")
+
+        if extention == 'dng':
+            os.remove(temp_tiff_path)  # Remove the temporary TIFF file
 
         return target, output
 
