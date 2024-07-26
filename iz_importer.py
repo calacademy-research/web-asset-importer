@@ -137,7 +137,9 @@ class IzImporter(Importer):
             EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IFD0_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
 
-            EXIFConstants.XMP_RIGHTS_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE)
+            EXIFConstants.XMP_RIGHTS_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_PLUS_IMAGE_SUPPLIER_NAME: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.PHOTOSHOP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
 
         }
 
