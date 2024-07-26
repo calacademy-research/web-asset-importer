@@ -119,7 +119,7 @@ class IzImporter(Importer):
             EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
             EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.IPTC_CREDIT: None,
+            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
             EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
