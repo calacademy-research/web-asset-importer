@@ -518,6 +518,7 @@ class IzImporter(Importer):
         key_file_path = find_key_file(directory)
         if not key_file_path:
             self.log_file_status(filename=os.path.basename(image_path), path=image_path, rejected="Missing key.csv")
+            return None
 
         # returned_dict:file_based_key_value
         column_mappings = {
