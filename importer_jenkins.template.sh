@@ -98,16 +98,5 @@ docker exec -i mariadb-specify mariadb -u root -ppassword  < ../jenkins_ddls/spe
 sleep 10
 
 echo "specify db populated"
-<<<<<<< Updated upstream
-=======
-
-pytest --ignore="metadata_tools/tests"
-
-echo "Hello World!"
-
-echo python_path
-
-echo metadata_requirements_path
->>>>>>> Stashed changes
 
 pytest --ignore="metadata_tools/tests"

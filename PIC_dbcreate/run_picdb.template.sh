@@ -1,12 +1,13 @@
 #!/bin/bash
-docker run --name picbatch-mysql -e MYSQL_ROOT_PASSWORD=password -e MYSQL_DATABASE=picbatch -d -p 3309:3306 -v $(pwd)/picdb_data:/var/lib/mysql mysql:8
+password="password"
+docker run --name picbatch-mysql -e MYSQL_ROOT_PASSWORD=$password -e MYSQL_DATABASE=picbatch -d -p 3309:3306 -v $(pwd)/picdb_data:/var/lib/mysql mysql:8
 
 cp ./Picturae_DDL.sql $(pwd)/picdb_data/Picturae_DDL.sql
 
 
 # Function to check if MySQL is ready
 check_mysql() {
-  docker exec picbatch-mysql mysqladmin ping -u root -pD1g1tiz3r --host=127.0.0.1 --silent
+  docker exec picbatch-mysql mysqladmin ping -u root -p$password --host=127.0.0.1 --silent
 }
 
 # Maximum timeout duration (in seconds)
@@ -36,4 +37,4 @@ while true; do
 done
 
 # run DDL
-docker exec -i picbatch-mysql mysql -u root -ppassword --host=127.0.0.1 picbatch < ./Picturae_DDL.sql
+docker exec -i picbatch-mysql mysql -u root -p$password --host=127.0.0.1 picbatch < ./Picturae_DDL.sql
