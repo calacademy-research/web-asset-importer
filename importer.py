@@ -378,7 +378,6 @@ class Importer:
                                       filepath_list,
                                       collection_object_id,
                                       agent_id,
-                                      collection,
                                       force_redacted=False,
                                       attachment_properties_map=None,
                                       skip_redacted_check=False,
