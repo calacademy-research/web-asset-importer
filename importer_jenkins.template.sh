@@ -100,3 +100,31 @@ sleep 10
 echo "specify db populated"
 
 pytest --ignore="metadata_tools/tests"
+
+# Run botany import script and check its exit status
+./botany_import.sh
+if [ $? -ne 0 ]; then
+  echo "botany_import.sh failed"
+  exit 1
+fi
+
+# Run ichthyology import script and check its exit status
+./ich_import.sh
+if [ $? -ne 0 ]; then
+  echo "ich_import.sh failed"
+  exit 1
+fi
+
+
+# Run iz import script and check its exit status
+./iz_import.sh
+if [ $? -ne 0 ]; then
+  echo "iz_import.sh failed"
+  exit 1
+fi
+
+# deleting all image db records
+echo "DELETE * FROM images;" | docker exec -i mysql-images -u root -p$image_password
+
+# cleaning up mounted server attachments folder
+find ../web-asset-server-ci/attachments -type f -delete

@@ -17,6 +17,6 @@ else
 
     # Main import process
     cd "$(dirname "$0")" || exit
-    source ./env/bin/activate
+    source ./venv/bin/activate
     python3 ./client_tools.py -vvvv Botany import >& botany_import_log.txt &
 fi
