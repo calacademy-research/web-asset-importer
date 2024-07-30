@@ -18,6 +18,6 @@ else
     # Main import process
     cd "$(dirname "$0")" || exit
     source ./venv/bin/activate
-    python3 ./client_tools.py Ichthyology import >& ichthyology_import_log.txt &
+    python3 ./client_tools.py -vvvv Ichthyology import >& ichthyology_import_log.txt &
 fi
 

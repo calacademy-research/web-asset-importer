@@ -93,7 +93,7 @@ echo "Picbatch db running"
 
 sleep 10
 
-docker exec -i mariadb-specify mariadb -u root -ppassword  < ../jenkins_ddls/specify_test_ddl.sql
+docker exec -i mariadb-specify mariadb -u root -ppassword  < ../jenkins_ddls/specify_jenkins_ddl.sql
 
 sleep 10
 
@@ -115,7 +115,6 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-
 # Run iz import script and check its exit status
 ./iz_import.sh
 if [ $? -ne 0 ]; then
@@ -124,7 +123,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # deleting all image db records
-echo "DELETE * FROM images;" | docker exec -i mysql-images -u root -p$image_password
+echo "DELETE * FROM images;" | docker exec -i mysql-images mysql -u root -ptest_password
 
 # cleaning up mounted server attachments folder
 find ../web-asset-server-ci/attachments -type f -delete
