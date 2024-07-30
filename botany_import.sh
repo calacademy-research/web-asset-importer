@@ -19,4 +19,12 @@ else
     cd "$(dirname "$0")" || exit
     source ./venv/bin/activate
     python3 ./client_tools.py -vvvv Botany import >& botany_import_log.txt &
+    PYTHON_PID=$!
+
+    # wait for process to complete
+    wait $PYTHON_PID
+    PYTHON_EXIT_CODE=$?
+
+    # Exit with the Python script's exit code
+    exit $PYTHON_EXIT_CODE
 fi

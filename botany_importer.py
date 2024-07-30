@@ -43,7 +43,7 @@ class BotanyImporter(Importer):
         for cur_dir in self.paths:
             self.dir_tools.process_files_or_directories_recursive(cur_dir)
 
-        if not self.full_import:
+        if not self.full_import and self.botany_importer_config.MAILING_LIST:
             self.monitoring_tools = MonitoringTools(config=self.botany_importer_config,
                                                     report_path=self.botany_importer_config.REPORT_PATH)
 
@@ -51,7 +51,7 @@ class BotanyImporter(Importer):
 
         self.process_loaded_files()
 
-        if not self.full_import:
+        if not self.full_import and self.botany_importer_config.MAILING_LIST:
             self.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                     time_stamp=starting_time_stamp)
 

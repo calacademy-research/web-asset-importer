@@ -91,11 +91,11 @@ class PicturaeImporter(Importer):
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
         self.record_full['batch_md5'] = self.batch_md5
-
-        self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
-                                                   batch_md5=self.batch_md5,
-                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH,
-                                                   active=True)
+        if self.picturae_config.MAILING_LIST:
+            self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
+                                                       batch_md5=self.batch_md5,
+                                                       report_path=self.picturae_config.ACTIVE_REPORT_PATH,
+                                                       active=True)
 
         # setting up db sql_tools for each connection
 
@@ -1068,8 +1068,8 @@ class PicturaeImporter(Importer):
         # uploading attachments
 
         value_list = [len(self.new_taxa)]
-
-        self.monitoring_tools.create_monitoring_report(value_list=value_list)
+        if self.picturae_config.MAILING_LIST:
+            self.monitoring_tools.create_monitoring_report(value_list=value_list)
 
 
         self.upload_attachments()
@@ -1078,8 +1078,9 @@ class PicturaeImporter(Importer):
 
         os.remove(self.file_path)
 
-        self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
-                                                     time_stamp=starting_time_stamp)
+        if self.picturae_config.MAILING_LIST:
+            self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
+                                                         time_stamp=starting_time_stamp)
 
         self.logger.info("process finished")
 

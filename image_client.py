@@ -39,7 +39,7 @@ class ImageClient:
         ptc_timezone = timezone(timedelta(hours=-8), name="PST")
         self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
-        if config is not None:
+        if config is not None and config.MAILING_LIST:
             self.config = config
             self.monitoring_tools = MonitoringTools(config=config, report_path=config.REPORT_PATH)
 
@@ -130,7 +130,8 @@ class ImageClient:
         self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
         r = requests.post(url, files=files, data=data)
 
-        if "undatabased" in original_path.lower() and self.monitoring_tools.path != self.config.ACTIVE_REPORT_PATH:
+        if "undatabased" in original_path.lower() and self.monitoring_tools.path != self.config.ACTIVE_REPORT_PATH\
+                and self.config.MAILING_LIST:
             self.monitoring_tools.path = self.config.ACTIVE_REPORT_PATH
         else:
             pass
@@ -144,9 +145,10 @@ class ImageClient:
             else:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
-            self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                        id=id,
-                                                        success=False)
+            if self.config.MAILING_LIST:
+                self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
+                                                            id=id,
+                                                            success=False)
             raise UploadFailureException
         else:
             params = {
@@ -162,10 +164,10 @@ class ImageClient:
 
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             logging.info("adding to image")
-
-            self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                        id=id,
-                                                        success=True)
+            if self.config.MAILING_LIST:
+                self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
+                                                            id=id,
+                                                            success=True)
 
         self.logger.debug("Upload to file server complete")
 

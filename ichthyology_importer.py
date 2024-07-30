@@ -40,7 +40,7 @@ class IchthyologyImporter(Importer):
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
-        if not self.full_import:
+        if not self.full_import and ich_importer_config.MAILING_LIST:
             self.monitoring_tools = MonitoringTools(config=ich_importer_config,
                                                     report_path=ich_importer_config.REPORT_PATH)
 
@@ -48,7 +48,7 @@ class IchthyologyImporter(Importer):
 
         self.process_loaded_files()
 
-        if not self.full_import:
+        if not self.full_import and ich_importer_config.MAILING_LIST:
             self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
 
