@@ -39,8 +39,8 @@ class ImageClient:
         ptc_timezone = timezone(timedelta(hours=-8), name="PST")
         self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
+        self.config = config
         if config is not None and config.MAILING_LIST:
-            self.config = config
             self.monitoring_tools = MonitoringTools(config=config, report_path=config.REPORT_PATH)
 
     def split_filepath(self, filepath):

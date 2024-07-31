@@ -392,6 +392,7 @@ class Importer:
                                                                 skip_redacted_check, id)
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
+                self.logger.error(traceback.format_exc())
 
     def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
         """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of

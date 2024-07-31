@@ -21,6 +21,7 @@ cleanup() {
     docker rm mariadb-specify
     docker stop picbatch-mysql
     docker rm picbatch-mysql
+    echo "DELETE FROM images.images;" | docker exec -i mysql-images mysql -u root -ptest_password
 }
 
 #cleaning up any residual containers from leftover tests
@@ -121,9 +122,3 @@ if [ $? -ne 0 ]; then
   echo "iz_import.sh failed"
   exit 1
 fi
-
-# deleting all image db records
-echo "DELETE * FROM images;" | docker exec -i mysql-images mysql -u root -ptest_password
-
-# cleaning up mounted server attachments folder
-find ../web-asset-server-ci/attachments -type f -delete

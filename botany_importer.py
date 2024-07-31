@@ -30,6 +30,8 @@ class BotanyImporter(Importer):
         self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         super().__init__(config, "Botany")
         # limit is for debugging
+        self.skip_redacted_check = skip_redacted_check
+        self.force_redacted = force_redacted
         self.botany_importer_config = config
         self.existing_barcodes = existing_barcodes
         self.full_import = full_import
@@ -76,10 +78,10 @@ class BotanyImporter(Importer):
         sql = f'''select CollectionObjectID from collectionobject where CatalogNumber={barcode};'''
         collection_object_id = self.specify_db_connection.get_one_record(sql)
         self.logger.debug(f"retrieving id for: {collection_object_id}")
-        force_redacted = False
         if collection_object_id is None and not self.existing_barcodes:
             self.logger.debug(f"No record found for catalog number {barcode}, creating skeleton.")
             self.create_skeleton(barcode)
+            collection_object_id = self.specify_db_connection.get_one_record(sql)
             self.logger.warning(f"Skeletons temporarily disabled in botany")
             return
         #  we can have multiple filepaths per barcode in the case of barcode-a, barcode-b etc.
@@ -99,7 +101,8 @@ class BotanyImporter(Importer):
             self.import_to_imagedb_and_specify(filepath_list,
                                                collection_object_id,
                                                agent_id,
-                                               force_redacted,
+                                               self.force_redacted,
+                                               self.skip_redacted_check,
                                                id=barcode)
 
 
