@@ -3,7 +3,6 @@ import re
 import csv
 import logging
 import warnings
-import platform
 
 from datetime import datetime
 from importer import Importer
@@ -59,11 +58,9 @@ class IzImporter(Importer):
 
         print("Starting to process loaded core files...")
         self.process_loaded_files()
-        if platform.system() != 'Darwin':
-            self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+        self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
                                                          time_stamp=starting_time_stamp)
-        else:
-            print("Ruinning on mac; not sending email report")
+
 
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
