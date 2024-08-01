@@ -77,10 +77,8 @@ class IchthyologyImporter(Importer):
         return f'{number}', collection
 
     def build_filename_map(self, full_path):
-        full_path = full_path.lower()
         if not self.check_for_valid_image(full_path):
             return
-
         filename = os.path.basename(full_path)
 
         try:

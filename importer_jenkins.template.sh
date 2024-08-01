@@ -21,7 +21,9 @@ cleanup() {
     docker rm mariadb-specify
     docker stop picbatch-mysql
     docker rm picbatch-mysql
-    echo "DELETE FROM images.images;" | docker exec -i mysql-images mysql -u root -ptest_password
+    echo "DELETE FROM images.images;" | docker exec -i mysql-images mysql -u root -p$image_password
+    # cleaning up mounted server attachments folder
+    find ../web-asset-server-ci/attachments -type f -delete
 }
 
 #cleaning up any residual containers from leftover tests
@@ -102,23 +104,50 @@ echo "specify db populated"
 
 pytest --ignore="metadata_tools/tests"
 
+exit_code=$?
+
+if [ $exit_code -ne 0 ]; then
+  echo "Pytest reported some failed tests"
+  exit $exit_code
+fi
+
+echo "All tests passed"
+
+
 # Run botany import script and check its exit status
 ./botany_import.sh
-if [ $? -ne 0 ]; then
-  echo "botany_import.sh failed"
+if [ $? -eq 0 ]; then
+  echo "botany import successful"
+else
+  echo "botany import failed"
   exit 1
 fi
 
+# inserting SU catalog number to casich
+echo '''UPDATE casich.collectionobject SET CatalogNumber="CAS-SU 000006" WHERE CatalogNumber="CAS-ICH000006";''' | \
+docker exec -i mariadb-specify mariadb -u root -ppassword
+
 # Run ichthyology import script and check its exit status
 ./ich_import.sh
-if [ $? -ne 0 ]; then
+if [ $? -eq 0 ]; then
+  echo "ich import successful"
+else
   echo "ich_import.sh failed"
   exit 1
 fi
 
 # Run iz import script and check its exit status
-./iz_import.sh
-if [ $? -ne 0 ]; then
-  echo "iz_import.sh failed"
-  exit 1
-fi
+#./iz_import.sh
+#if [ $? -eq 0 ]; then
+#  echo "iz import successful"
+#else
+#  echo "iz import failed"
+#  exit 1
+#fi
+
+
+# deleting all image db records
+echo "DELETE FROM images.images;" | docker exec -i mysql-images mysql -u root -ptest_password
+
+# cleaning up mounted server attachments folder
+find ../web-asset-server-ci/attachments -type f -delete

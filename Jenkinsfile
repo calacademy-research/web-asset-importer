@@ -41,7 +41,6 @@ pipeline {
                     sh "cp ${PARENT_PATH}/web-asset-importer-ci/tests/casbotany_lite.db ${env.FOUND_DIR}/tests/casbotany_lite.db"
                     sh "cp -r ${PARENT_PATH}/web-asset-importer-ci/config_files ${env.FOUND_DIR}/"
                     sh "cp -r ${PARENT_PATH}/web-asset-importer-ci/html_reports ${env.FOUND_DIR}/"
-
                 }
             }
         }
@@ -49,8 +48,10 @@ pipeline {
         stage('Run Script') {
             steps {
                 script {
-                    // Run the provided shell script as root within the Docker container
-                    sh "cd ${env.FOUND_DIR} && ./importer_jenkins.sh"
+                    // Run the provided shell script as root with timelimit
+                    timeout(time: 10, unit: 'MINUTES') {
+                        sh "cd ${env.FOUND_DIR} && ./importer_jenkins.sh"
+                    }
                 }
             }
         }

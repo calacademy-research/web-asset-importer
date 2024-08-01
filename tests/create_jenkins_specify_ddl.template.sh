@@ -4,7 +4,7 @@ password="password"
 
 # Databases and tables
 databases=("casich" "casiz" "casbotany")
-tables=("agent" "geography" "taxon")
+tables=("agent" "geography" "taxon" "agent")
 
 cleanup (){
   rm -f all_ddl.sql
@@ -21,7 +21,12 @@ done
 # Dump the tables for each database
 for db in "${databases[@]}"; do
     echo "USE \`$db\`;" >> all_ddl.sql
-    mysqldump -h ntobiko -u $username -p$password $db "${tables[@]}" >> all_ddl.sql
+
+    for table in "${tables[@]}"; do
+      mysqldump -h ntobiko -u $username -p$password $db $table >> all_ddl.sql
+    done
+    # adding reduced collectionobject table
+    mysqldump -h ntobiko -u $username -p$password $db collectionobject --where="CollectionObjectID <= 10" >> all_ddl.sql
 done
 
 # Remove constraint and definer lines
@@ -31,4 +36,4 @@ sed -e '/^  CONSTRAINT/d' -e "s/ DEFINER=\`$username\`@\`%\`//g" all_ddl.sql > c
 sed 'x;1d;G;/;$/s/,\n)/\n)/;$!s/\n.*//' cleaned_db.sql > specify_jenkins_ddl.sql
 
 # scping to jenkins environment
-# scp specify_jenkins_ddl.sql ibss-alt@10.2.22.2:/ibss-alt/jenkins_data/workspace/jenkins_ddls/
+scp specify_jenkins_ddl.sql ibss-alt@10.2.22.2:/ibss-alt/jenkins_data/workspace/jenkins_ddls/
