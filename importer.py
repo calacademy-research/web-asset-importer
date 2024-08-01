@@ -395,9 +395,9 @@ class Importer:
                                       collection_object_id,
                                       agent_id,
                                       force_redacted=False,
-                                      attachment_properties_map=None,
                                       skip_redacted_check=False,
-                                      id=None):
+                                      id=None,
+                                      attachment_properties_map=None):
 
         if attachment_properties_map is None:
             attachment_properties_map = {}

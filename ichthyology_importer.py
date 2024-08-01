@@ -119,8 +119,9 @@ class IchthyologyImporter(Importer):
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         # TODO: hardcoded user ID
-        self.import_to_imagedb_and_specify(filepath_list, collection_object_id,
-                                           68835,
+        self.import_to_imagedb_and_specify(filepath_list=filepath_list,
+                                           collection_object_id=collection_object_id,
+                                           agent_id=68835,
                                            skip_redacted_check=True,
                                            id=catalog_number)
 
