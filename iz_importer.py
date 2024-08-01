@@ -138,7 +138,9 @@ class IzImporter(Importer):
             EXIFConstants.XMP_RIGHTS: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IFD0_COPYRIGHT: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
 
-            EXIFConstants.XMP_RIGHTS_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE)
+            EXIFConstants.XMP_RIGHTS_USAGE_TERMS: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
+            EXIFConstants.XMP_PLUS_IMAGE_SUPPLIER_NAME: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.PHOTOSHOP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
 
         }
 
@@ -517,6 +519,7 @@ class IzImporter(Importer):
         key_file_path = find_key_file(directory)
         if not key_file_path:
             self.log_file_status(filename=os.path.basename(image_path), path=image_path, rejected="Missing key.csv")
+            return None
 
         # returned_dict:file_based_key_value
         column_mappings = {
