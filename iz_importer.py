@@ -3,6 +3,7 @@ import re
 import csv
 import logging
 import warnings
+
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
@@ -57,9 +58,9 @@ class IzImporter(Importer):
 
         print("Starting to process loaded core files...")
         self.process_loaded_files()
-
         self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                                                     time_stamp=starting_time_stamp)
+                                                         time_stamp=starting_time_stamp)
+
 
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
@@ -111,7 +112,7 @@ class IzImporter(Importer):
                                                             self.collection_name, attach_loc)
 
                 md = MetadataTools(path=cur_filepath)
-                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map))
+                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map), overwrite_blank=True)
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -119,11 +120,10 @@ class IzImporter(Importer):
             EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
             EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.IPTC_CREDIT: None,
             EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
             EXIFConstants.XMP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
             EXIFConstants.XMP_CREATOR: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.XMP_USAGE: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
@@ -144,7 +144,7 @@ class IzImporter(Importer):
         }
 
         # Remove keys with None values
-        return {k: v for k, v in exif_mapping.items() if v is not None}
+        return {k: v for k, v in exif_mapping.items()}
 
     def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None,
                         copyright_method=None, copyright=None, conjunction=None):
