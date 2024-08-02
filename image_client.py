@@ -40,8 +40,20 @@ class ImageClient:
         self.datetime_now = datetime.now(ptc_timezone)
         self.update_time_delta()
         self.config = config
-        if config is not None and config.MAILING_LIST:
-            self.monitoring_tools = MonitoringTools(config=config, report_path=config.REPORT_PATH)
+
+        if config.MAILING_LIST:
+            if config.ACTIVE_REPORT_PATH:
+                report_path = config.ACTIVE_REPORT_PATH
+                active = True
+            else:
+                report_path = config.REPORT_PATH
+                active = False
+
+            # dict to create report of image import
+            self.monitoring_dict = {}
+
+            self.monitoring_tools = MonitoringTools(config=config, report_path=report_path, active=active)
+
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -130,11 +142,6 @@ class ImageClient:
         self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
         r = requests.post(url, files=files, data=data)
 
-        if "undatabased" in original_path.lower() and self.monitoring_tools.path != self.config.ACTIVE_REPORT_PATH\
-                and self.config.MAILING_LIST:
-            self.monitoring_tools.path = self.config.ACTIVE_REPORT_PATH
-        else:
-            pass
         if id is None:
             id = 'N/A'
         if r.status_code != 200:
@@ -146,9 +153,8 @@ class ImageClient:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
             if self.config.MAILING_LIST:
-                self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                            id=id,
-                                                            success=False)
+                self.monitoring_dict[id] = [original_path, False]
+
             raise UploadFailureException
         else:
             params = {
@@ -165,9 +171,7 @@ class ImageClient:
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             logging.info("adding to image")
             if self.config.MAILING_LIST:
-                self.monitoring_tools.add_imagepath_to_html(image_path=original_path,
-                                                            id=id,
-                                                            success=True)
+                self.monitoring_dict[id] = [original_path, True]
 
         self.logger.debug("Upload to file server complete")
 
