@@ -3,6 +3,7 @@ import re
 import csv
 import logging
 import warnings
+
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
@@ -110,7 +111,7 @@ class IzImporter(Importer):
                                                             self.collection_name, attach_loc)
 
                 md = MetadataTools(path=cur_filepath)
-                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map))
+                md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map), overwrite_blank=True)
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -118,11 +119,10 @@ class IzImporter(Importer):
             EXIFConstants.EXIF_ARTIST: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.EXIF_CREATE_DATE: attachment_properties_map.get(SpecifyConstants.ST_DATE_IMAGED),
             EXIFConstants.EXIF_IMAGE_DESCRIPTION: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.IPTC_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
+            EXIFConstants.IPTC_CREDIT: None,
             EXIFConstants.IPTC_COPYRIGHT_NOTICE: attachment_properties_map.get(SpecifyConstants.ST_COPYRIGHT_HOLDER),
             EXIFConstants.IPTC_BY_LINE: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.IPTC_CAPTION_ABSTRACT: attachment_properties_map.get(SpecifyConstants.ST_TITLE),
-            EXIFConstants.PHOTOSHOP_COPYRIGHT_FLAG: "TRUE",
             EXIFConstants.XMP_CREDIT: attachment_properties_map.get(SpecifyConstants.ST_CREDIT),
             EXIFConstants.XMP_CREATOR: attachment_properties_map.get(SpecifyConstants.ST_METADATA_TEXT),
             EXIFConstants.XMP_USAGE: attachment_properties_map.get(SpecifyConstants.ST_LICENSE),
@@ -143,7 +143,7 @@ class IzImporter(Importer):
         }
 
         # Remove keys with None values
-        return {k: v for k, v in exif_mapping.items() if v is not None}
+        return {k: v for k, v in exif_mapping.items()}
 
     def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None,
                         copyright_method=None, copyright=None, conjunction=None):
@@ -178,13 +178,19 @@ class IzImporter(Importer):
     def extract_casiz_from_string(self, input_string):
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
-            # self.casiz_numbers = list(set(map(int, re.findall(r'\b\d{5,12}\b', input_string))))
-            self.casiz_numbers = list(set(map(int, re.findall(
-                rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b',
-                input_string))))
+            integers = set()
+            matches = re.finditer(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
+
+            for match in matches:
+                numbers = re.findall(r'\d+', match.group())
+                for number in numbers:
+                    integers.add(int(number))
+
+            self.casiz_numbers=list(integers)
 
             self.title = os.path.splitext(input_string)[0]
-            return True
+            if len(self.casiz_numbers) > 0:
+                return True
 
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
 
@@ -194,6 +200,8 @@ class IzImporter(Importer):
             if casiz_number is not None:
                 self.casiz_numbers = [casiz_number]
                 return True
+
+
 
         return False
 
@@ -246,7 +254,7 @@ class IzImporter(Importer):
         return None
 
     def extract_copyright(self, orig_case_full_path, exif_metadata, file_key):
-        if file_key['CopyrightHolder'] is not None:
+        if file_key is not None and file_key['CopyrightHolder'] is not None:
             self.copyright = file_key['CopyrightHolder']
             return 'file key'
 
@@ -334,8 +342,6 @@ class IzImporter(Importer):
             return False
 
         file_key = self._read_file_key(full_path)
-        if file_key is None:
-            return False
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:
@@ -414,37 +420,61 @@ class IzImporter(Importer):
     def _update_metadata_map(self, full_path, exif_metadata, file_key):
         exif_create_date = exif_metadata.get('EXIF:CreateDate', '')
         exif_create_year = self._extract_year_from_date(exif_create_date)
-        file_key_copyright_date = file_key.get('CopyrightDate', '')
-        file_key_copyright_year = self._extract_year_from_date(file_key_copyright_date)
-
-        copyright_date = file_key_copyright_year or exif_create_year or None
-
-        if 'IsPublic' not in file_key or file_key['IsPublic'] is None or file_key['IsPublic'] is False:
-            file_key['IsPublic'] = False
-        else:
-            file_key['IsPublic'] = True
+        file_key_copyright_year = None
         agent_id = None
-        if 'creator' in file_key and file_key['creator'] is not None and len(file_key['creator']) > 1:
-            agent_id = self.find_agent_id_from_string(file_key['creator'])
 
-        # This gets passed to import_single_file_to_image_db_and_specify and set in specify.
-        self.filepath_metadata_map[full_path] = {
-            SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
-            SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
-            SpecifyConstants.ST_CREDIT: file_key['Credit'],
-            SpecifyConstants.ST_DATE_IMAGED: exif_metadata.get('EXIF:CreateDate'),
-            SpecifyConstants.ST_LICENSE: file_key['License'],
-            SpecifyConstants.ST_REMARKS: file_key['Remarks'],
-            SpecifyConstants.ST_TITLE: self.title,
-            SpecifyConstants.ST_IS_PUBLIC: file_key['IsPublic'],
-            SpecifyConstants.ST_SUBTYPE: file_key['subType'],
-            SpecifyConstants.ST_TYPE: 'StillImage',
-            SpecifyConstants.ST_ORIG_FILENAME: full_path,
-            SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key['createdByAgent'],
-            SpecifyConstants.ST_METADATA_TEXT: file_key['creator']
-        }
-        if agent_id is not None:
-            self.filepath_metadata_map[full_path][SpecifyConstants.ST_CREATOR_ID] = agent_id
+        if file_key is not None:
+            if 'CopyrightDate' in file_key:
+                file_key_copyright_date = file_key.get('CopyrightDate', '')
+                file_key_copyright_year = self._extract_year_from_date(file_key_copyright_date)
+
+            if 'IsPublic' not in file_key or file_key['IsPublic'] is None or file_key['IsPublic'] is False:
+                file_key['IsPublic'] = False
+            else:
+                file_key['IsPublic'] = True
+
+            if 'creator' in file_key and file_key['creator'] is not None and len(file_key['creator']) > 1:
+                agent_id = self.find_agent_id_from_string(file_key['creator'])
+
+            copyright_date = file_key_copyright_year if file_key_copyright_year is not None else exif_create_year or None
+
+            # This gets passed to import_single_file_to_image_db_and_specify and set in specify.
+            self.filepath_metadata_map[full_path] = {
+                SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
+                SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
+                SpecifyConstants.ST_CREDIT: file_key.get('Credit', ''),
+                SpecifyConstants.ST_DATE_IMAGED: exif_metadata.get('EXIF:CreateDate'),
+                SpecifyConstants.ST_LICENSE: file_key.get('License', ''),
+                SpecifyConstants.ST_REMARKS: file_key.get('Remarks', ''),
+                SpecifyConstants.ST_TITLE: self.title,
+                SpecifyConstants.ST_IS_PUBLIC: file_key['IsPublic'],
+                SpecifyConstants.ST_SUBTYPE: file_key.get('subType', ''),
+                SpecifyConstants.ST_TYPE: 'StillImage',
+                SpecifyConstants.ST_ORIG_FILENAME: full_path,
+                SpecifyConstants.ST_CREATED_BY_AGENT_ID: file_key.get('createdByAgent', ''),
+                SpecifyConstants.ST_METADATA_TEXT: file_key.get('creator', '')
+            }
+            if agent_id is not None:
+                self.filepath_metadata_map[full_path][SpecifyConstants.ST_CREATOR_ID] = agent_id
+        else:
+            copyright_date = exif_create_year or None
+
+            # This gets passed to import_single_file_to_image_db_and_specify and set in specify.
+            self.filepath_metadata_map[full_path] = {
+                SpecifyConstants.ST_COPYRIGHT_DATE: copyright_date,
+                SpecifyConstants.ST_COPYRIGHT_HOLDER: self.copyright,
+                SpecifyConstants.ST_CREDIT: '',
+                SpecifyConstants.ST_DATE_IMAGED: exif_metadata.get('EXIF:CreateDate'),
+                SpecifyConstants.ST_LICENSE: '',
+                SpecifyConstants.ST_REMARKS: '',
+                SpecifyConstants.ST_TITLE: self.title,
+                SpecifyConstants.ST_IS_PUBLIC: False,
+                SpecifyConstants.ST_SUBTYPE: '',
+                SpecifyConstants.ST_TYPE: 'StillImage',
+                SpecifyConstants.ST_ORIG_FILENAME: full_path,
+                SpecifyConstants.ST_CREATED_BY_AGENT_ID: '',
+                SpecifyConstants.ST_METADATA_TEXT: ''
+            }
 
     def find_agent_id_from_string(self, input_string):
         import difflib
