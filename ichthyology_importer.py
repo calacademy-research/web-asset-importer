@@ -40,17 +40,13 @@ class IchthyologyImporter(Importer):
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
-        if not self.full_import:
-            self.monitoring_tools = MonitoringTools(config=ich_importer_config,
-                                                    report_path=ich_importer_config.REPORT_PATH)
-
-            self.monitoring_tools.create_monitoring_report()
-
         self.process_loaded_files()
 
-        if not self.full_import:
-            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
+        if not self.full_import and ich_importer_config.MAILING_LIST:
+            image_dict = self.image_client.monitoring_dict
+            self.image_client.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+                                                                      time_stamp=starting_time_stamp,
+                                                                      image_dict=image_dict)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
@@ -77,10 +73,8 @@ class IchthyologyImporter(Importer):
         return f'{number}', collection
 
     def build_filename_map(self, full_path):
-        full_path = full_path.lower()
         if not self.check_for_valid_image(full_path):
             return
-
         filename = os.path.basename(full_path)
 
         try:
@@ -119,8 +113,9 @@ class IchthyologyImporter(Importer):
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         # TODO: hardcoded user ID
-        self.import_to_imagedb_and_specify(filepath_list, collection_object_id,
-                                           68835,
+        self.import_to_imagedb_and_specify(filepath_list=filepath_list,
+                                           collection_object_id=collection_object_id,
+                                           agent_id=68835,
                                            skip_redacted_check=True,
                                            id=catalog_number)
 

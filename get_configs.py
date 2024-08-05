@@ -17,10 +17,10 @@ def get_config(config: str):
     location = f"config_files/{config}_config.py"
 
     try:
-        if "importer" in os.path.basename(current_dir.lower()):
+        if os.path.exists(os.path.join(current_dir, "importer.py")):
             pass
         else:
-            location = "../" + location
+            location = os.path.join("..", location)
 
         spec = util.spec_from_file_location(name=f"{config}_config",
                                             location=location)

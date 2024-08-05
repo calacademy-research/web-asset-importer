@@ -17,7 +17,15 @@ else
 
     # Main import process
     cd "$(dirname "$0")" || exit
-    source ./env/bin/activate
-    python3 ./client_tools.py Ichthyology import >& ichthyology_import_log.txt &
+    source ./venv/bin/activate
+    python3 ./client_tools.py -vvvv Ichthyology import >& ichthyology_import_log.txt &
+    PYTHON_PID=$!
+
+    # wait for process to complete
+    wait $PYTHON_PID
+    PYTHON_EXIT_CODE=$?
+
+    # Exit with the Python script's exit code
+    exit $PYTHON_EXIT_CODE
 fi
 

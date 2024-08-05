@@ -40,6 +40,8 @@ class PicturaeImporter(Importer):
 
         self.csv_folder = self.picturae_config.CSV_FOLDER
 
+        self.botany_importer = None
+
         self.process_csv_files()
 
         self.init_all_vars()
@@ -91,11 +93,11 @@ class PicturaeImporter(Importer):
         self.batch_md5 = generate_token(starting_time_stamp, self.file_path)
 
         self.record_full['batch_md5'] = self.batch_md5
-
-        self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
-                                                   batch_md5=self.batch_md5,
-                                                   report_path=self.picturae_config.ACTIVE_REPORT_PATH,
-                                                   active=True)
+        if self.picturae_config.MAILING_LIST:
+            self.monitoring_tools = MonitoringToolsDir(config=self.picturae_config,
+                                                       batch_md5=self.batch_md5,
+                                                       report_path=self.picturae_config.ACTIVE_REPORT_PATH,
+                                                       active=True)
 
         # setting up db sql_tools for each connection
 
@@ -1011,7 +1013,7 @@ class PicturaeImporter(Importer):
         self.unhide_files()
         try:
             self.hide_unwanted_files()
-            BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
+            self.botany_importer = BotanyImporter(paths=self.paths, config=self.picturae_config, full_import=True)
             self.unhide_files()
         except Exception as e:
             self.unhide_files()
@@ -1067,19 +1069,18 @@ class PicturaeImporter(Importer):
                                                           agent_id=self.created_by_agent)
         # uploading attachments
 
-        value_list = [len(self.new_taxa)]
-
-        self.monitoring_tools.create_monitoring_report(value_list=value_list)
-
-
         self.upload_attachments()
 
         # deleting from main folder after importing images to prevent double uploading
 
         os.remove(self.file_path)
 
-        self.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
-                                                     time_stamp=starting_time_stamp)
+        if self.picturae_config.MAILING_LIST:
+            image_dict = self.botany_importer.image_client.monitoring_dict
+            value_list = [len(self.new_taxa)]
+            self.image_client.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
+                                                     time_stamp=starting_time_stamp, image_dict=image_dict,
+                                                     value_list=value_list)
 
         self.logger.info("process finished")
 

@@ -394,11 +394,10 @@ class Importer:
                                       filepath_list,
                                       collection_object_id,
                                       agent_id,
-                                      collection,
                                       force_redacted=False,
-                                      attachment_properties_map=None,
                                       skip_redacted_check=False,
-                                      id=None):
+                                      id=None,
+                                      attachment_properties_map=None):
 
         if attachment_properties_map is None:
             attachment_properties_map = {}
@@ -409,6 +408,7 @@ class Importer:
                                                                 skip_redacted_check, id)
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
+                self.logger.error(traceback.format_exc())
 
     def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
         """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of

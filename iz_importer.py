@@ -52,15 +52,14 @@ class IzImporter(Importer):
         self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=False)
         self.directory_tree_core.process_files(self.build_filename_map)
 
-        self.monitoring_tools = MonitoringTools(config=self.iz_importer_config,
-                                                report_path=self.iz_importer_config.REPORT_PATH)
-        self.monitoring_tools.create_monitoring_report()
-
         print("Starting to process loaded core files...")
         self.process_loaded_files()
-        self.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
 
+        if self.iz_importer_config.MAILING_LIST:
+            image_dict = self.image_client.monitoring_dict
+            self.image_client.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
+                                                                      time_stamp=starting_time_stamp,
+                                                                      image_dict=image_dict)
 
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)

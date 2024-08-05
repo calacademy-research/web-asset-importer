@@ -1,18 +1,19 @@
 
 import logging
+import os.path
+
 import pandas as pd
 import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
 import smtplib
-
+from get_configs import get_config
 class MonitoringTools:
     def __init__(self, config, report_path, active=False):
 
         self.path = report_path
         self.config = config
-
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
 
@@ -42,7 +43,7 @@ class MonitoringTools:
             if not hasattr(self.config, term):
                 raise ValueError(f"Config is missing term '{term}'")
 
-    def add_imagepath_to_html(self, image_path, id, success):
+    def add_imagepaths_to_html(self, image_dict):
         """add_filepath_to_monitor_txt: adds single line to end of txt file,
             in this case with 4 spaces,
             to keep alignment with generic template
@@ -51,18 +52,23 @@ class MonitoringTools:
                 id: the id associated with that image
                 success: indicates whether image at filepath failed to upload to image server or not
         """
-        monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{id}</td><td>{success}</td></tr>"
+        for key, value in image_dict.items():
+            img_id = key
+            image_path = value[0]
+            success = value[1]
 
-        with open(self.path, "r") as file:
-            html_content = file.readlines()
+            monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td><td>{success}</td></tr>"
 
-        insert_position = len(html_content) - 6
+            with open(self.path, "r") as file:
+                html_content = file.readlines()
 
-        html_content.insert(insert_position, monitor_line + '\n')
+            insert_position = len(html_content) - 6
 
-        # Write the updated HTML content back to the file
-        with open(self.path, 'w') as file:
-            file.writelines(html_content)
+            html_content.insert(insert_position, monitor_line + '\n')
+
+            # Write the updated HTML content back to the file
+            with open(self.path, 'w') as file:
+                file.writelines(html_content)
 
     def add_line_between(self, line_num: int, string: str):
         """add_line_between: used to add a string line into a txt file, between two existing lines,
@@ -92,18 +98,17 @@ class MonitoringTools:
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
 
-    def add_format_batch_report(self, custom_terms=None):
+    def create_monitoring_report(self):
         """add_format_batch_report:
             creates template of upload batch report. Takes standard summary terms and args,
            and allows for custom terms to be added with custom_terms.
            args:
                 custom_terms: the list of custom values to add as summary terms, myst correspond with order of
                               SUMMARY_TERMS variable in config."""
-
-        if not custom_terms:
-            custom_terms = ""
+        if not os.path.exists(path=self.path):
+            open(self.path, 'w').close()
         else:
-            pass
+            self.clear_txt()
 
         report = """<html>
                     <head>
@@ -137,11 +142,6 @@ class MonitoringTools:
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
                           <p>Uploader: {self.AGENT_ID}</p>
                           
-                          <h2>Summary Statistics:</h2>
-                          <ul>
-                              {custom_terms}
-                          </ul>
-                          <h2>Summary Figures:</h2>
                           <h2>Images Uploaded:</h2>
                           <table>
                               <tr>
@@ -172,17 +172,30 @@ class MonitoringTools:
         with open(self.path, 'w') as file:
             file.writelines(html_content)
 
-    def create_monitoring_report(self, value_list=None):
-        """creates customizable report template
+    def add_summary_statistics(self, value_list):
+        """Adds the summary statistics to the report after the uploader information.
             args:
-                value_list: the list of values to use for custom terms.
-                """
-        self.clear_txt()
-        if self.config.SUMMARY_TERMS:
-            custom_terms = self.create_summary_term_list(value_list=value_list)
-            self.add_format_batch_report(custom_terms=custom_terms)
-        else:
-            self.add_format_batch_report()
+                custom_terms: the list of custom values to add as summary terms.
+        """
+
+        custom_terms = self.create_summary_term_list(value_list=value_list)
+
+        with open(self.path, "r") as file:
+            html_content = file.readlines()
+
+        # Find the position of the <p>Uploader: {self.AGENT_ID}</p> line
+        uploader_idx = next((i for i, line in enumerate(html_content) if f"<p>Uploader: {self.AGENT_ID}</p>" in line),
+                            None)
+
+        if uploader_idx is not None:
+            # Insert the custom terms 2 lines below the uploader line
+            insert_idx = uploader_idx + 2
+            html_content.insert(insert_idx, f"<h2>Summary Statistics:</h2>\n")
+            html_content.insert(insert_idx + 1, f"<ul>{custom_terms}</ul>\n")
+
+            # Write the updated HTML content back to the file
+            with open(self.path, 'w') as file:
+                file.writelines(html_content)
 
     def insert_cid_img(self, cid):
         """insert_cid_img: adds single line to end of txt file,
@@ -235,13 +248,17 @@ class MonitoringTools:
 
         return msg
 
-    def send_monitoring_report(self, subject, time_stamp):
+    def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None):
         """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
                 time_stamp: the starting timestamp for upload
         """
+        self.create_monitoring_report()
+        self.add_imagepaths_to_html(image_dict)
+        if value_list:
+            self.add_summary_statistics(value_list)
 
         sql = f"""SELECT COUNT(*)
                           FROM attachment
