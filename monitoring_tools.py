@@ -1,4 +1,3 @@
-
 import logging
 import os.path
 
@@ -8,7 +7,7 @@ from email.utils import make_msgid
 from email.message import EmailMessage
 from sql_csv_utils import SqlCsvTools
 import smtplib
-from get_configs import get_config
+
 class MonitoringTools:
     def __init__(self, config, report_path, active=False):
 
@@ -16,12 +15,10 @@ class MonitoringTools:
         self.config = config
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
-
         if active is True:
             self.AGENT_ID = self.config.IMPORTER_AGENT_ID
         else:
             self.AGENT_ID = self.config.AGENT_ID
-
 
         if not pd.isna(config) and config != {}:
             self.check_config_present()
@@ -123,11 +120,11 @@ class MonitoringTools:
                         border-collapse: collapse;
                         width: 100%;
                     }
-            
+
                     table, th, td {
                         border: 1px solid black;
                     }
-            
+
                     th, td {
                         padding: 8px;
                         white-space: nowrap;
@@ -141,7 +138,7 @@ class MonitoringTools:
                           <hr>
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
                           <p>Uploader: {self.AGENT_ID}</p>
-                          
+
                           <h2>Images Uploaded:</h2>
                           <table>
                               <tr>
@@ -149,9 +146,9 @@ class MonitoringTools:
                                   <th>ID</th>
                                   <th>Success</th>
                               </tr>
-                            
+
                           </table>
-                            
+
                           </body>
                           </html>
         """
@@ -166,7 +163,7 @@ class MonitoringTools:
 
         image_html = f"""    <li>Number of Images Added: {batch_size} </li>"""
 
-        html_content.insert(list_section+1, image_html + '\n')
+        html_content.insert(list_section + 1, image_html + '\n')
 
         # Write the updated HTML content back to the file
         with open(self.path, 'w') as file:
@@ -177,8 +174,8 @@ class MonitoringTools:
             args:
                 custom_terms: the list of custom values to add as summary terms.
         """
-
-        custom_terms = self.create_summary_term_list(value_list=value_list)
+        if value_list:
+            custom_terms = self.create_summary_term_list(value_list=value_list)
 
         with open(self.path, "r") as file:
             html_content = file.readlines()
@@ -191,7 +188,10 @@ class MonitoringTools:
             # Insert the custom terms 2 lines below the uploader line
             insert_idx = uploader_idx + 2
             html_content.insert(insert_idx, f"<h2>Summary Statistics:</h2>\n")
-            html_content.insert(insert_idx + 1, f"<ul>{custom_terms}</ul>\n")
+            if value_list:
+                html_content.insert(insert_idx + 1, f"<ul>{custom_terms}</ul>\n")
+            else:
+                html_content.insert(insert_idx + 1, f"<ul></ul>\n")
 
             # Write the updated HTML content back to the file
             with open(self.path, 'w') as file:
@@ -212,7 +212,7 @@ class MonitoringTools:
         image_html = f"""<img src="cid:{cid[1:-1]}"
                         style="display:block" width="300" height="300">"""
 
-        html_content.insert(image_section+1, image_html + '\n')
+        html_content.insert(image_section + 1, image_html + '\n')
 
         # Write the updated HTML content back to the file
         with open(self.path, 'w') as file:
@@ -257,8 +257,8 @@ class MonitoringTools:
         """
         self.create_monitoring_report()
         self.add_imagepaths_to_html(image_dict)
-        if value_list:
-            self.add_summary_statistics(value_list)
+
+        self.add_summary_statistics(value_list)
 
         sql = f"""SELECT COUNT(*)
                           FROM attachment
