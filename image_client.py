@@ -42,7 +42,7 @@ class ImageClient:
         self.config = config
 
         if config.MAILING_LIST:
-            if config.ACTIVE_REPORT_PATH:
+            if hasattr(config, 'ACTIVE_REPORT_PATH'):
                 report_path = config.ACTIVE_REPORT_PATH
                 active = True
             else:
