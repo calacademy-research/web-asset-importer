@@ -53,7 +53,8 @@ class IchthyologyImporter(Importer):
         #  either CAS-ICH-###### or CAS-SU-#####.
         #  pattern = re.compile("(CAS)?(SU)?(ICH)?([0-9]*)")
         pattern = re.compile("cas-(ich)?(su)?-([0-9]+)")
-        rematch = pattern.match(filename)
+        filename_lower = filename.lower()
+        rematch = pattern.match(filename_lower)
         if rematch is None:
             print(f"No matches for filename: {filename}")
             raise FilenameFormatException()
