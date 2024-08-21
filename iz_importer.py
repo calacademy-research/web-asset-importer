@@ -224,7 +224,8 @@ class IzImporter(Importer):
             EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT,
             EXIFConstants.IPTC_CAPTION_ABSTRACT,
             EXIFConstants.XMP_DC_DESCRIPTION,
-            EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION
+            EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION,
+            EXIFConstants.XMP_TITLE
         ]
 
         if exif_metadata is None:
