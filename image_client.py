@@ -145,7 +145,7 @@ class ImageClient:
         if id is None:
             id = 'N/A'
         if r.status_code != 200:
-            self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
+            self.logger.error(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
                 self.logger.error(f"Image already in server; skipping for {upload_path}")
                 raise DuplicateImageException
