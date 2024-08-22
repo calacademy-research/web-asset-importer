@@ -18,6 +18,8 @@ from image_client import DuplicateImageException
 from specify_constants import SpecifyConstants
 from image_db import ImageDb
 import atexit
+from image_client import UploadFailureException
+import time
 
 
 class ConvertException(Exception):
@@ -264,8 +266,10 @@ class Importer:
             raise TooSmallException
 
         return deleteme
-    def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
 
+    import time
+
+    def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
         deleteme = self.convert_image_if_required(filepath)
 
         if deleteme is not None:
@@ -276,14 +280,20 @@ class Importer:
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
 
-        url, attach_loc = self.image_client.upload_to_image_server(upload_me,
-                                                                   redacted,
-                                                                   self.collection_name,
-                                                                   filepath,
-                                                                   id=id)
-        if deleteme is not None:
-            os.remove(deleteme)
-        return (url, attach_loc)
+        for attempt in range(2):  # Try twice
+            try:
+                url, attach_loc = self.image_client.upload_to_image_server(
+                    upload_me, redacted, self.collection_name, filepath, id=id
+                )
+                if deleteme is not None:
+                    os.remove(deleteme)
+                return (url, attach_loc)
+            except UploadFailureException as e:
+                self.logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
+                time.sleep(10)  # Wait 10 seconds before retrying
+
+        # If the second attempt fails, re-throw the most recent exception
+        raise e
 
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []

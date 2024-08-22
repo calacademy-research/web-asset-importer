@@ -10,7 +10,6 @@ import logging
 import os
 from monitoring_tools import MonitoringTools
 from datetime import datetime, timezone, timedelta
-from string_utils import remove_non_numerics
 from urllib.parse import quote
 
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
@@ -63,7 +62,8 @@ class ImageClient:
     def build_url(self, endpoint):
         host = server_host_settings.SERVER_NAME
         port = server_host_settings.SERVER_PORT
-        return f"http://{host}:{port}/{endpoint}"
+        prefix = server_host_settings.SERVER_PREFIX
+        return f"{prefix}://{host}:{port}/{endpoint}"
 
     def update_time_delta_from_response(self, response):
         global server_time_delta
@@ -145,7 +145,7 @@ class ImageClient:
         if id is None:
             id = 'N/A'
         if r.status_code != 200:
-            self.logger.debug(f"FAIL - return code {r.status_code}. data: {data}")
+            self.logger.error(f"FAIL - return code {r.status_code}. data: {data}")
             if r.status_code == 409:
                 self.logger.error(f"Image already in server; skipping for {upload_path}")
                 raise DuplicateImageException
