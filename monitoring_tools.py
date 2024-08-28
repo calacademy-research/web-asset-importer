@@ -103,6 +103,8 @@ class MonitoringTools:
                 custom_terms: the list of custom values to add as summary terms, myst correspond with order of
                               SUMMARY_TERMS variable in config."""
         if not os.path.exists(path=self.path):
+            os.makedirs(os.path.dirname(self.path), exist_ok=True)
+
             open(self.path, 'w').close()
         else:
             self.clear_txt()
