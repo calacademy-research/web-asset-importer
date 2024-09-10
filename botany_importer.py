@@ -194,7 +194,7 @@ class BotanyImporter(Importer):
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:
-            logging.error(f"Error fetching taxon id: {taxon_id}\n sql:{sql}")
+            logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
             return False
         else:
             for val in retval:
