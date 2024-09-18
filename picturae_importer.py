@@ -746,8 +746,9 @@ class PicturaeImporter(Importer):
         else:
             search_taxon = self.full_name
 
-        self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
-                                                         key_col='FullName', match=search_taxon)
+        if self.full_name in self.new_taxa:
+            self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
+                                                             key_col='FullName', match=search_taxon)
 
 
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
@@ -991,9 +992,9 @@ class PicturaeImporter(Importer):
                 self.record_full.loc[self.record_full['CatalogNumber'] == self.raw_barcode, 'barcode_present'] = True
 
                 self.create_agent_list(row)
-                self.populate_taxon()
 
                 if self.taxon_id is None:
+                    self.populate_taxon()
                     self.create_taxon()
 
                 self.create_locality_record()
