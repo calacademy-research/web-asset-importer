@@ -25,8 +25,8 @@ starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
-    def __init__(self, paths, config, full_import, existing_barcodes=False, force_redacted = False,
-                 skip_redacted_check = False):
+    def __init__(self, paths, config, full_import, existing_barcodes=False, force_redacted=False,
+                 skip_redacted_check=False):
         self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         super().__init__(config, "Botany")
         # limit is for debugging
@@ -188,7 +188,7 @@ class BotanyImporter(Importer):
     @staticmethod
     def get_is_taxon_id_redacted(conn, taxon_id):
         """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid = {taxon_id};"""
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid={taxon_id};"""
         cursor = conn.get_cursor()
         cursor.execute(sql)
         retval = cursor.fetchone()
