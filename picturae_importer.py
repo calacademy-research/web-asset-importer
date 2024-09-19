@@ -76,11 +76,17 @@ class PicturaeImporter(Importer):
 
         # creating paths list for botany importer out of root directories in CSV file
 
-        paths = list(self.record_full['image_path'].apply(os.path.dirname).unique())
+        valid_paths = self.record_full[(self.record_full['image_valid'] == True) &
+                                       (self.record_full['image_present_db'] == False)]['image_path']
 
-        updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+        if len(valid_paths) > 0:
+            paths = list(valid_paths['image_path'].apply(os.path.dirname).unique())
 
-        self.paths = updated_paths
+            updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+
+            self.paths = updated_paths
+        else:
+            self.paths = []
 
 
     def init_all_vars(self):
@@ -302,8 +308,6 @@ class PicturaeImporter(Importer):
 
 
 
-    # modify to deal with title seperation
-
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -335,7 +339,7 @@ class PicturaeImporter(Importer):
             except ValueError:
                 break
 
-            if pd.notna(agent_id) and agent_id != '':
+            if agent_id and pd.notna(agent_id):
                 # note do not convert agent_id to string it will mess with sql
                 collector_dict = {f'collector_first_name': str(first),
                                   f'collector_middle_initial': str(middle),
@@ -345,7 +349,8 @@ class PicturaeImporter(Importer):
 
                 self.full_collector_list.append(collector_dict)
 
-            elif any(pd.notna(x) and x != '' for x in [first, middle, last]):
+
+            elif any(not pd.isna(x) and x != '' and x is not None for x in [first, middle, last]):
                 # first name title taking priority over last
                 first_name, title_first = assign_collector_titles(first_last='first', name=f"{first}",
                                                                   config=self.picturae_config)
@@ -378,12 +383,13 @@ class PicturaeImporter(Importer):
 
                 self.full_collector_list.append(collector_dict)
 
-                if agent_id is None:
+                if not agent_id or pd.isna(agent_id):
                     self.new_collector_list.append(collector_dict)
 
-        if not self.full_collector_list or \
-                (self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown"):
-            self.full_collector_list[0]["collector_last_name"] = "unspecified"
+        self.full_collector_list = self.sql_csv_tools.check_collector_list(collector_list=self.full_collector_list)
+
+        self.new_collector_list = self.sql_csv_tools.check_collector_list(collector_list=self.new_collector_list,
+                                                                          new_agents=True)
 
 
     def populate_fields(self, row):
@@ -448,7 +454,7 @@ class PicturaeImporter(Importer):
         if self.is_hybrid is False and self.full_name == "missing taxon in row":
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.family_name)
             # will need to add a condition for project V2 to extract name for order or division
-            if self.taxon_id is None:
+            if not self.taxon_id or pd.isna(self.taxon_id):
                 raise ValueError(f"Family {self.family_name} not present in taxon tree")
                 # self.taxon_list.append(self.family_name)
 
@@ -458,12 +464,12 @@ class PicturaeImporter(Importer):
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
                                                          taxname=self.tax_name, hybrid=True)
         # append taxon full name
-        if self.taxon_id is None:
+        if not self.taxon_id or pd.isna(self.taxon_id):
             self.taxon_list.append(self.full_name)
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
                 self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
-                if self.first_intra_id is None:
+                if not self.first_intra_id or pd.isna(self.first_intra):
                     self.taxon_list.append(self.first_intra)
 
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
@@ -471,7 +477,7 @@ class PicturaeImporter(Importer):
                 # check high taxa gen_spec for author
                 self.taxa_author_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
-                if self.gen_spec_id is None:
+                if not self.gen_spec_id or pd.isna(self.gen_spec):
                     self.taxon_list.append(self.gen_spec)
 
                 # base value for gen spec id is set as None so will work either way.
@@ -479,7 +485,7 @@ class PicturaeImporter(Importer):
             if self.full_name != self.genus:
                 self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus)
                 # adding genus name if missing
-                if self.genus_id is None:
+                if not self.genus_id or pd.isna(self.genus_id):
                     self.taxon_list.append(self.genus)
 
             self.new_taxa.extend(self.taxon_list)
@@ -745,7 +751,6 @@ class PicturaeImporter(Importer):
             search_taxon = self.family_name
         else:
             search_taxon = self.full_name
-
         if self.full_name in self.new_taxa:
             self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
                                                              key_col='FullName', match=search_taxon)
@@ -993,7 +998,7 @@ class PicturaeImporter(Importer):
 
                 self.create_agent_list(row)
 
-                if self.taxon_id is None:
+                if not self.taxon_id or pd.isna(self.taxon_id):
                     self.populate_taxon()
                     self.create_taxon()
 
