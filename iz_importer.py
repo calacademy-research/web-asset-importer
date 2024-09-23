@@ -321,8 +321,7 @@ class IzImporter(Importer):
         return self.image_client.check_image_db_if_filename_imported(self.collection_name, full_path, exact=True)
 
     def build_filename_map(self, full_path):
-        if not self._check_and_increment_counter():
-            return False
+        self._check_and_increment_counter()
 
         orig_case_full_path = full_path
         full_path = full_path.lower()
@@ -361,11 +360,9 @@ class IzImporter(Importer):
     def _check_and_increment_counter(self):
         if 'counter' not in globals():
             globals()['counter'] = 0
-        if globals()['counter'] < 110:
-            globals()['counter'] += 1
-            return True
-        else:
-            return False
+
+        globals()['counter'] += 1
+
 
     def _validate_path(self, full_path):
         if 'crrf' in full_path:
