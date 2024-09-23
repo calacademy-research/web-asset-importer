@@ -10,8 +10,9 @@ from get_configs import get_config
 
 class RemovePartialAttachments(Importer):
     def __init__(self, config):
-        super().__init__(db_config_class=config, collection_name="Botany")
+        super().__init__(db_config_class=config, collection_name=config.COLLECTION_NAME)
         self.config = config
+        self.collection_name = config.COLLECTION_NAME
         self.logger = logging.getLogger("RemovePartialAttachments")
         self.logger.setLevel(logging.DEBUG)
         self.sql_csv_tools = SqlCsvTools(config=self.config)
@@ -20,7 +21,6 @@ class RemovePartialAttachments(Importer):
         self.image_tab = pd.read_csv('image_db.csv', low_memory=False)
 
         self.internal_list = []
-
 
         # self.remove_missing_collection_ob_attach()
         #
@@ -110,13 +110,13 @@ class RemovePartialAttachments(Importer):
             internal_filepaths = self.specify_db_connection.get_records(sql)
 
             self.logger.info(f"removing unattached filepath: {row['internal_filename']}")
-            self.image_client.delete_from_image_server(attach_loc=internal_filename, collection='Botany')
+            self.image_client.delete_from_image_server(attach_loc=internal_filename, collection=self.collection_name)
             filepath_test_count.append(internal_filename)
             if remove_assoc is True and internal_filepaths:
                 for filepath in internal_filepaths:
                     self.logger.info(f"removing associated filepath: {filepath[0]}")
                     filepath_test_count.append(filepath[0])
-                    self.image_client.delete_from_image_server(attach_loc=filepath[0], collection='Botany')
+                    self.image_client.delete_from_image_server(attach_loc=filepath[0], collection=self.collection_name)
 
             sql = f"""SELECT AttachmentID FROM attachment WHERE origFilename like '%{barcode}%';"""
 
@@ -141,11 +141,11 @@ class RemovePartialAttachments(Importer):
     def remove_list_of_internal_filepaths(self, internal_path_list: list):
         """use with caution, simple function used to remove every internal filepath in a given list from image server"""
         print(f"preparing to remove {len(internal_path_list)} paths from image server")
-        cont_prompter()
+        # cont_prompter()
         for internal_filepath in internal_path_list:
             self.logger.info(f"removing unattached filepath: {internal_filepath}")
             try:
-                self.image_client.delete_from_image_server(attach_loc=internal_filepath, collection='Botany')
+                self.image_client.delete_from_image_server(attach_loc=internal_filepath, collection=self.collection_name)
             except Exception as e:
                 self.logger.info(e)
                 continue
@@ -165,14 +165,16 @@ class RemovePartialAttachments(Importer):
 
 
 
-        # cont_prompter()
+        cont_prompter()
 
         for index, row in combine_tab.iterrows():
             internal_filename = row['internal_filename']
             sql = f"""SELECT AttachmentID FROM attachment WHERE AttachmentLocation = '{internal_filename}';"""
+
             attachment_id = self.specify_db_connection.get_one_record(sql=sql)
 
             sql = f"""DELETE FROM collectionobjectattachment WHERE AttachmentID = {attachment_id};"""
+
 
             self.sql_csv_tools.insert_table_record(sql=sql)
 

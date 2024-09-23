@@ -76,11 +76,17 @@ class PicturaeImporter(Importer):
 
         # creating paths list for botany importer out of root directories in CSV file
 
-        paths = list(self.record_full['image_path'].apply(os.path.dirname).unique())
+        valid_paths = self.record_full[(self.record_full['image_valid'] == True) &
+                                       (self.record_full['image_present_db'] == False)]['image_path']
 
-        updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+        if len(valid_paths) > 0:
+            paths = list(valid_paths['image_path'].apply(os.path.dirname).unique())
 
-        self.paths = updated_paths
+            updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+
+            self.paths = updated_paths
+        else:
+            self.paths = []
 
 
     def init_all_vars(self):
@@ -194,17 +200,18 @@ class PicturaeImporter(Importer):
                 new_path = self.picturae_config.PREFIX + new_image_path
 
                 try:
-                    if os.path.exists(new_path) is False:
+                    if os.path.exists(new_path) is False and not row.image_present_db:
                         shutil.copy2(old_path, new_path)
+                        self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar}")
                     else:
-                        pass
+                        self.logger.info(f"Copy of image for {parent_bar} already exists at {new_bar}")
+
 
                     self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_image_path
 
-                    self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar} ")
-
                 except Exception as e:
                     raise FileNotFoundError(f"Error: {e}")
+
             else:
                 pass
 
@@ -301,8 +308,6 @@ class PicturaeImporter(Importer):
 
 
 
-    # modify to deal with title seperation
-
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -334,7 +339,7 @@ class PicturaeImporter(Importer):
             except ValueError:
                 break
 
-            if pd.notna(agent_id) and agent_id != '':
+            if agent_id and pd.notna(agent_id):
                 # note do not convert agent_id to string it will mess with sql
                 collector_dict = {f'collector_first_name': str(first),
                                   f'collector_middle_initial': str(middle),
@@ -344,7 +349,8 @@ class PicturaeImporter(Importer):
 
                 self.full_collector_list.append(collector_dict)
 
-            elif any(pd.notna(x) and x != '' for x in [first, middle, last]):
+
+            elif any(not pd.isna(x) and x != '' and x is not None for x in [first, middle, last]):
                 # first name title taking priority over last
                 first_name, title_first = assign_collector_titles(first_last='first', name=f"{first}",
                                                                   config=self.picturae_config)
@@ -377,12 +383,13 @@ class PicturaeImporter(Importer):
 
                 self.full_collector_list.append(collector_dict)
 
-                if agent_id is None:
+                if not agent_id or pd.isna(agent_id):
                     self.new_collector_list.append(collector_dict)
 
-        if not self.full_collector_list or \
-                (self.full_collector_list[0]["collector_last_name"].lower() == "collector unknown"):
-            self.full_collector_list[0]["collector_last_name"] = "unspecified"
+        self.full_collector_list = self.sql_csv_tools.check_collector_list(collector_list=self.full_collector_list)
+
+        self.new_collector_list = self.sql_csv_tools.check_collector_list(collector_list=self.new_collector_list,
+                                                                          new_agents=True)
 
 
     def populate_fields(self, row):
@@ -414,6 +421,8 @@ class PicturaeImporter(Importer):
         self.author = row.matched_name_author
         self.first_intra = row.first_intra
 
+        self.taxon_id = row.taxon_id
+
         self.overall_score = row.overall_score
 
         self.sheet_notes = row.sheet_notes
@@ -426,8 +435,7 @@ class PicturaeImporter(Importer):
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
 
-        self.geography_string = str(row.County) + ", " + \
-                                str(row.State) + ", " + str(row.Country)
+        self.geography_string = (str(row.County) + ", " + str(row.State) + ", " + str(row.Country)).strip(", ")
 
         self.GeographyID = self.sql_csv_tools.get_one_match(tab_name='geography', id_col='GeographyID',
                                                             key_col='FullName', match=self.geography_string)
@@ -442,18 +450,26 @@ class PicturaeImporter(Importer):
         """
         self.gen_spec_id = None
         self.taxon_list = []
-        if self.is_hybrid is False:
+
+        if self.is_hybrid is False and self.full_name == "missing taxon in row":
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.family_name)
+            # will need to add a condition for project V2 to extract name for order or division
+            if not self.taxon_id or pd.isna(self.taxon_id):
+                raise ValueError(f"Family {self.family_name} not present in taxon tree")
+                # self.taxon_list.append(self.family_name)
+
+        elif not self.is_hybrid and self.full_name != "missing taxon in row":
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
         else:
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
                                                          taxname=self.tax_name, hybrid=True)
         # append taxon full name
-        if self.taxon_id is None:
+        if not self.taxon_id or pd.isna(self.taxon_id):
             self.taxon_list.append(self.full_name)
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
                 self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
-                if self.first_intra_id is None:
+                if not self.first_intra_id or pd.isna(self.first_intra):
                     self.taxon_list.append(self.first_intra)
 
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
@@ -461,21 +477,16 @@ class PicturaeImporter(Importer):
                 # check high taxa gen_spec for author
                 self.taxa_author_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
-                if self.gen_spec_id is None:
+                if not self.gen_spec_id or pd.isna(self.gen_spec):
                     self.taxon_list.append(self.gen_spec)
 
-            # base value for gen spec id is set as None so will work either way.
-            # checking for genus id
+                # base value for gen spec id is set as None so will work either way.
+                # checking for genus id
+            if self.full_name != self.genus:
                 self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus)
                 # adding genus name if missing
-                if self.genus_id is None:
+                if not self.genus_id or pd.isna(self.genus_id):
                     self.taxon_list.append(self.genus)
-
-                    # checking family id
-                    # self.family_id = self.taxon_get(name=self.family_name)
-                    # # adding family name to list
-                    # if self.family_id is None:
-                    #     self.taxon_list.append(self.family_name)
 
             self.new_taxa.extend(self.taxon_list)
         else:
@@ -506,6 +517,7 @@ class PicturaeImporter(Importer):
             rank_id = 140
             tree_item_id = 11
 
+        self.logger.info(f"{self.full_name}")
         if rank_id < 220 or (taxon == self.full_name and float(self.overall_score) < .90):
             author_insert = ''
 
@@ -735,8 +747,13 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectionobject record to database.
         """
-        self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
-                                                         key_col='FullName', match=self.full_name)
+        if self.full_name == "missing taxon in row":
+            search_taxon = self.family_name
+        else:
+            search_taxon = self.full_name
+        if self.full_name in self.new_taxa:
+            self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
+                                                             key_col='FullName', match=search_taxon)
 
 
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
@@ -980,9 +997,9 @@ class PicturaeImporter(Importer):
                 self.record_full.loc[self.record_full['CatalogNumber'] == self.raw_barcode, 'barcode_present'] = True
 
                 self.create_agent_list(row)
-                self.populate_taxon()
 
-                if self.taxon_id is None:
+                if not self.taxon_id or pd.isna(self.taxon_id):
+                    self.populate_taxon()
                     self.create_taxon()
 
                 self.create_locality_record()
@@ -1042,17 +1059,6 @@ class PicturaeImporter(Importer):
         # creating file list after conditions
         self.create_file_list()
 
-        # prompt(uncomment for local or monitored imports)
-        # cont_prompter()
-
-        # locking users out from the database
-
-        # sql = f"""UPDATE mysql.user
-        #          SET account_locked = 'Y'
-        #          WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
-        #
-        # self.sql_csv_tools.insert_table_record(sql=sql)
-
         # starting purge timer
         if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
             self.exit_timestamp()
@@ -1083,11 +1089,3 @@ class PicturaeImporter(Importer):
                                                      value_list=value_list)
 
         self.logger.info("process finished")
-
-
-        # unlocking database
-        # sql = f"""UPDATE mysql.user
-        #           SET account_locked = 'n'
-        #           WHERE user != '{self.picturae_config.USER}' AND host = '%';"""
-        #
-        # self.sql_csv_tools.insert_table_record(sql=sql)

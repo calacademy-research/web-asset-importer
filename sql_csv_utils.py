@@ -9,6 +9,7 @@ import sys
 from specify_db import SpecifyDb
 import logging
 from typing import Union
+import numpy as np
 
 class DatabaseConnectionError(Exception):
     pass
@@ -105,6 +106,45 @@ class SqlCsvTools:
             return result[0]
         else:
             return result
+
+    def check_collector_list(self, collector_list, new_agents=False):
+        """checks if collector list is empty or contains collector unknown,
+           then assigns it unspecified agent dict
+           args:
+                collector_list: the list of collector name dicts to be processed
+                new_agents: if True, list contains new agents to add to database.
+                            set to true to avoid re-adding unspecified as an agent id
+        """
+
+        sql = "SELECT * FROM agent WHERE LastName = 'unspecified';"
+
+        agent_id = self.specify_db_connection.get_one_record(sql=sql)
+
+        unknown_dict = {f'collector_first_name': '',
+                        f'collector_middle_initial': '',
+                        f'collector_last_name': 'unspecified',
+                        f'collector_title': '',
+                        f'agent_id': agent_id}
+
+        if not collector_list and not new_agents:
+            collector_list.append(unknown_dict)
+
+        elif collector_list:
+            for index, name_dict in enumerate(collector_list):
+                no_agent = any(isinstance(value, str) and value.lower() == "collector unknown"
+                               for value in name_dict.values())
+                if no_agent and len(collector_list) == 1:
+                    if not new_agents:
+                        collector_list = [unknown_dict]
+                    else:
+                        collector_list = []
+                elif no_agent and len(collector_list) > 1:
+                    if not new_agents:
+                        collector_list[index] = unknown_dict
+                    else:
+                        collector_list.remove(name_dict)
+
+        return collector_list
 
 
     def get_one_hybrid(self, match, fullname):
