@@ -80,7 +80,7 @@ class PicturaeImporter(Importer):
                                        (self.record_full['image_present_db'] == False)]['image_path']
 
         if len(valid_paths) > 0:
-            paths = list(valid_paths['image_path'].apply(os.path.dirname).unique())
+            paths = list(valid_paths.apply(os.path.dirname).unique())
 
             updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
 
@@ -838,7 +838,6 @@ class PicturaeImporter(Importer):
                            'TimestampModified',
                            'Version',
                            'CollectionMemberID',
-                           # 'DeterminedDate',
                            'DeterminedDatePrecision',
                            'IsCurrent',
                            'Qualifier',
@@ -847,7 +846,6 @@ class PicturaeImporter(Importer):
                            'CollectionObjectID',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
-                           # 'DeterminerID',
                            'PreferredTaxonID'
                            ]
             value_list = [f"{time_utils.get_pst_time_now_string()}",
