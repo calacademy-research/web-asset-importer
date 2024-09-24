@@ -16,19 +16,16 @@ def format_date_columns(year, month, day):
        and concatenates them into one YYYY-MM-DD date.
     """
     if not pd.isna(year) and year != "":
-        date_str = "\'"
+        date_str = ""
         date_str += f"{int(year):04d}"
         if not pd.isna(month) and month != "":
             date_str += f"-{int(month):02d}"
-        else:
-            date_str += f"-01"
             if not pd.isna(day) and day != "":
                 date_str += f"-{int(day):02d}"
-            else:
-                date_str += f"-01"
         return date_str
     else:
         return ""
+
 
 def unique_ordered_list(input_list):
     """unique_ordered_list:
