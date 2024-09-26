@@ -337,6 +337,7 @@ class SqlCsvTools:
                 taxname: the name ending substring of a taxon name, only useful for retrieving hybrids.
         """
 
+        name = name.lower()
         if hybrid is False:
             if "subsp." in name or "var." in name:
                 result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
