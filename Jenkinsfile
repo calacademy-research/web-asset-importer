@@ -12,6 +12,8 @@ pipeline {
                 script {
                     // Checkout the branch related to the PR
                     checkout scm
+                    sh "git fetch --all"
+                    sh "git reset --hard origin/${BRANCH_NAME}"
                 }
             }
         }
