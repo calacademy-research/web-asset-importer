@@ -41,31 +41,36 @@ class MonitoringTools:
                 raise ValueError(f"Config is missing term '{term}'")
 
     def add_imagepaths_to_html(self, image_dict):
-        """add_filepath_to_monitor_txt: adds single line to end of txt file,
-            in this case with 4 spaces,
-            to keep alignment with generic template
-            args:
-                image_path: path to image file added
-                id: the id associated with that image
-                success: indicates whether image at filepath failed to upload to image server or not
+        """add_imagepaths_to_html: adds an image path row to the HTML table before the closing </table> tag.
+        Args:
+            image_dict: dictionary where the key is the image ID and value is a list of tuples
+                        containing image paths and their success status.
         """
         for key, value in image_dict.items():
             img_id = key
-            image_path = value[0]
-            success = value[1]
+            for result in value:
+                image_path = result[0]
+                success = result[1]
+                monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td><td>{success}</td></tr>"
 
-            monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td><td>{success}</td></tr>"
+                with open(self.path, "r") as file:
+                    html_content = file.readlines()
 
-            with open(self.path, "r") as file:
-                html_content = file.readlines()
+                insert_position = None
 
-            insert_position = len(html_content) - 6
+                # Find the position of the closing </table> tag
+                for i, line in enumerate(html_content):
+                    if '</table>' in line:
+                        insert_position = i
+                        break
 
-            html_content.insert(insert_position, monitor_line + '\n')
-
-            # Write the updated HTML content back to the file
-            with open(self.path, 'w') as file:
-                file.writelines(html_content)
+                # Insert the monitor line before the closing </table> tag
+                if insert_position is not None:
+                    html_content.insert(insert_position, monitor_line + '\n')
+                    with open(self.path, 'w') as file:
+                        file.writelines(html_content)
+                else:
+                    raise ValueError("Closing </table> tag not found in the HTML file.")
 
     def add_line_between(self, line_num: int, string: str):
         """add_line_between: used to add a string line into a txt file, between two existing lines,
@@ -94,6 +99,24 @@ class MonitoringTools:
             for index, term in enumerate(self.config.SUMMARY_TERMS):
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
+
+    def append_monitoring_dict(self, monitoring_dict, unique_id, original_path, success):
+        """append_monitoring_dict: adds paths to monitoring dictionary,
+           allows for multiple original paths to be added per ID without replacement.
+        """
+        if unique_id in monitoring_dict:
+            path_exists = any(original_path == item[0] for item in monitoring_dict[unique_id])
+
+            if not path_exists:
+                # If original_path is not in the list of lists, append the new list
+                monitoring_dict[unique_id].append([original_path, success])
+            else:
+                self.logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
+        else:
+            # If id does not exist, create a new list of lists
+            monitoring_dict[unique_id] = [[original_path, success]]
+
+        return monitoring_dict
 
     def create_monitoring_report(self):
         """add_format_batch_report:
