@@ -31,7 +31,7 @@ class TestAgentList(unittest.TestCase, TestingTools):
                 'agent_id3': ['', ''],
                 'collector_first_name3': ['Jose', pd.NA],
                 'collector_last_name3': ['Gonzalez', pd.NA],
-                'collector_middle_name3': [pd.NA, pd.NA],
+                'collector_middle_name3': ['Isabel', pd.NA],
                 'sheet_notes': 'notes'
                 }
 

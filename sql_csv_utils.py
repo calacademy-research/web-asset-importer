@@ -9,6 +9,7 @@ import sys
 from specify_db import SpecifyDb
 import logging
 from typing import Union
+import re
 import numpy as np
 
 class DatabaseConnectionError(Exception):
@@ -223,7 +224,8 @@ class SqlCsvTools:
         """
         # removing brackets, making sure comma is not inside of quotations
         column_list = ', '.join(col_list)
-        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else repr(value) for value in val_list)
+        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else
+                               repr(value) for value in val_list)
 
         sql = f'''INSERT INTO {tab_name} ({column_list}) VALUES({value_list});'''
 
