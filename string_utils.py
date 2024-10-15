@@ -33,18 +33,21 @@ def remove_non_numerics(string: str):
 
 
 def replace_apostrophes(string: str):
-    """replaces apostrophes in possessive adjectives with double quotes to be readable by mysql
-    args:
-        string: a string containing an apostrophe
-    returns:
-        re.sub: a string with all apostrophes replaces by double quotes
     """
-    # using double quotes on one and single on the other is actually important this time
+    Replaces single apostrophes with double apostrophes for MySQL compatibility,
+    but skips already escaped double apostrophes.
+
+    Args:
+        string: A string that may contain apostrophes.
+
+    Returns:
+        str: A string with unescaped apostrophes replaced by double apostrophes.
+    """
     if isinstance(string, str):
-        return re.sub("'", "''", string)
+        # Replace single apostrophes not preceded by another apostrophe
+        return re.sub(r"(?<!')'", "''", string)
     else:
         return string
-
 
 def move_first_substring(string: str, n_char: int):
     """move_first_substring: will move first n letters from beginning to end of string

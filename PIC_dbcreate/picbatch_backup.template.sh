@@ -8,7 +8,7 @@ DB_PORT="3309"
 BACKUP_DIR="/path/to/picbatch_backups"  # Replace with your actual backup directory
 LOG_FILE="/path/to/log.txt"  # output log file
 
-# create backup dir if not already exists
+# make backup directory if not already existing
 mkdir -p $BACKUP_DIR
 
 # Get the current date
@@ -18,7 +18,7 @@ CURRENT_DATE=$(date +"%Y-%m-%d")
 BACKUP_FILE="$BACKUP_DIR/${DB_NAME}_backup_$CURRENT_DATE.sql"
 
 # Perform the mysqldump
-mysqldump -u$DB_USER -p$DB_PASSWORD -P$DB_PORT $DB_NAME > $BACKUP_FILE
+mysqldump -h 127.0.0.1 -u$DB_USER -p$DB_PASSWORD -P$DB_PORT $DB_NAME > $BACKUP_FILE
 
 # Check if mysqldump was successful
 if [ $? -eq 0 ]; then

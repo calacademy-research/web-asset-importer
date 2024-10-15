@@ -330,10 +330,12 @@ class PicturaeImporter(Importer):
                 last_index = column_names.index(f'collector_last_name{i}')
                 id_index = column_names.index(f'agent_id{i}')
 
-                first = row[first_index]
-                middle = row[middle_index]
-                last = row[last_index]
-                agent_id = row[id_index]
+                first = replace_apostrophes(row[first_index])
+                middle = replace_apostrophes(row[middle_index])
+                last = replace_apostrophes(row[last_index])
+                agent_id = replace_apostrophes(row[id_index])
+
+
 
 
             except ValueError:
@@ -364,7 +366,7 @@ class PicturaeImporter(Importer):
                     title = title_last
 
                 middle = middle
-                elements = [first_name, last_name, title, middle]
+                elements = [str(first_name).strip(), str(last_name).strip(), str(title).strip(), str(middle).strip()]
 
                 for index in range(len(elements)):
                     if pd.isna(elements[index]) or elements[index] == '':
