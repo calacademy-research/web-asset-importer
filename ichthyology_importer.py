@@ -1,4 +1,3 @@
-
 from importer import Importer
 import os
 import re
@@ -13,12 +12,14 @@ starting_time_stamp = datetime.now()
 
 logging.basicConfig(level=logging.DEBUG)
 
+
 class FilenameFormatException(Exception):
     pass
 
+
 class IchthyologyImporter(Importer):
-    def __init__(self,  full_import):
-        self.logger = logging.getLogger('Client.IchthyologyImporter')
+    def __init__(self, full_import):
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
         ich_importer_config = get_config("Ichthyology")
 
@@ -27,6 +28,7 @@ class IchthyologyImporter(Importer):
 
         dir_tools = DirTools(self.build_filename_map)
 
+        self.full_import = full_import
 
         for cur_dir in ich_importer_config.ICH_SCAN_FOLDERS:
             cur_dir = os.path.join(ich_importer_config.IMAGE_DIRECTORY_PREFIX, ich_importer_config.SCAN_DIR, cur_dir)
@@ -38,25 +40,23 @@ class IchthyologyImporter(Importer):
         # else:
         #     ichthyology_importer.catalog_number_map = pickle.load(open(FILENAME, "rb"))
 
-        if not full_import:
-            self.monitoring_tools = MonitoringTools(config=ich_importer_config)
-            self.monitoring_tools.create_monitoring_report()
-
         self.process_loaded_files()
 
-        if not full_import:
-
-            self.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
-                                                         time_stamp=starting_time_stamp)
+        if not self.full_import and ich_importer_config.MAILING_LIST:
+            image_dict = self.image_client.monitoring_dict
+            self.image_client.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
+                                                                      time_stamp=starting_time_stamp,
+                                                                      image_dict=image_dict)
 
     def get_catalog_number(self, filename):
         #  the institution and collection codes before the catalog number
         #  either CAS-ICH-###### or CAS-SU-#####.
         #  pattern = re.compile("(CAS)?(SU)?(ICH)?([0-9]*)")
         pattern = re.compile("cas-(ich)?(su)?-([0-9]+)")
-        rematch = pattern.match(filename)
+        filename_lower = filename.lower()
+        rematch = pattern.match(filename_lower)
         if rematch is None:
-            print (f"No matches for filename: {filename}")
+            print(f"No matches for filename: {filename}")
             raise FilenameFormatException()
         list(rematch.groups())
         number = rematch.groups()[2]
@@ -74,10 +74,8 @@ class IchthyologyImporter(Importer):
         return f'{number}', collection
 
     def build_filename_map(self, full_path):
-        full_path = full_path.lower()
         if not self.check_for_valid_image(full_path):
             return
-
         filename = os.path.basename(full_path)
 
         try:
@@ -88,12 +86,11 @@ class IchthyologyImporter(Importer):
             logging.debug(f"Can't find catalog number for {filename}")
             return
         logging.debug(f"Filename: {filename} Collection: {collection} catalog number: {catalog_number}")
-        final_number=f"{collection}{catalog_number}"
+        final_number = f"{collection}{catalog_number}"
         if final_number not in self.catalog_number_map:
             self.catalog_number_map[final_number] = [full_path]
         else:
             self.catalog_number_map[final_number].append(full_path)
-
 
     def process_loaded_files(self):
         for catalog_number in self.catalog_number_map.keys():
@@ -117,8 +114,11 @@ class IchthyologyImporter(Importer):
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         # TODO: hardcoded user ID
-        self.import_to_imagedb_and_specify(filepath_list, collection_object_id, 68835, skip_redacted_check=True)
-
+        self.import_to_imagedb_and_specify(filepath_list=filepath_list,
+                                           collection_object_id=collection_object_id,
+                                           agent_id=68835,
+                                           skip_redacted_check=True,
+                                           id=catalog_number)
 
 #         If I find a .jpg, import it.
 # If I find a .tif, see if there’s already a corresponding .jpg imported. If not,

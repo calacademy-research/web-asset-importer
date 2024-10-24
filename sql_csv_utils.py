@@ -8,7 +8,9 @@ import string_utils
 import sys
 from specify_db import SpecifyDb
 import logging
-
+from typing import Union
+import re
+import numpy as np
 
 class DatabaseConnectionError(Exception):
     pass
@@ -17,7 +19,7 @@ class SqlCsvTools:
     def __init__(self, config, logging_level=logging.INFO):
         self.config = config
         self.specify_db_connection = SpecifyDb(db_config_class=self.config)
-        self.logger = logging.getLogger("SqlCsvTools")
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.logger.setLevel(logging_level)
         self.check_db_connection()
 
@@ -50,6 +52,8 @@ class SqlCsvTools:
         """dbtools get_one_record"""
         return self.specify_db_connection.get_one_record(sql=sql)
 
+    def get_records(self, sql):
+        return self.specify_db_connection.get_records(query=sql)
     def get_cursor(self):
         """standard db cursor"""
         return self.specify_db_connection.get_cursor()
@@ -72,25 +76,25 @@ class SqlCsvTools:
         """
         sql = f'''SELECT AgentID FROM agent'''
         statement_count = 0
-        if not pd.isna(first_name):
+        if not pd.isna(first_name) and first_name != '':
             statement_count += 1
             sql += f''' WHERE FirstName = "{first_name}"'''
         else:
             statement_count += 1
             sql += f''' WHERE FirstName IS NULL'''
 
-        if not pd.isna(last_name):
+        if not pd.isna(last_name) and last_name != '':
             sql += f''' AND LastName = "{last_name}"'''
 
         else:
-            sql += f''' AND FirstName IS NULL'''
+            sql += f''' AND LastName IS NULL'''
 
-        if not pd.isna(middle_initial):
+        if not pd.isna(middle_initial) and middle_initial != '':
             sql += f''' AND MiddleInitial = "{middle_initial}"'''
         else:
             sql += f''' AND MiddleInitial IS NULL'''
 
-        if not pd.isna(title):
+        if not pd.isna(title) and title != '':
             sql += f''' AND Title = "{title}"'''
         else:
             sql += f''' AND Title IS NULL'''
@@ -104,6 +108,44 @@ class SqlCsvTools:
         else:
             return result
 
+    def check_collector_list(self, collector_list, new_agents=False):
+        """checks if collector list is empty or contains collector unknown,
+           then assigns it unspecified agent dict
+           args:
+                collector_list: the list of collector name dicts to be processed
+                new_agents: if True, list contains new agents to add to database.
+                            set to true to avoid re-adding unspecified as an agent id
+        """
+
+        sql = "SELECT * FROM agent WHERE LastName = 'unspecified';"
+
+        agent_id = self.specify_db_connection.get_one_record(sql=sql)
+
+        unknown_dict = {f'collector_first_name': '',
+                        f'collector_middle_initial': '',
+                        f'collector_last_name': 'unspecified',
+                        f'collector_title': '',
+                        f'agent_id': agent_id}
+
+        if not collector_list and not new_agents:
+            collector_list.append(unknown_dict)
+
+        elif collector_list:
+            for index, name_dict in enumerate(collector_list):
+                no_agent = any(isinstance(value, str) and value.lower() == "collector unknown"
+                               for value in name_dict.values())
+                if no_agent and len(collector_list) == 1:
+                    if not new_agents:
+                        collector_list = [unknown_dict]
+                    else:
+                        collector_list = []
+                elif no_agent and len(collector_list) > 1:
+                    if not new_agents:
+                        collector_list[index] = unknown_dict
+                    else:
+                        collector_list.remove(name_dict)
+
+        return collector_list
 
     def get_one_hybrid(self, match, fullname):
         """get_one_hybrid:
@@ -112,13 +154,16 @@ class SqlCsvTools:
             args:
                 match = the hybrid term of a taxonomic name e.g Genus A x B,
                         match - "A X B"
+                fullname = the full name of the taxonomic name.
         """
         parts = match.split()
         if len(parts) == 3:
+            basename = fullname.split()[0]
             sql = f'''SELECT TaxonID FROM taxon WHERE 
                       LOWER(FullName) LIKE "%{parts[0]}%" 
                       AND LOWER(FullName) LIKE "%{parts[1]}%"
-                      AND LOWER(FullName) LIKE "%{parts[2]}%";'''
+                      AND LOWER(FullName) LIKE "%{parts[2]}%"
+                      AND LOWER(FullName) LIKE "%{basename}%";'''
 
             result = self.specify_db_connection.get_records(query=sql)
 
@@ -138,9 +183,6 @@ class SqlCsvTools:
             self.logger.error("hybrid tax name has more than 3 terms")
 
             return None
-
-
-
 
 
     def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
@@ -164,7 +206,7 @@ class SqlCsvTools:
 
         result = self.get_record(sql=sql)
 
-        if isinstance(result, (list, dict, set)):
+        if isinstance(result, (list, dict, set, tuple)):
             return result[0]
         else:
             return result
@@ -182,7 +224,8 @@ class SqlCsvTools:
         """
         # removing brackets, making sure comma is not inside of quotations
         column_list = ', '.join(col_list)
-        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else repr(value) for value in val_list)
+        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else
+                               repr(value) for value in val_list)
 
         sql = f'''INSERT INTO {tab_name} ({column_list}) VALUES({value_list});'''
 
@@ -217,7 +260,7 @@ class SqlCsvTools:
         cursor.close()
 
     def create_batch_record(self, start_time: datetime, end_time: datetime,
-                            batch_size: int, batch_md5: str):
+                            batch_size: int, batch_md5: str, agent_id: Union[str, int]):
         """create_timestamps:
                 uses starting and ending timestamps to create window for sql database purge,
                 adds 10 second buffer on either end to allow sql queries to populate.
@@ -248,8 +291,8 @@ class SqlCsvTools:
                       f"{time_stamp_list[0]}",
                       f"{time_stamp_list[1]}",
                       f"{batch_size}",
-                      f"{self.config.AGENT_ID}",
-                      f"{self.config.AGENT_ID}"
+                      f"{agent_id}",
+                      f"{agent_id}"
                       ]
 
         value_list, column_list = remove_two_index(value_list, column_list)
@@ -258,7 +301,8 @@ class SqlCsvTools:
 
         return sql
 
-    def create_update_statement(self, tab_name: str, col_list: list, val_list: list, condition: str):
+    def create_update_statement(self, tab_name: str, agent_id: Union[int, str], col_list: list,
+                                val_list: list, condition: str):
         """create_update_string: function used to create sql string used to upload a list of values in the database
 
             args:
@@ -267,8 +311,11 @@ class SqlCsvTools:
                 val_list: list of values with which to update above list of columns(order matters)
                 condition: condition sql string used to select sub-sect of records to update.
         """
+        val_list, col_list = remove_two_index(value_list=val_list, column_list=col_list)
+
+
         update_string = f''' SET TimestampModified = "{time_utils.get_pst_time_now_string()}", 
-                            ModifiedByAgentID = "{self.config.AGENT_ID}",'''
+                            ModifiedByAgentID = "{agent_id}",'''
         for index, column in enumerate(col_list):
             if isinstance(val_list[index], str):
                 update_string += " " + f'''{column} = "{val_list[index]}",'''
@@ -284,90 +331,39 @@ class SqlCsvTools:
 
         return sql
 
-    def taxon_unmatch_insert(self, unmatched_taxa: pd.DataFrame):
-        """taxon_unmatch_create: creates sql query for creating new records in taxa unmatch,
-                                from rows that did not pass TNRS successfully,
-                                either through spelling, or taxonomic errors.
-            args:
-                unmatched_taxa: a pandas dataframe with unmatched taxa terms filtered by score
-        """
-        unmatched_taxa = unmatched_taxa.applymap(string_utils.replace_apostrophes)
-        self.logger.info("uploading unmatched taxa")
-        for index, row in unmatched_taxa.iterrows():
-            catalognumber = unmatched_taxa.columns.get_loc("CatalogNumber")
-
-            sql = self.create_tnrs_unmatch_tab(row=row, df=unmatched_taxa, tab_name='taxa_unmatch')
-
-            sql_result = self.get_one_match(tab_name='taxa_unmatch',
-                                            id_col='CatalogNumber', key_col='CatalogNumber',
-                                            match=row[catalognumber], match_type=int)
-            if sql_result is None:
-                self.insert_table_record(sql=sql)
-            else:
-                pass
-
     def taxon_get(self, name, hybrid=False, taxname=None):
+        """taxon_get: function to retrieve taxon id from specify database:
+            args:
+                name: the full taxon name to check
+                hybrid: whether the taxon name belongs to a hybrid
+                taxname: the name ending substring of a taxon name, only useful for retrieving hybrids.
+        """
 
+        name = name.lower()
         if hybrid is False:
-            result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                           match_type=str)
+            if "subsp." in name or "var." in name:
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                               match_type=str)
+                if result_id is None:
+                    if "subsp." in name:
+                        name = name.replace(" subsp. ", " var. ")
+                    elif "var." in name:
+                        name = name.replace(" var. ", " subsp. ")
+                    else:
+                        pass
+
+                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                                   match_type=str)
+            else:
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                               match_type=str)
             return result_id
         else:
             result_id = self.get_one_hybrid(match=taxname, fullname=name)
 
             return result_id
 
-
-    def create_tnrs_unmatch_tab(self, row, df, tab_name: str):
-        """create_unmatch_tab: function used to insert
-            unmatched TNRS taxas into the
-            taxa_unmatch table on the Database,
-            so that a more trained eye can diagnose,
-            and resolve some of the edge cases.
-
-        args:
-            row: row of unmatched taxon table, through which this function will itterate.
-            df: dataframe input in order to get column numbers
-            tab_name: name of mysql database table in which to input records.
-        """
-        columns = df.columns
-        fullname = columns.get_loc('fullname')
-        name_matched = columns.get_loc('name_matched')
-        accepted_author = columns.get_loc('accepted_author')
-        overall_score = columns.get_loc('overall_score')
-        unmatched_terms = columns.get_loc('unmatched_terms')
-        catalog_number = columns.get_loc('CatalogNumber')
-
-        col_list = ["fullname",
-                    "TimestampCreated",
-                    "TimestampModified",
-                    "name_matched",
-                    "unmatched_terms",
-                    "author",
-                    "overall_score",
-                    "CatalogNumber",
-                    "CreatedByAgentID",
-                    "ModifiedByAgentID"]
-
-        val_list = [f"{row[fullname]}",
-                    f"{time_utils.get_pst_time_now_string()}",
-                    f"{time_utils.get_pst_time_now_string()}",
-                    f"{row[name_matched]}",
-                    f"{row[unmatched_terms]}",
-                    f"{row[accepted_author]}",
-                    f"{row[overall_score]}",
-                    f"{row[catalog_number]}",
-                    f"{self.config.AGENT_ID}",
-                    f"{self.config.AGENT_ID}"]
-
-        val_list, col_list = remove_two_index(val_list, col_list)
-
-        sql = self.create_insert_statement(tab_name=tab_name, col_list=col_list,
-                                           val_list=val_list)
-
-        return sql
-
-    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame):
+    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: Union[str, int]):
         """new_taxa_record: creates record level data for any new taxa added to the database,
                             populates useful table for qc and troubleshooting
         args:
@@ -376,19 +372,19 @@ class SqlCsvTools:
             df: pandas dataframe, the record table uploaded to the database in question
             """
         taxa_frame = df[df['fullname'].isin(taxon_list)]
+        taxa_frame = taxa_frame.drop_duplicates(subset=['fullname'])
         for index, row in taxa_frame.iterrows():
-            catalog_number = taxa_frame.columns.get_loc('CatalogNumber')
-            barcode_result = self.get_one_match(tab_name='picturaetaxa_added',
-                                                id_col='CatalogNumber',
-                                                key_col='CatalogNumber',
-                                                match=row[catalog_number],
-                                                match_type=int)
-            if barcode_result is None:
-                sql = self.create_new_tax_tab(row=row, df=taxa_frame, tab_name='picturaetaxa_added')
+            tax_id = self.get_one_match(tab_name='picturaetaxa_added',
+                                                id_col='newtaxID',
+                                                key_col='fullname',
+                                                match=row['fullname'],
+                                                match_type=str)
+            if tax_id is None:
+                sql = self.create_new_tax_tab(row=row, tab_name='picturaetaxa_added', agent_id=agent_id)
 
                 self.insert_table_record(sql=sql)
 
-    def create_new_tax_tab(self, row, df: pd.DataFrame, tab_name: str):
+    def create_new_tax_tab(self, row, tab_name: str, agent_id: Union[str, int]):
         """create_new_tax: does a similar function as create_unmatch_tab,
                             but instead uploads a table of taxa newly added
                             to the database for QC monitoring(make sure no wonky taxa are added)
@@ -397,34 +393,27 @@ class SqlCsvTools:
                 df: new_taxa dataframe in order to get column index numbers
                 tab_name: name of new_taxa table on mysql database.
         """
-        columns = df.columns
-        fullname = columns.get_loc('fullname')
-        catalog_number = columns.get_loc('CatalogNumber')
-        family = columns.get_loc('Family')
-        taxname = columns.get_loc('taxname')
-        hybrid = columns.get_loc('Hybrid')
+        hybrid = string_utils.str_to_bool(row['Hybrid'])
 
         col_list = ["fullname",
                     "TimestampCreated",
                     "TimestampModified",
-                    "CatalogNumber",
+                    "batch_MD5",
                     "family",
                     "name",
-                    "Hybrid",
+                    "hybrid",
                     "CreatedByAgentID",
                     "ModifiedByAgentID"]
 
-
-        val_list = [f"{row[fullname]}",
+        val_list = [f"{row['fullname']}",
                     f"{time_utils.get_pst_time_now_string()}",
                     f"{time_utils.get_pst_time_now_string()}",
-                    f"{row[catalog_number]}",
-                    f"{row[family]}",
-                    f"{row[taxname]}",
-                       row[hybrid],
-                    f"{self.config.AGENT_ID}",
-                    f"{self.config.AGENT_ID}"]
-
+                    f"{row['batch_md5']}",
+                    f"{row['Family']}",
+                    f"{row['taxname']}",
+                    hybrid,
+                    f"{agent_id}",
+                    f"{agent_id}"]
 
 
         val_list, col_list = remove_two_index(val_list, col_list)

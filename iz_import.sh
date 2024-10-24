@@ -1,12 +1,13 @@
 #!/usr/bin/bash
-LOCKFILE=/tmp/ich_import.lock
+LOCKFILE=/tmp/iz_import.lock
+
 
 cleanup() {
     rm -f "$LOCKFILE"
 }
 
 if [ -e "$LOCKFILE" ]; then
-    echo "Ichthyology import is already running. Exiting."
+    echo "IZ import is already running. Exiting."
     exit 1
 else
     # Create the lock file
@@ -18,7 +19,7 @@ else
     # Main import process
     cd "$(dirname "$0")" || exit
     source ./venv/bin/activate
-    python3 ./client_tools.py -vvvv Ichthyology import >& ichthyology_import_log.txt &
+    python3 ./client_tools.py -vvvv IZ import >& iz_import_log.txt &
     PYTHON_PID=$!
 
     # wait for process to complete
@@ -28,4 +29,3 @@ else
     # Exit with the Python script's exit code
     exit $PYTHON_EXIT_CODE
 fi
-

@@ -21,7 +21,7 @@ def get_specify_state(internal_filename):
     coid = attachment_utils.get_collectionobjectid_from_filename(internal_filename)
     if coid is None:
         return None
-    redacted_collection_object = attachment_utils.get_is_collection_object_redacted(coid)
+    redacted_collection_object = attachment_utils.get_is_botany_collection_object_redacted(coid)
     redacted_attachment = attachment_utils.get_is_attachment_redacted(internal_filename)
     logging.debug(
         f"get specify state {internal_filename}, colleciton object: {coid} collection object state: {redacted_collection_object} attachment state: {redacted_attachment}")

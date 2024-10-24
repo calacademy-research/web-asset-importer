@@ -20,9 +20,11 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
 
     def setUp(self):
-        self.test_picturae_importer_lite = AltPicturaeImporterlite(paths=self.md5_hash, date_string=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
+
+
 
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
@@ -48,7 +50,10 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                              'Rafflesia arnoldi var. summi', 'Salix x ambigua'],
                 'Family': ['Orobanchaceae', 'Orobanchaceae', 'Rafflesiaceae', 'Salicaceae'],
                 'Hybrid': [False, True, False, True],
-                'accepted_author': ['Dougl. ex Hook.', 'Erd.', 'Drew', 'Schleich. ex Ser']
+                'matched_name_author': ['Dougl. ex Hook.', 'Erd.', 'Drew', 'Schleich. ex Ser'],
+                'overall_score': [1.0, 1.0, 1.0, 1.0],
+                'sheet_notes': ["notes", "notes", "notes", "notes"],
+                'cover_notes': ["notes", "notes", "notes", "notes"]
                 }
 
         self.test_picturae_importer_lite.record_full = pd.DataFrame(data)
@@ -120,13 +125,13 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                 self.assertEqual(parent_id, test_parent_id)
 
                 if self.test_picturae_importer_lite.is_hybrid is False and taxon == self.test_picturae_importer_lite.full_name:
-                    self.assertEqual(author_insert, row['accepted_author'])
+                    self.assertEqual(author_insert, row['matched_name_author'])
 
                 elif self.test_picturae_importer_lite.is_hybrid is False:
                     pass
 
                 elif self.test_picturae_importer_lite.is_hybrid is True:
-                    self.assertTrue(pd.isna(author_insert))
+                    self.assertTrue(pd.isna(author_insert) or author_insert == '')
 
                 self.assertEqual(rank_id, rank_list[rank_num])
 

@@ -6,7 +6,7 @@ from time import sleep
 
 class DirTools:
     def __init__(self, callback, limit=None):
-        self.logger = logging.getLogger('Client.DirTools')
+        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
         self.callback = callback
         self.processed_num = 0
         self.processed_limit = limit

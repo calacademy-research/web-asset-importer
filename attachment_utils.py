@@ -2,14 +2,15 @@ import time_utils
 import db_utils
 from db_utils import DatabaseInconsistentError
 import logging
+from metadata_tools.EXIF_constants import EXIFConstants
 import os
+from specify_constants import SpecifyConstants
 
 
 class AttachmentUtils:
 
     def __init__(self, db_utils):
         self.db_utils = db_utils
-
 
     def get_collectionobjectid_from_filename(self, attachment_location):
         sql = f"""
@@ -26,11 +27,11 @@ class AttachmentUtils:
         return coid
 
     def get_attachmentid_from_filepath(self, orig_filepath):
-        orig_filepath = repr(orig_filepath)
+        orig_filename = repr(orig_filepath)
         sql = f"""
         select at.AttachmentID
                from attachment as at
-               where at.OrigFilename={orig_filepath}
+               where at.OrigFilename={orig_filename}
         """
         aid = self.db_utils.get_one_record(sql)
         if aid is not None:
@@ -38,40 +39,71 @@ class AttachmentUtils:
 
         return aid
 
-    # not used - can be multiple in IZ, so dropping
-    # def get_collectionobjectid_from_filepath(self, attachment_location):
-    #     sql = f"""
-    #     select cat.CollectionObjectID
-    #            from attachment as at
-    #            , collectionobjectattachment as cat
-    #
-    #            where at.AttachmentLocation='{attachment_location}'
-    #     and cat.AttachmentId = at.AttachmentId
-    #     """
-    #     coid = self.db_utils.get_one_record(sql)
-    #     logging.debug(f"Got collectionObjectId: {coid}")
-    #
-    #     return coid
+    @staticmethod
+    def truncate(value, max_length, field_name):
+        if value is not None and max_length is not None and len(value) > max_length:
+            truncated_value = value[:max_length]
+            logging.warning(f"Value '{value}' for field '{field_name}' exceeds max length of {max_length} and has been truncated to '{truncated_value}'")
+            return truncated_value
+        return value
 
-    def create_attachment(self, storename, original_filename, file_created_datetime, guid, image_type, url, agent_id,copyright=None, is_public=True):
-        # image type example 'image/png'
+    def val(self, value, field_name):
+        if value in [None, 'NULL']:
+            return None
+        max_length_attr = f"MAXLEN_{field_name.upper()}"
+        max_length = getattr(SpecifyConstants, max_length_attr, None)
+        return self.truncate(value, max_length, field_name)
+
+    def create_attachment(self, attachment_location,
+                          original_filename, file_created_datetime, guid, image_type,
+                          agent_id,
+                          properties):
+
+
+        # parsing title
         basename = os.path.basename(original_filename)
-        sql = (f"""
-                INSERT INTO attachment (attachmentlocation, attachmentstorageconfig, capturedevice, copyrightdate,
-                                          copyrightholder, credit, dateimaged, filecreateddate, guid, ispublic, license,
-                                          licenselogourl, metadatatext, mimetype, origfilename, remarks, scopeid,
-                                          scopetype, subjectorientation, subtype, tableid, timestampcreated,
-                                          timestampmodified, title, type, version, visibility, AttachmentImageAttributeID,
-                                          CreatedByAgentID, CreatorID, ModifiedByAgentID, VisibilitySetByID)
-                VALUES ('{storename}', NULL, NULL, NULL, 
-                        '{copyright}', NULL, NULL, '{time_utils.get_pst_date_time_from_datetime(time_utils.get_pst_time(file_created_datetime))}', '{guid}', {is_public}, NULL, 
-                        NULL, NULL, '{image_type}','{original_filename}', '{url}', 4, 
-                        0, NULL, NULL, 41, '{time_utils.get_pst_time_now_string()}',
-                        '{time_utils.get_pst_time_now_string()}', '{".".join(basename.split(".")[:-1])}', NULL, 0, NULL, NULL, 
-                        {agent_id}, NULL, NULL, NULL)
-        """)
+        title_value = f'{".".join(basename.split(".")[:-1])}'
+
+
+
+        # Using parameterized SQL queries to prevent SQL injection
+        sql = f"""
+                INSERT INTO attachment (
+                    {SpecifyConstants.ST_ATTACHMENT_LOCATION}, {SpecifyConstants.ST_ATTACHMENT_STORAGE_CONFIG}, {SpecifyConstants.ST_CAPTURE_DEVICE}, {SpecifyConstants.ST_COPYRIGHT_DATE}, {SpecifyConstants.ST_COPYRIGHT_HOLDER}, {SpecifyConstants.ST_CREDIT},
+                    {SpecifyConstants.ST_DATE_IMAGED}, {SpecifyConstants.ST_FILE_CREATED_DATE}, {SpecifyConstants.ST_GUID}, {SpecifyConstants.ST_IS_PUBLIC}, {SpecifyConstants.ST_LICENSE}, {SpecifyConstants.ST_LICENSE_LOGO_URL}, {SpecifyConstants.ST_METADATA_TEXT}, {SpecifyConstants.ST_MIME_TYPE},
+                    {SpecifyConstants.ST_ORIG_FILENAME}, {SpecifyConstants.ST_REMARKS}, {SpecifyConstants.ST_SCOPE_ID}, {SpecifyConstants.ST_SCOPE_TYPE}, {SpecifyConstants.ST_SUBJECT_ORIENTATION}, {SpecifyConstants.ST_SUBTYPE}, {SpecifyConstants.ST_TABLE_ID}, {SpecifyConstants.ST_TIMESTAMP_CREATED},
+                    {SpecifyConstants.ST_TIMESTAMP_MODIFIED}, {SpecifyConstants.ST_TITLE}, {SpecifyConstants.ST_TYPE}, {SpecifyConstants.ST_VERSION}, {SpecifyConstants.ST_VISIBILITY}, {SpecifyConstants.ST_ATTACHMENT_IMAGE_ATTRIBUTE_ID}, {SpecifyConstants.ST_CREATED_BY_AGENT_ID},
+                    {SpecifyConstants.ST_CREATOR_ID}, {SpecifyConstants.ST_MODIFIED_BY_AGENT_ID}, {SpecifyConstants.ST_VISIBILITY_SET_BY_ID}
+                )
+                VALUES (
+                    %s, NULL, NULL, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 4, 0, %s, %s, 1, CURRENT_TIMESTAMP,
+                    CURRENT_TIMESTAMP, %s, %s, 0, NULL, NULL, %s, NULL, NULL, NULL
+                )
+            """
+        params = (
+            attachment_location,
+            self.val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE), 'ST_COPYRIGHT_DATE'),
+            self.val(properties.get(SpecifyConstants.ST_COPYRIGHT_HOLDER), 'ST_COPYRIGHT_HOLDER'),
+            self.val(properties.get(SpecifyConstants.ST_CREDIT), 'ST_CREDIT'),
+            self.val(properties.get(SpecifyConstants.ST_DATE_IMAGED), 'ST_DATE_IMAGED'),
+            file_created_datetime.strftime("%Y-%m-%d"),
+            guid,
+            properties.get(SpecifyConstants.ST_IS_PUBLIC, True),
+            self.val(properties.get(SpecifyConstants.ST_LICENSE), 'ST_LICENSE'),
+            self.val(properties.get(SpecifyConstants.ST_LICENSE_LOGO_URL), 'ST_LICENSE_LOGO_URL'),
+            self.val(properties.get(SpecifyConstants.ST_METADATA_TEXT), 'ST_METADATA_TEXT'),
+            image_type,
+            original_filename,
+            self.val(properties.get(SpecifyConstants.ST_REMARKS), 'ST_REMARKS'),
+            self.val(properties.get(SpecifyConstants.ST_SUBJECT_ORIENTATION), 'ST_SUBJECT_ORIENTATION'),
+            self.val(properties.get(SpecifyConstants.ST_SUBTYPE), 'ST_SUBTYPE'),
+            title_value,
+            self.val(properties.get(SpecifyConstants.ST_TYPE), 'ST_TYPE'),
+            agent_id
+        )
+
         cursor = self.db_utils.get_cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.db_utils.commit()
         cursor.close()
 
@@ -114,7 +146,6 @@ class AttachmentUtils:
         sql = f"select max(ordinal) from collectionobjectattachment where CollectionObjectID={collection_object_id}"
         return self.db_utils.get_one_record(sql)
 
-
     def get_is_attachment_redacted(self, internal_id):
         sql = f"""
             select a.AttachmentID,a.ispublic  from attachment a
@@ -127,7 +158,7 @@ class AttachmentUtils:
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:
-            print(f"Error fetching attchment internal id: {internal_id}\n sql:{sql}")
+            logging.error(f"Error fetching attachment internal id: {internal_id}\n sql:{sql}")
             raise db_utils.DatabaseInconsistentError()
 
         retval = retval[1]
@@ -138,8 +169,7 @@ class AttachmentUtils:
                 return True
         return False
 
-
-    def get_is_collection_object_redacted(self, collection_object_id):
+    def get_is_botany_collection_object_redacted(self, collection_object_id):
         sql = f"""SELECT co.YesNo2          AS `CO redact locality`
              , vt.RedactLocality  AS `taxon_redact_locality`
              , vta.RedactLocality AS `accepted_taxon_redact_locality`
@@ -164,6 +194,6 @@ class AttachmentUtils:
             logging.warning(f"Warning: No results from: \n\n{sql}\n")
         else:
             for val in retval:
-                if val is True or val == 1 or val==b'\x01':
+                if val is True or val == 1 or val == b'\x01':
                     return True
         return False

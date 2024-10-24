@@ -16,7 +16,11 @@ def str_to_bool(value: str):
         returns:
             boolean conversion of string value.
     """
-    return value.lower() == 'true'
+    if isinstance(value, bool):
+        return value
+    else:
+        value = str(value)
+        return value.lower() == 'true' or value.lower() == "t"
 
 
 def remove_non_numerics(string: str):
@@ -29,18 +33,21 @@ def remove_non_numerics(string: str):
 
 
 def replace_apostrophes(string: str):
-    """replaces apostrophes in possessive adjectives with double quotes to be readable by mysql
-    args:
-        string: a string containing an apostrophe
-    returns:
-        re.sub: a string with all apostrophes replaces by double quotes
     """
-    # using double quotes on one and single on the other is actually important this time
+    Replaces single apostrophes with double apostrophes for MySQL compatibility,
+    but skips already escaped double apostrophes.
+
+    Args:
+        string: A string that may contain apostrophes.
+
+    Returns:
+        str: A string with unescaped apostrophes replaced by double apostrophes.
+    """
     if isinstance(string, str):
-        return re.sub("'", "''", string)
+        # Replace single apostrophes not preceded by another apostrophe
+        return re.sub(r"(?<!')'", "''", string)
     else:
         return string
-
 
 def move_first_substring(string: str, n_char: int):
     """move_first_substring: will move first n letters from beginning to end of string
@@ -55,7 +62,13 @@ def move_first_substring(string: str, n_char: int):
         return string[n_char+1:] + string[0:n_char+1]
 
 
-def assign_collector_titles(first_last, name: str):
+def remove_barcode_suffix(num):
+    """Remove barcode notation of _ followed by any number for duplicate record sheets."""
+    if isinstance(num, int):
+        num = str(num)
+    return re.sub(r'_\d+$', '', num)
+
+def assign_collector_titles(first_last, name: str, config):
     """assign_titles:
             function designed to separate out titles in names into a new title column
         args:
@@ -63,30 +76,27 @@ def assign_collector_titles(first_last, name: str):
             name: the name string from which to separate out the titles.
     """
     # to lower to standardize matching
-    titles = ['mr.', 'mrs.', 'ms.', 'dr.', 'jr.', 'sr.', 'ii', 'iii', 'ii', 'v', 'vi', 'vii', 'viii', 'ix', 'esq.']
+    first_name_titles = config.AGENT_FIRST_TITLES
+    last_name_titles = config.AGENT_LAST_TITLES
     title = ""
-    new_name = ""
-
+    new_name = name
     # Split the full name into words
-    if pd.notna(name):
+    if name and pd.notna(name) and name != '':
         name_parts = name.split()
     # Find the title in the name_parts
+        if name_parts:
+            if first_last == "first" and (name_parts[0].lower() in first_name_titles):
+                new_name = " ".join(name_parts[1:])
+                title = name_parts[0]
 
-        if first_last == "first" and (name_parts[0].lower() in titles):
-            new_name = " ".join(name_parts[1:])
-            title = name_parts[0]
-
-        elif first_last == "last" and (name_parts[-1].lower() in titles):
-            new_name = " ".join(name_parts[:-1])
-            title = name_parts[-1]
-        else:
-            # If no title is found, assign the full name to the first name
-            new_name = name
-    else:
-        new_name = name
+            elif first_last == "last" and (name_parts[-1].lower() in last_name_titles):
+                new_name = " ".join(name_parts[:-1])
+                title = name_parts[-1]
+            else:
+                # If no title is found, assign the full name to the first name
+                new_name = name
 
     return new_name, title
-
 
 def roman_to_int(string):
 

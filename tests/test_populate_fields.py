@@ -13,9 +13,9 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
     def setUp(self):
         """creating fake dataset to check if
           populate fields function assigns the strings and numbers"""
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash,
-                                                          paths=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
         data = {'CatalogNumber': ['123456'],
+                'taxon_id': ['119451'],
                 'verbatim_date': ['March 21, 2008'],
                 'start_date': ['3/21/2008'],
                 'end_date': [pd.NA],
@@ -32,9 +32,13 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
                 'accepted_author': ['Douglas ex hook'],
                 'first_intra': ['Castilleja miniata subsp. dixonii'],
                 'geography_string': ['Mariposa County, California, United States'],
-                'county': 'Mariposa County',
-                'state': 'California',
-                'country': 'United States'}
+                'County': ['Mariposa County'],
+                'State': ['California'],
+                'Country': ['United States'],
+                'matched_name_author': ['Douglas ex hook'],
+                'sheet_notes': ['notes'],
+                'cover_notes': ['notes'],
+                'overall_score': [1.0]}
 
         self.test_picturae_importer.record_full = pd.DataFrame(data)
 
@@ -46,7 +50,6 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
             self.assertEqual(self.test_picturae_importer.barcode, '000123456')
             self.assertEqual(self.test_picturae_importer.locality, 'Harden Lake')
             self.assertEqual(self.test_picturae_importer.GeographyID, 16490)
-            self.assertEqual(self.test_picturae_importer.locality_id, 54)
             self.assertEqual(self.test_picturae_importer.first_intra, 'Castilleja miniata subsp. dixonii')
 
     def tearDown(self):

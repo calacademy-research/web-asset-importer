@@ -3,6 +3,7 @@ import os
 from tests.testing_tools import TestingTools
 from tests.pic_importer_test_class import AltPicturaeImporter
 import shutil
+from get_configs import get_config
 
 class HideFilesTest(unittest.TestCase,TestingTools):
     def __init__(self, *args, **kwargs):
@@ -14,16 +15,19 @@ class HideFilesTest(unittest.TestCase,TestingTools):
            images with sample barcodes"""
         # create test directories
 
-        self.expected_folder = f"../storage_01/picturae/2080/12/12/CP1_{self.md5_hash}_BATCH_0001"
+        self.config = get_config(config="Botany_PIC")
+
+
+        self.expected_folder = f"../storage_01/picturae/delivery/CP1_{self.md5_hash}_BATCH_0001"
 
         self.create_test_images(barcode_list=[123456, 123457, 123458],
                                 color='red', expected_dir=self.expected_folder)
 
-        self.expected_image_path = f"../storage_01/picturae/2080/12/12/CP1_{self.md5_hash}" \
+        self.expected_image_path = f"../storage_01/picturae/delivery/CP1_{self.md5_hash}" \
                                    f"_BATCH_0001/CAS{123456}.JPG"
 
         # initializing
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash, paths=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
 
         self.test_picturae_importer.image_list = [self.expected_image_path]
 

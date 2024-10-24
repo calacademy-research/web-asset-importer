@@ -1,4 +1,3 @@
-
 from attachment_utils import AttachmentUtils
 import datetime
 from uuid import uuid4
@@ -7,8 +6,6 @@ from image_client import ImageClient
 from db_utils import InvalidFilenameError
 import collections
 import filetype
-
-TMP_JPG = "./tmp_jpg"
 import logging
 import subprocess
 from specify_db import SpecifyDb
@@ -17,7 +14,13 @@ from os import listdir
 from os.path import isfile, join
 import traceback
 import hashlib
-from metadata_tools import MetadataTools
+from image_client import DuplicateImageException
+from specify_constants import SpecifyConstants
+from image_db import ImageDb
+import atexit
+from image_client import UploadFailureException
+import time
+
 
 class ConvertException(Exception):
     pass
@@ -35,12 +38,17 @@ class Importer:
 
     def __init__(self, db_config_class, collection_name):
         self.db_config_class = db_config_class
-        self.logger = logging.getLogger('Client.importer')
+
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
         self.image_client = ImageClient(config=db_config_class)
+        self.image_db = ImageDb()
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
+        self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
+
+        self.execute_at_exit()
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -48,6 +56,17 @@ class Importer:
         cur_filename = cur_filename.split(".")[:-1]
         cur_filename = ".".join(cur_filename)
         return cur_filename, cur_file_ext
+
+    def remove_tmp_jpg(self):
+        """removes tmp folder after process termination"""
+        if os.path.exists(self.TMP_JPG):
+            self.logger.info(f"Removing ./TMP folder at {self.TMP_JPG}")
+            shutil.rmtree(self.TMP_JPG)
+
+    def execute_at_exit(self):
+        """executes any custom cleanup processes
+           after importer exits with exit code."""
+        atexit.register(self.remove_tmp_jpg)
 
     @staticmethod
     def get_file_md5(filename):
@@ -57,35 +76,50 @@ class Importer:
                 md5_hash.update(chunk)
         return md5_hash.hexdigest()
 
-    def tiff_to_jpg(self, tiff_filepath):
-        basename = os.path.basename(tiff_filepath)
-        if not os.path.exists(TMP_JPG):
-            os.mkdir(TMP_JPG)
-        else:
-            shutil.rmtree(TMP_JPG)
-            os.mkdir(TMP_JPG)
+    def _convert_dng_to_tiff(self, source_path, target_path):
+        proc = subprocess.Popen(['darktable-cli', '--import', source_path, target_path],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        output, error = proc.communicate(timeout=60)
+        if proc.returncode != 0:
+            self.logger.error(f"Error in converting {source_path} to {target_path}: {error.decode('utf-8')}")
+            raise ConvertException(f"Error in converting {source_path} to {target_path}")
+
+    def convert_to_jpg(self, image_filepath):
+        basename = os.path.basename(image_filepath)
+        if not os.path.exists(self.TMP_JPG):
+            os.mkdir(self.TMP_JPG)
+
         file_name_no_extention, extention = self.split_filepath(basename)
-        if extention != 'tif':
-            self.logger.error(f"Bad filename, can't convert {tiff_filepath}")
-            raise ConvertException(f"Bad filename, can't convert {tiff_filepath}")
+        if extention not in ['tif', 'dng','tiff','jpeg']:
+            self.logger.error(f"Bad filename, can't convert {image_filepath}")
+            raise ConvertException(f"Bad filename, can't convert {image_filepath}")
 
-        jpg_dest = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
+        if extention == 'dng':
+            temp_tiff_path = os.path.join('/tmp', file_name_no_extention + "_temp.tif")
+            self._convert_dng_to_tiff(image_filepath, temp_tiff_path)
+            image_filepath = temp_tiff_path
 
-        proc = subprocess.Popen(['convert', '-quality', '99', tiff_filepath, jpg_dest], stdout=subprocess.PIPE)
+        jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
+
+        proc = subprocess.Popen(['convert', '-quality', '99', image_filepath, jpg_dest],
+                                stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
-        onlyfiles = [f for f in listdir(TMP_JPG) if isfile(join(TMP_JPG, f))]
+        onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f))]
         if len(onlyfiles) == 0:
             raise ConvertException(f"No files produced from conversion")
         files_dict = {}
         for file in onlyfiles:
-            files_dict[file] = os.path.getsize(os.path.join(TMP_JPG, file))
+            files_dict[file] = os.path.getsize(os.path.join(self.TMP_JPG, file))
         sort_orders = sorted(files_dict.items(), key=lambda x: x[1], reverse=True)
         top = sort_orders[0][0]
-        target = os.path.join(TMP_JPG, file_name_no_extention + ".jpg")
-        os.rename(os.path.join(TMP_JPG, top), target)
+        target = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
+        os.rename(os.path.join(self.TMP_JPG, top), target)
         if len(onlyfiles) > 2:
             self.logger.info("multi-file case")
+
+        if extention == 'dng':
+            os.remove(temp_tiff_path)  # Remove the temporary TIFF file
 
         return target, output
 
@@ -117,37 +151,29 @@ class Importer:
                                                                   ordinal,
                                                                   agent_id)
 
-    def import_to_specify_database(self,
-                                   filepath,
-                                   attach_loc,
-                                   url,
-                                   collection_object_id,
-                                   agent_id,
-                                   copyright=None,
-                                   is_public=True):
+    def import_to_specify_database(self, filepath, attach_loc, collection_object_id, agent_id, properties):
 
-        attachment_guid = uuid4()
+        attachment_guid = str(uuid4())
 
         file_created_datetime = datetime.datetime.fromtimestamp(os.path.getmtime(filepath))
 
         mime_type = self.get_mime_type(filepath)
 
-        self.attachment_utils.create_attachment(storename=attach_loc,
-                                                original_filename=filepath,
-                                                file_created_datetime=file_created_datetime,
-                                                guid=attachment_guid,
-                                                image_type=mime_type,
-                                                url=url,
-                                                agent_id=agent_id,
-                                                copyright=copyright,
-                                                is_public=is_public)
+        self.attachment_utils.create_attachment(
+            attachment_location=attach_loc,
+            original_filename=filepath,
+            file_created_datetime=file_created_datetime,
+            guid=str(attachment_guid),
+            image_type=mime_type,
+            agent_id=agent_id,
+            properties=properties
+        )
 
-        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+        #        attachment_id = self.attachment_utils.get_attachment_id(attachment_guid)
+        attachment_id = self.attachment_utils.get_attachment_id(str(attachment_guid))
 
         self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id, agent_id)
 
-
-    # This may be replaceable by a simple re.sub + zfill
     def get_first_digits_from_filepath(self, filepath, field_size=9):
         basename = os.path.basename(filepath)
         ints = re.findall(r'\d+', basename)
@@ -215,58 +241,59 @@ class Importer:
 
     def convert_image_if_required(self, filepath):
         jpg_found = False
-        tif_found = False
+        valid_non_jpg_found = False
         deleteme = None
         filename, filename_ext = self.split_filepath(filepath)
-        if filename_ext == "jpg" or filename_ext == "jpeg":
-            jpg_found = filepath
-        if filename_ext == "tif" or filename_ext == "tiff":
-            tif_found = filepath
-        if not jpg_found and tif_found:
-            self.logger.debug(f"  Must create jpg for {filepath} from {tif_found}")
+        filename_ext = filename_ext.lower()
 
-            jpg_found, output = self.tiff_to_jpg(tif_found)
+        if filename_ext in ["jpg", "jpeg"]:
+            jpg_found = filepath
+        elif filename_ext in ["tif", "tiff", "dng"]:
+            valid_non_jpg_found = filepath
+
+        if not jpg_found and valid_non_jpg_found:
+            self.logger.debug(f"  Must create jpg for {filepath} from {valid_non_jpg_found}")
+
+            jpg_found, output = self.convert_to_jpg(valid_non_jpg_found)
             if not os.path.exists(jpg_found):
-                self.logger.error(f"  Conversion failure for {tif_found}; skipping.")
+                self.logger.error(f"  Conversion failure for {valid_non_jpg_found}; skipping.")
                 self.logger.debug(f"Imagemagik output: \n\n{output}\n\n")
                 raise MissingPathException
             deleteme = jpg_found
-            if not jpg_found and tif_found:
-                self.logger.debug(f"  No valid files for {filepath.full_path}")
-                raise InvalidFilenameError
-        if os.path.getsize(jpg_found) < 1000:
+
+        if jpg_found and os.path.getsize(jpg_found) < 1000:
             self.logger.info(f"This image is too small; {os.path.getsize(jpg_found)}, skipping.")
-            return TooSmallException
+            raise TooSmallException
 
         return deleteme
 
-    def upload_filepath_to_image_database(self, filepath, redacted=False):
+    import time
 
+    def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
         deleteme = self.convert_image_if_required(filepath)
-
-
 
         if deleteme is not None:
             upload_me = deleteme
         else:
             upload_me = filepath
 
-
-        # attaching necessary exif data post-conversion
-        # if self.db_config_class.EXIF_DICT:
-        #     MetadataTools(path=upload_me, config=self.db_config_class)
-
-
         self.logger.debug(
             f"about to import to client:- {redacted}, {upload_me}, {self.collection_name}")
 
-        url, attach_loc = self.image_client.upload_to_image_server(upload_me,
-                                                                   redacted,
-                                                                   self.collection_name,
-                                                                   filepath)
-        if deleteme is not None:
-            os.remove(deleteme)
-        return (url, attach_loc)
+        for attempt in range(2):  # Try twice
+            try:
+                url, attach_loc = self.image_client.upload_to_image_server(
+                    upload_me, redacted, self.collection_name, filepath, id=id
+                )
+                if deleteme is not None:
+                    os.remove(deleteme)
+                return (url, attach_loc)
+            except UploadFailureException as e:
+                self.logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
+                time.sleep(10)  # Wait 10 seconds before retrying
+
+        # If the second attempt fails, re-throw the most recent exception
+        raise e
 
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []
@@ -313,48 +340,130 @@ class Importer:
                 keep_filepaths.append(cur_filepath)
         return keep_filepaths
 
+
+    def import_single_file_to_image_db_and_specify(self, cur_filepath, collection_object_id, agent_id,
+                                                   force_redacted, attachment_properties_map,
+                                                   skip_redacted_check, id):
+        # TODO: We need to rework this - this botany specific check needs to be moved up
+        # to the botany importer, and we just pass in "is redacted" as a parameter, the
+        # collection specific importer makes the call.
+        # holding back on that until we have full test suite running in jenkins; don't want to
+        # risk breaking botany import.
+        if skip_redacted_check:
+            is_redacted = False
+        elif force_redacted:
+            is_redacted = True
+        else:
+            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(collection_object_id=collection_object_id)
+
+        try:
+            (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
+
+            is_redacted_property = attachment_properties_map.get(not SpecifyConstants.ST_IS_PUBLIC, None)
+            if is_redacted_property is not None and is_redacted_property:
+                is_public = False
+            else:
+                is_public = not force_redacted
+
+            attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC] = is_public
+
+            self.import_to_specify_database(
+                filepath=cur_filepath,
+                attach_loc=attach_loc,
+                collection_object_id=collection_object_id,
+                agent_id=agent_id,
+                properties=attachment_properties_map
+            )
+            return attach_loc
+
+        except TimeoutError:
+            self.logger.error(f"Timeout converting {cur_filepath}")
+            return None
+
+        except subprocess.TimeoutExpired:
+            self.logger.error(f"Timeout converting {cur_filepath}")
+            return None
+
+        except DuplicateImageException:
+            self.logger.error(f"Image already imported {cur_filepath}")
+            return None
+
+        except ConvertException:
+            self.logger.error(f"Conversion failure for {cur_filepath}; skipping.")
+            return None
+
+        except Exception as e:
+            self.logger.error(
+                f"Upload failure to image server for file: \n\t{cur_filepath}")
+            self.logger.error(f"Exception: {e}")
+            traceback.print_exc()
+            return None
+
+
     def import_to_imagedb_and_specify(self,
                                       filepath_list,
                                       collection_object_id,
                                       agent_id,
                                       force_redacted=False,
-                                      copyright_filepath_map=None,
-                                      skip_redacted_check=False):
+                                      skip_redacted_check=False,
+                                      id=None,
+                                      attachment_properties_map=None):
+
+        if attachment_properties_map is None:
+            attachment_properties_map = {}
         for cur_filepath in filepath_list:
-            if skip_redacted_check:
-                is_redacted = False
-            elif force_redacted:
-                is_redacted = True
-            else:
-                is_redacted = self.attachment_utils.get_is_collection_object_redacted(collection_object_id)
-
             try:
-                (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted)
-
-                copyright = None
-                if copyright_filepath_map is not None:
-                    if cur_filepath in copyright_filepath_map:
-                        copyright = copyright_filepath_map[cur_filepath]
-                self.import_to_specify_database(cur_filepath,
-                                                attach_loc,
-                                                url,
-                                                collection_object_id,
-                                                agent_id,
-                                                copyright=copyright,
-                                                is_public=(not force_redacted))
-
-            except TimeoutError:
-                self.logger.error(f"Timeout converting {cur_filepath}")
-
-            except subprocess.TimeoutExpired:
-                self.logger.error(f"Timeout converting {cur_filepath}")
-            except ConvertException:
-                self.logger.error(f"Conversion failure for {cur_filepath}; skipping.")
+                self.import_single_file_to_image_db_and_specify(cur_filepath, collection_object_id, agent_id,
+                                                                force_redacted, attachment_properties_map,
+                                                                skip_redacted_check, id)
             except Exception as e:
-                self.logger.error(
-                    f"Upload failure to image server for file: \n\t{cur_filepath}")
-                self.logger.error(f"Exception: {e}")
-                traceback.print_exc()
+                self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
+                self.logger.error(traceback.format_exc())
+
+    def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
+        """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of
+        the import fail during import_to_imagedb_and_specify."""
+
+        record_list = self.image_db.get_image_record_by_original_path(original_path=cur_filepath, exact=exact,
+                                                                      collection=collection)
+
+        attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_filepath=os.path.basename(cur_filepath))
+
+        # cleanup if image db record created
+        if record_list:
+            for record in record_list:
+                record_dict = dict(record)
+                internal_filename = record_dict['internal_filename']
+                self.image_client.delete_from_image_server(internal_filename, collection)
+
+                # check and cleanup of any attachment records
+                if attach_id:
+                    sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
+                    and AttachmentID = {attach_id};'''
+
+                    self.specify_db_connection.execute(sql)
+
+                    sql = f'''DELETE FROM attachment WHERE AttachmentLocation = {internal_filename};'''
+
+                    self.specify_db_connection.execute(sql)
+                else:
+                    self.logger.info(f"image-db record removed, no specify attachment created")
+
+        # cleanup if image db record failed to create but attachment creates
+        elif attach_id and not record_list:
+
+            sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
+                            and AttachmentID = {attach_id};'''
+
+            self.specify_db_connection.execute(sql)
+
+            sql = f'''DELETE FROM attachment WHERE AttachmentID = {attach_id};'''
+
+            self.specify_db_connection.execute(sql)
+        else:
+            self.logger.info(f"no cleanup required after incomplete upload of: {cur_filepath}")
+
+
 
     def check_for_valid_image(self, full_path):
         # self.logger.debug(f"Ich importer verify file: {full_path}")

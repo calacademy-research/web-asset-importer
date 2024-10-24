@@ -21,18 +21,13 @@ setup:
 file list:
     Python files:
 
-    picturae_csv_create.py: This .py file takes csv files stored in wrangles the columns into a format
-                            which is clean enough for upload to the database. This file also is dependent on
-                            the R_TNRS file in /taxon_check to check validity and spelling of taxonomic nomenclature.
-
-    picturae_importer.py: This .py file takes the prepared csv file from picturae_csv_create and uploads parsed data
+    picturae_importer.py: This .py file takes a prepared csv file and uploads parsed data
                           to database tables to create a collection object record. This file is called from
-                          client_tools.py , and in turn calls picturae_csv_create.py and botany_importer.py
+                          client_tools.py , and in turn calls botany_importer.py
 
     picturae_DDL: (run this before running the importer!)
                     This DDL creates new sql tables for troubleshooting problems with taxa and batch uploads:
 
-                          taxa_unmatch : taxa which did not pass TNRS successfully
                           picturaetaxa_added: new taxa added to the database
                           And creates and nb upload log:
                           picturae_batch: tracks each upload with timestamps and MD5 code,

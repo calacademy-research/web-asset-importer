@@ -1,6 +1,9 @@
+import shutil
+
 import pandas as pd
 from tests.pic_importer_test_class import AltPicturaeImporter
 import unittest
+import os
 from tests.testing_tools import TestingTools
 
 class TestAgentList(unittest.TestCase, TestingTools):
@@ -11,21 +14,25 @@ class TestAgentList(unittest.TestCase, TestingTools):
         """creating instance of PicturaeImporter, +
            creating dummy dataset of real and fake names"""
 
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash,
-                                                          paths=self.md5_hash)
+
+        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
 
         # jose Gonzalez is a real agent,
         # to make sure true matches are not added to list.
 
-        data = {'collector_first_name1': ['Bob', 'Joe'],
+        data = {'agent_id1': ['', ''],
+                'collector_first_name1': ['Bob', 'Joe'],
                 'collector_last_name1': ['Fakeson jr.', 'DiMaggio'],
                 'collector_middle_name1': ['J', 'S'],
+                'agent_id2': ['', ''],
                 'collector_first_name2': ['Enrique', pd.NA],
                 'collector_last_name2': ['de la fake', pd.NA],
                 'collector_middle_name2': ['X', pd.NA],
+                'agent_id3': ['', ''],
                 'collector_first_name3': ['Jose', pd.NA],
                 'collector_last_name3': ['Gonzalez', pd.NA],
-                'collector_middle_name3': [pd.NA, pd.NA]
+                'collector_middle_name3': ['Isabel', pd.NA],
+                'sheet_notes': 'notes'
                 }
 
         self.test_picturae_importer.record_full = pd.DataFrame(data)
@@ -41,7 +48,6 @@ class TestAgentList(unittest.TestCase, TestingTools):
             self.test_picturae_importer.create_agent_list(row)
             temp_agent_list.extend(self.test_picturae_importer.new_collector_list)
 
-        print(temp_agent_list)
         first_dict = temp_agent_list[0]
         second_dict = temp_agent_list[1]
         third_dict = temp_agent_list[2]
@@ -59,5 +65,3 @@ class TestAgentList(unittest.TestCase, TestingTools):
     def tearDown(self):
         """deleting instance of self.PicturaeImporter"""
         del self.test_picturae_importer
-
-

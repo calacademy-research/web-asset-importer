@@ -36,3 +36,21 @@ class SqlLiteTools(SqlCsvTools):
     def commit(self):
         """sqlite for commit"""
         return self.connection.commit()
+
+    def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
+        """get_one_match: this a derived version of get_one_match for sqlite ,
+                            for case-insensitive comparisons
+        """
+        sql = ""
+        if match_type == str:
+            sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = "{match}" COLLATE NOCASE;'''
+        elif match_type == int:
+            sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = {match};'''
+
+        result = self.get_record(sql=sql)
+
+        if isinstance(result, (list, dict, set, tuple)):
+            return result[0]
+        else:
+            return result
+
