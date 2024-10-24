@@ -171,7 +171,7 @@ class PicturaeImporter(Importer):
 
         self.record_full[string_list] = self.record_full[string_list].astype(str)
 
-        self.record_full = self.record_full.replace({'True': True, 'False': False})
+        self.record_full = self.record_full.replace({'True': True, 'False': False}).infer_objects(copy=False)
 
         self.record_full = self.record_full.replace([None, 'nan', np.nan, '<NA>'], '')
 
