@@ -330,10 +330,10 @@ class PicturaeImporter(Importer):
                 last_index = column_names.index(f'collector_last_name{i}')
                 id_index = column_names.index(f'agent_id{i}')
 
-                first = replace_apostrophes(row[first_index])
-                middle = replace_apostrophes(row[middle_index])
-                last = replace_apostrophes(row[last_index])
-                agent_id = replace_apostrophes(row[id_index])
+                first = replace_apostrophes(row.iloc[first_index])
+                middle = replace_apostrophes(row.iloc[middle_index])
+                last = replace_apostrophes(row.iloc[last_index])
+                agent_id = replace_apostrophes(row.iloc[id_index])
 
 
 
