@@ -62,3 +62,4 @@ settings.development.py
 *.xlsx
 file_log.tsv
 *.txt*
+metadata_tools/
