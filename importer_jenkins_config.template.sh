@@ -23,3 +23,27 @@ cleanup() {
     # cleaning up mounted server attachments folder
     find ../web-asset-server-ci/attachments -type f -delete
 }
+
+
+replace_https_with_http() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        # Replace 'https' with 'http' in place
+        sed -i.bak 's/https/http/g' "$file"
+        rm -f "${file}.bak"
+        echo "Replaced 'https' with 'http' in $file."
+    else
+        echo "File $file not found."
+    fi
+}
+
+convert_to_http() {
+  files=(
+      "tests/test_server.py"
+      "views/web_asset_store.xml"
+  )
+  # Loop through each file and run the replacement function
+  for file in "${files[@]}"; do
+      replace_https_with_http "$file"
+  done
+}
