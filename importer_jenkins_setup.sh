@@ -4,7 +4,7 @@ source ./importer_jenkins_config.sh
 
 #cleaning up any residual containers from leftover tests
 setup
-# cleanup lockfile on exit
+# cleanup lockfile on error
 trap cleanup ERR
 
 # checking lock
@@ -79,6 +79,38 @@ docker exec -i mariadb-specify mariadb -u root -ppassword  < ../jenkins_ddls/spe
 sleep 10
 
 echo "specify db populated"
+
+# setting up test server
+(
+# stable cas server is a git cloned repo of cas-web-asset-server master branch with ssh key for fetch.
+cd ../stable_cas-server || exit
+git config --global --add safe.directory "$(pwd)"
+git fetch --all
+# change to master before PR
+git checkout picturae_import
+git reset --hard origin/picturae_import
+convert_to_http
+cp nginx_test.conf nginx.conf
+git submodule update --init --remote --force
+docker stop image-server bottle-nginx && docker rm image-server bottle-nginx
+sleep 5
+docker-compose up -d
+max_wait=1200
+elapsed=0
+
+until [ "$(docker-compose ps -q | xargs docker inspect -f '{{.State.Health.Status}}' | grep -cv 'healthy')" -eq 0 ] || [ "$elapsed" -ge "$max_wait" ]; do
+    echo "Waiting for all containers to become healthy... (${elapsed}s elapsed)"
+    sleep 5
+    elapsed=$((elapsed + 5))
+done
+
+if [ "$elapsed" -ge "$max_wait" ]; then
+    echo "Error: Containers did not reach a healthy state within ${max_wait} seconds."
+    exit 1
+fi
+
+echo "All containers are healthy."
+)
 
 # tests
 

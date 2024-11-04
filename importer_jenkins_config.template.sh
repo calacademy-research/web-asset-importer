@@ -21,7 +21,10 @@ cleanup() {
     docker rm picbatch-mysql
     echo "DELETE FROM images.images;" | docker exec -i mysql-images mysql -u root -p$image_password
     # cleaning up mounted server attachments folder
-    find ../web-asset-server-ci/attachments -type f -delete
+    find ../stable_cas-server/attachments -type f -delete
+    rm -r venv
+    # removing tmp pip files
+    rm -rf /tmp/pip-*
 }
 
 
