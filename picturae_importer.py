@@ -325,10 +325,10 @@ class PicturaeImporter(Importer):
 
         for i in range(1, matches+1):
             try:
-                first = replace_apostrophes(getattr(row, f'collector_first_name{i}', ''))
-                middle = replace_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
-                last = replace_apostrophes(getattr(row, f'collector_last_name{i}', ''))
-                agent_id = replace_apostrophes(getattr(row, f'agent_id{i}', ''))
+                first = escape_apostrophes(getattr(row, f'collector_first_name{i}', ''))
+                middle = escape_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
+                last = escape_apostrophes(getattr(row, f'collector_last_name{i}', ''))
+                agent_id = escape_apostrophes(getattr(row, f'agent_id{i}', ''))
 
             except ValueError:
                 break
