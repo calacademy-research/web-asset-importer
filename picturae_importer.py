@@ -325,18 +325,10 @@ class PicturaeImporter(Importer):
 
         for i in range(1, matches+1):
             try:
-                first_index = column_names.index(f'collector_first_name{i}')
-                middle_index = column_names.index(f'collector_middle_name{i}')
-                last_index = column_names.index(f'collector_last_name{i}')
-                id_index = column_names.index(f'agent_id{i}')
-
-                first = replace_apostrophes(row.iloc[first_index])
-                middle = replace_apostrophes(row.iloc[middle_index])
-                last = replace_apostrophes(row.iloc[last_index])
-                agent_id = replace_apostrophes(row.iloc[id_index])
-
-
-
+                first = replace_apostrophes(getattr(row, f'collector_first_name{i}', ''))
+                middle = replace_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
+                last = replace_apostrophes(getattr(row, f'collector_last_name{i}', ''))
+                agent_id = replace_apostrophes(getattr(row, f'agent_id{i}', ''))
 
             except ValueError:
                 break
@@ -356,6 +348,8 @@ class PicturaeImporter(Importer):
                 # first name title taking priority over last
                 first_name, title_first = assign_collector_titles(first_last='first', name=f"{first}",
                                                                   config=self.picturae_config)
+
+
 
                 last_name, title_last = assign_collector_titles(first_last='last', name=f"{last}",
                                                                 config=self.picturae_config)
