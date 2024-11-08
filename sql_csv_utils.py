@@ -5,6 +5,7 @@ import time_utils
 from datetime import datetime
 from datetime import timedelta
 import string_utils
+from string_utils import escape_apostrophes
 import sys
 from specify_db import SpecifyDb
 import logging
@@ -78,24 +79,24 @@ class SqlCsvTools:
         statement_count = 0
         if not pd.isna(first_name) and first_name != '':
             statement_count += 1
-            sql += f''' WHERE FirstName = "{first_name}"'''
+            sql += f''' WHERE FirstName = "{escape_apostrophes(first_name, reverse=True)}"'''
         else:
             statement_count += 1
             sql += f''' WHERE FirstName IS NULL'''
 
         if not pd.isna(last_name) and last_name != '':
-            sql += f''' AND LastName = "{last_name}"'''
+            sql += f''' AND LastName = "{escape_apostrophes(last_name, reverse=True)}"'''
 
         else:
             sql += f''' AND LastName IS NULL'''
 
         if not pd.isna(middle_initial) and middle_initial != '':
-            sql += f''' AND MiddleInitial = "{middle_initial}"'''
+            sql += f''' AND MiddleInitial = "{escape_apostrophes(middle_initial, reverse=True)}"'''
         else:
             sql += f''' AND MiddleInitial IS NULL'''
 
         if not pd.isna(title) and title != '':
-            sql += f''' AND Title = "{title}"'''
+            sql += f''' AND Title = "{escape_apostrophes(title, reverse=True)}"'''
         else:
             sql += f''' AND Title IS NULL'''
 
