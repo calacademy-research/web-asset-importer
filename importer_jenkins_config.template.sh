@@ -3,7 +3,7 @@
 image_password="test_password"
 metadata_requirements_path="metadata_tools/requirements.txt"
 python_path=$(pwd)
-lockfile="/tmp/$(basename "$0").lock"
+lockfile="/tmp/importer_jenkins.lock"
 
 setup() {
     docker stop mariadb-specify

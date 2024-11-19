@@ -84,11 +84,14 @@ echo "specify db populated"
 (
 # stable cas server is a git cloned repo of cas-web-asset-server master branch with ssh key for fetch.
 cd ../stable_cas-server || exit
+source venv/bin/activate
+source ./server_jenkins_config.sh
 git config --global --add safe.directory "$(pwd)"
 git fetch --all
 # change to master before PR
-git checkout picturae_import
-git reset --hard origin/picturae_import
+git stash
+git checkout master
+git reset --hard origin/master
 convert_to_http
 cp nginx_test.conf nginx.conf
 git submodule update --init --remote --force
@@ -98,8 +101,8 @@ docker-compose up -d
 max_wait=1200
 elapsed=0
 
-until [ "$(docker-compose ps -q | xargs docker inspect -f '{{.State.Health.Status}}' | grep -cv 'healthy')" -eq 0 ] || [ "$elapsed" -ge "$max_wait" ]; do
-    echo "Waiting for all containers to become healthy... (${elapsed}s elapsed)"
+until [ "$(docker-compose ps -q | xargs docker inspect -f '{{.State.Status}}' 2>/dev/null | grep -cv 'running')" -eq 0 ] || [ "$elapsed" -ge "$max_wait" ]; do
+    echo "Waiting for all containers to be running... (${elapsed}s elapsed)"
     sleep 5
     elapsed=$((elapsed + 5))
 done
@@ -113,6 +116,9 @@ echo "All containers are healthy."
 )
 
 # tests
+( cd ./tests || exit
+./casbotany_sqlite_create.sh
+)
 
 pytest --ignore="metadata_tools/tests"
 
