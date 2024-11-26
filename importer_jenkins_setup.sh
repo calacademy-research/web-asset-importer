@@ -61,7 +61,12 @@ pip install -r metadata_tools/requirements.txt
 
 # creating databases
 
-docker run --name mariadb-specify -e MARIADB_ROOT_PASSWORD=password -d -p 3310:3306 mariadb:latest
+docker run --name mariadb-specify \
+  -e MARIADB_ROOT_PASSWORD=password \
+  -e MARIADB_CHARSET=utf8mb4 \
+  -e MARIADB_COLLATION=utf8mb4_general_ci \
+  -d -p 3310:3306 mariadb:10.11
+
 
 echo "specify db running"
 
