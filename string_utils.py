@@ -32,22 +32,28 @@ def remove_non_numerics(string: str):
     return re.sub('[^0-9]+', '', string)
 
 
-def replace_apostrophes(string: str):
+def escape_apostrophes(string: str, reverse=False):
     """
     Replaces single apostrophes with double apostrophes for MySQL compatibility,
     but skips already escaped double apostrophes.
 
     Args:
         string: A string that may contain apostrophes.
+        reverse: to replace pre-escaped apostrophes in reverse with single apostrophes
 
     Returns:
         str: A string with unescaped apostrophes replaced by double apostrophes.
     """
-    if isinstance(string, str):
+    if isinstance(string, str) and reverse is False:
         # Replace single apostrophes not preceded by another apostrophe
         return re.sub(r"(?<!')'", "''", string)
+    elif isinstance(string, str) and reverse is True:
+        # replace only even pairs of apostrophes
+        return re.sub(r"(?<!')''(?!')", "'", string)
     else:
         return string
+
+
 
 def move_first_substring(string: str, n_char: int):
     """move_first_substring: will move first n letters from beginning to end of string
