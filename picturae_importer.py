@@ -335,11 +335,11 @@ class PicturaeImporter(Importer):
 
             if agent_id and pd.notna(agent_id):
                 # note do not convert agent_id to string it will mess with sql
-                collector_dict = {f'collector_first_name': str(first),
-                                  f'collector_middle_initial': str(middle),
-                                  f'collector_last_name': str(last),
+                collector_dict = {f'collector_first_name': str(first).strip(),
+                                  f'collector_middle_initial': str(middle).strip(),
+                                  f'collector_last_name': str(last).strip(),
                                   f'collector_title': '',
-                                  f'agent_id': agent_id}
+                                  f'agent_id': str(agent_id).strip()}
 
                 self.full_collector_list.append(collector_dict)
 
@@ -370,11 +370,11 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': str(first_name),
-                                  f'collector_middle_initial': str(middle),
-                                  f'collector_last_name': str(last_name),
-                                  f'collector_title': str(title),
-                                  f'agent_id': agent_id}
+                collector_dict = {f'collector_first_name': str(first_name).strip(),
+                                  f'collector_middle_initial': str(middle).strip(),
+                                  f'collector_last_name': str(last_name).strip(),
+                                  f'collector_title': str(title).strip(),
+                                  f'agent_id': str(agent_id).strip()}
 
 
                 self.full_collector_list.append(collector_dict)
@@ -424,6 +424,8 @@ class PicturaeImporter(Importer):
         self.sheet_notes = row.sheet_notes
 
         self.tax_notes = row.cover_notes
+
+        self.label_text = row.label_text
 
         self.redacted = False
 
@@ -649,7 +651,8 @@ class PicturaeImporter(Importer):
                        'EndDate',
                        'LocalityID',
                        'ModifiedByAgentID',
-                       'CreatedByAgentID'
+                       'CreatedByAgentID',
+                       'VerbatimLocality'
                        ]
 
         value_list = [f'{time_utils.get_pst_time_now_string()}',
@@ -663,7 +666,8 @@ class PicturaeImporter(Importer):
                       f'{self.end_date}',
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
-                      f'{self.created_by_agent}'
+                      f'{self.created_by_agent}',
+                      f'{self.label_text}'
                       ]
 
         # removing na values from both lists

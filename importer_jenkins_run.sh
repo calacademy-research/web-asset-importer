@@ -2,7 +2,6 @@
 # Run botany import script and check its exit status
 # Ensure no recursive sourcing
 
-
 source ./importer_jenkins_config.sh
 
 trap cleanup EXIT
@@ -36,6 +35,3 @@ fi
 #  echo "iz import failed"
 #  exit 1
 #fi
-
-##### Picturae csv import test
-

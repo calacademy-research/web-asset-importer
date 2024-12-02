@@ -4,7 +4,7 @@ source ./importer_jenkins_config.sh
 
 #cleaning up any residual containers from leftover tests
 setup
-# cleanup lockfile on exit
+# cleanup lockfile on error
 trap cleanup ERR
 
 # checking lock
@@ -22,7 +22,7 @@ rm -r venv
 
 sleep 5
 
-python3 -m venv venv
+python3.12 -m venv venv
 
 source venv/bin/activate
 
@@ -61,7 +61,12 @@ pip install -r metadata_tools/requirements.txt
 
 # creating databases
 
-docker run --name mariadb-specify -e MARIADB_ROOT_PASSWORD=password -d -p 3310:3306 mariadb:latest
+docker run --name mariadb-specify \
+  -e MARIADB_ROOT_PASSWORD=password \
+  -e MARIADB_CHARSET=utf8mb4 \
+  -e MARIADB_COLLATION=utf8mb4_general_ci \
+  -d -p 3310:3306 mariadb:10.11
+
 
 echo "specify db running"
 
@@ -80,7 +85,45 @@ sleep 10
 
 echo "specify db populated"
 
+# setting up test server
+(
+# stable cas server is a git cloned repo of cas-web-asset-server master branch with ssh key for fetch.
+cd ../stable_cas-server || exit
+source venv/bin/activate
+source ./server_jenkins_config.sh
+git config --global --add safe.directory "$(pwd)"
+git fetch --all
+# change to master before PR
+git stash
+git checkout master
+git reset --hard origin/master
+convert_to_http
+cp nginx_test.conf nginx.conf
+git submodule update --init --remote --force
+docker stop image-server bottle-nginx && docker rm image-server bottle-nginx
+sleep 5
+docker-compose up -d
+max_wait=1200
+elapsed=0
+
+until [ "$(docker-compose ps -q | xargs docker inspect -f '{{.State.Status}}' 2>/dev/null | grep -cv 'running')" -eq 0 ] || [ "$elapsed" -ge "$max_wait" ]; do
+    echo "Waiting for all containers to be running... (${elapsed}s elapsed)"
+    sleep 5
+    elapsed=$((elapsed + 5))
+done
+
+if [ "$elapsed" -ge "$max_wait" ]; then
+    echo "Error: Containers did not reach a healthy state within ${max_wait} seconds."
+    exit 1
+fi
+
+echo "All containers are healthy."
+)
+
 # tests
+( cd ./tests || exit
+./casbotany_sqlite_create.sh
+)
 
 pytest --ignore="metadata_tools/tests"
 
