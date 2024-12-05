@@ -32,7 +32,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
                             "country": "United States",
                             "sheet_notes": "[notes]",
                             "cover_notes": "[notes]",
-                            "label_text": "Random text"
+                            "label_data": "Random text"
                             }
 
         self.record_full = pd.DataFrame(self.record_full)

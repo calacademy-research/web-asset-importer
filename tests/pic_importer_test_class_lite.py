@@ -53,7 +53,7 @@ class AltPicturaeImporterlite(PicturaeImporter):
         self.sheet_notes = row.sheet_notes
         self.overall_score = row.overall_score
         self.tax_notes = row.cover_notes
-        self.label_text = row.label_text
+        self.label_data = row.label_data
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
@@ -68,7 +68,7 @@ class AltPicturaeImporterlite(PicturaeImporter):
         self.collector_number = row.collector_number
         self.locality = row.locality
         self.sheet_notes = row.sheet_notes
-        self.label_text = row.label_text
+        self.label_data = row.label_data
         self.tax_notes = row.cover_notes
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
