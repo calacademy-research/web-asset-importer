@@ -307,7 +307,6 @@ class PicturaeImporter(Importer):
         self.parent_author = taxon_list[0]
 
 
-
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -335,11 +334,18 @@ class PicturaeImporter(Importer):
 
             if pd.notna(agent_id) and agent_id != '':
                 # note do not convert agent_id to string it will mess with sql
-                collector_dict = {f'collector_first_name': str(first).strip(),
-                                  f'collector_middle_initial': str(middle).strip(),
-                                  f'collector_last_name': str(last).strip(),
-                                  f'collector_title': '',
-                                  f'agent_id': str(agent_id).strip()}
+                collector_dict = {
+                    'collector_first_name': first,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last,
+                    'collector_title': '',
+                    'agent_id': agent_id
+                }
+
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -370,12 +376,18 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': str(first_name).strip(),
-                                  f'collector_middle_initial': str(middle).strip(),
-                                  f'collector_last_name': str(last_name).strip(),
-                                  f'collector_title': str(title).strip(),
-                                  f'agent_id': str(agent_id).strip()}
+                collector_dict = {
+                    'collector_first_name': first_name,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last_name,
+                    'collector_title': title,
+                    'agent_id': agent_id
+                }
 
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -898,8 +910,6 @@ class PicturaeImporter(Importer):
                                                               last_name=agent_dict["collector_last_name"],
                                                               middle_initial=agent_dict["collector_middle_initial"],
                                                               title=agent_dict["collector_title"])
-
-            self.logger.debug(f"CAT_{self.barcode}: {agent_id}")
 
             column_list = ['TimestampCreated',
                            'TimestampModified',
