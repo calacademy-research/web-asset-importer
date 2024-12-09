@@ -53,7 +53,8 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                 'matched_name_author': ['Dougl. ex Hook.', 'Erd.', 'Drew', 'Schleich. ex Ser'],
                 'overall_score': [1.0, 1.0, 1.0, 1.0],
                 'sheet_notes': ["notes", "notes", "notes", "notes"],
-                'cover_notes': ["notes", "notes", "notes", "notes"]
+                'cover_notes': ["notes", "notes", "notes", "notes"],
+                'label_data': ["notes", "notes", "notes", "notes"]
                 }
 
         self.test_picturae_importer_lite.record_full = pd.DataFrame(data)

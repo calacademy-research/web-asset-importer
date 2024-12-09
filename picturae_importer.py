@@ -25,7 +25,7 @@ class PicturaeImporter(Importer):
            A class with methods designed to wrangle, verify,
            and upload a csv file containing transcribed
            specimen sheet records into the database,
-           along with attached images
+           along with attached images.
     """
 
     def __init__(self, config):
@@ -307,7 +307,6 @@ class PicturaeImporter(Importer):
         self.parent_author = taxon_list[0]
 
 
-
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -333,13 +332,20 @@ class PicturaeImporter(Importer):
             except ValueError:
                 break
 
-            if agent_id and pd.notna(agent_id):
+            if pd.notna(agent_id) and agent_id != '':
                 # note do not convert agent_id to string it will mess with sql
-                collector_dict = {f'collector_first_name': str(first).strip(),
-                                  f'collector_middle_initial': str(middle).strip(),
-                                  f'collector_last_name': str(last).strip(),
-                                  f'collector_title': '',
-                                  f'agent_id': str(agent_id).strip()}
+                collector_dict = {
+                    'collector_first_name': first,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last,
+                    'collector_title': '',
+                    'agent_id': agent_id
+                }
+
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -370,12 +376,18 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': str(first_name).strip(),
-                                  f'collector_middle_initial': str(middle).strip(),
-                                  f'collector_last_name': str(last_name).strip(),
-                                  f'collector_title': str(title).strip(),
-                                  f'agent_id': str(agent_id).strip()}
+                collector_dict = {
+                    'collector_first_name': first_name,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last_name,
+                    'collector_title': title,
+                    'agent_id': agent_id
+                }
 
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -425,7 +437,7 @@ class PicturaeImporter(Importer):
 
         self.tax_notes = row.cover_notes
 
-        self.label_text = row.label_text
+        self.label_data = row.label_data
 
         self.redacted = False
 
@@ -667,7 +679,7 @@ class PicturaeImporter(Importer):
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
                       f'{self.created_by_agent}',
-                      f'{self.label_text}'
+                      f'{self.label_data}'
                       ]
 
         # removing na values from both lists
@@ -891,7 +903,7 @@ class PicturaeImporter(Importer):
             agent_id = agent_dict['agent_id']
 
             if agent_id != '' and pd.notna(agent_id):
-                agent_id = agent_dict['agent_id']
+                pass
             else:
                 self.logger.info("new agent pulling agent id")
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name=agent_dict["collector_first_name"],
@@ -922,6 +934,7 @@ class PicturaeImporter(Importer):
                           f"{agent_id}"]
 
             # removing na values from both lists
+
             value_list, column_list = remove_two_index(value_list, column_list)
 
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
