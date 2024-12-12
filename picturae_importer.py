@@ -799,6 +799,7 @@ class PicturaeImporter(Importer):
                        'CatalogerID',
                        'Remarks',
                        'ReservedText',
+                       'Modifier',
                        'YesNo2'
                        ]
 
@@ -819,6 +820,7 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{notes}",
                       f"{self.picturae_config.PROJECT_NAME}",
+                      f"CAS",
                       self.redacted]
 
         # removing na values from both lists
