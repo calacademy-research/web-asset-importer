@@ -782,6 +782,9 @@ class PicturaeImporter(Importer):
         else:
             notes = ""
 
+        notes += " Transcribed and imaged as part of a mass digitization project." if notes \
+                 else "Transcribed and imaged as part of a mass digitization project."
+
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'CollectingEventID',
