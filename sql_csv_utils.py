@@ -118,7 +118,7 @@ class SqlCsvTools:
                             set to true to avoid re-adding unspecified as an agent id
         """
 
-        sql = "SELECT * FROM agent WHERE LastName = 'unspecified';"
+        sql = "SELECT agent_id FROM agent WHERE LastName = 'unspecified';"
 
         agent_id = self.specify_db_connection.get_one_record(sql=sql)
 
