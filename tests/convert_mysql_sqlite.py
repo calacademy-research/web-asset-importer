@@ -41,6 +41,7 @@ def convert_mysql_sqlite(filename):
     dump = re.sub(r"KEY `.*\n", "", dump)
     dump = re.sub(r"LOCK TABLES `(.*?)` WRITE;", "", dump)
     dump = re.sub(r"UNLOCK TABLES;", "", dump)
+    dump = re.sub(r',\s*\)', ')', dump)
 
     pattern = re.compile(r'[^\x00-\x7F]')
 

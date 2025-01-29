@@ -38,6 +38,7 @@ class TestPopulateFields(unittest.TestCase, TestingTools):
                 'matched_name_author': ['Douglas ex hook'],
                 'sheet_notes': ['notes'],
                 'cover_notes': ['notes'],
+                'label_data': ['Flrs collected at later date'],
                 'overall_score': [1.0]}
 
         self.test_picturae_importer.record_full = pd.DataFrame(data)

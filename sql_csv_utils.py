@@ -5,10 +5,12 @@ import time_utils
 from datetime import datetime
 from datetime import timedelta
 import string_utils
+from string_utils import escape_apostrophes
 import sys
 from specify_db import SpecifyDb
 import logging
 from typing import Union
+import re
 import numpy as np
 
 class DatabaseConnectionError(Exception):
@@ -77,24 +79,24 @@ class SqlCsvTools:
         statement_count = 0
         if not pd.isna(first_name) and first_name != '':
             statement_count += 1
-            sql += f''' WHERE FirstName = "{first_name}"'''
+            sql += f''' WHERE FirstName = "{escape_apostrophes(first_name, reverse=True)}"'''
         else:
             statement_count += 1
             sql += f''' WHERE FirstName IS NULL'''
 
         if not pd.isna(last_name) and last_name != '':
-            sql += f''' AND LastName = "{last_name}"'''
+            sql += f''' AND LastName = "{escape_apostrophes(last_name, reverse=True)}"'''
 
         else:
             sql += f''' AND LastName IS NULL'''
 
         if not pd.isna(middle_initial) and middle_initial != '':
-            sql += f''' AND MiddleInitial = "{middle_initial}"'''
+            sql += f''' AND MiddleInitial = "{escape_apostrophes(middle_initial, reverse=True)}"'''
         else:
             sql += f''' AND MiddleInitial IS NULL'''
 
         if not pd.isna(title) and title != '':
-            sql += f''' AND Title = "{title}"'''
+            sql += f''' AND Title = "{escape_apostrophes(title, reverse=True)}"'''
         else:
             sql += f''' AND Title IS NULL'''
 
@@ -146,7 +148,6 @@ class SqlCsvTools:
 
         return collector_list
 
-
     def get_one_hybrid(self, match, fullname):
         """get_one_hybrid:
             used instead of get_one_record for hybrids to
@@ -154,13 +155,16 @@ class SqlCsvTools:
             args:
                 match = the hybrid term of a taxonomic name e.g Genus A x B,
                         match - "A X B"
+                fullname = the full name of the taxonomic name.
         """
         parts = match.split()
         if len(parts) == 3:
+            basename = fullname.split()[0]
             sql = f'''SELECT TaxonID FROM taxon WHERE 
                       LOWER(FullName) LIKE "%{parts[0]}%" 
                       AND LOWER(FullName) LIKE "%{parts[1]}%"
-                      AND LOWER(FullName) LIKE "%{parts[2]}%";'''
+                      AND LOWER(FullName) LIKE "%{parts[2]}%"
+                      AND LOWER(FullName) LIKE "%{basename}%";'''
 
             result = self.specify_db_connection.get_records(query=sql)
 
@@ -173,14 +177,13 @@ class SqlCsvTools:
 
         elif len(parts) < 3:
             taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname,
-                                           match_type=str)
+                                          match_type=str)
 
             return taxon_id
         else:
             self.logger.error("hybrid tax name has more than 3 terms")
 
             return None
-
 
 
     def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
@@ -222,7 +225,8 @@ class SqlCsvTools:
         """
         # removing brackets, making sure comma is not inside of quotations
         column_list = ', '.join(col_list)
-        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else repr(value) for value in val_list)
+        value_list = ', '.join(f"'{value}'" if isinstance(value, str) else
+                               repr(value) for value in val_list)
 
         sql = f'''INSERT INTO {tab_name} ({column_list}) VALUES({value_list});'''
 
@@ -329,10 +333,31 @@ class SqlCsvTools:
         return sql
 
     def taxon_get(self, name, hybrid=False, taxname=None):
+        """taxon_get: function to retrieve taxon id from specify database:
+            args:
+                name: the full taxon name to check
+                hybrid: whether the taxon name belongs to a hybrid
+                taxname: the name ending substring of a taxon name, only useful for retrieving hybrids.
+        """
 
+        name = name.lower()
         if hybrid is False:
-            result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                           match_type=str)
+            if "subsp." in name or "var." in name:
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                               match_type=str)
+                if result_id is None:
+                    if "subsp." in name:
+                        name = name.replace(" subsp. ", " var. ")
+                    elif "var." in name:
+                        name = name.replace(" var. ", " subsp. ")
+                    else:
+                        pass
+
+                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                                   match_type=str)
+            else:
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
+                                               match_type=str)
             return result_id
         else:
             result_id = self.get_one_hybrid(match=taxname, fullname=name)

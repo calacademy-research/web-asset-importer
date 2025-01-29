@@ -25,7 +25,7 @@ class PicturaeImporter(Importer):
            A class with methods designed to wrangle, verify,
            and upload a csv file containing transcribed
            specimen sheet records into the database,
-           along with attached images
+           along with attached images.
     """
 
     def __init__(self, config):
@@ -80,7 +80,7 @@ class PicturaeImporter(Importer):
                                        (self.record_full['image_present_db'] == False)]['image_path']
 
         if len(valid_paths) > 0:
-            paths = list(valid_paths['image_path'].apply(os.path.dirname).unique())
+            paths = list(valid_paths.apply(os.path.dirname).unique())
 
             updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
 
@@ -171,7 +171,7 @@ class PicturaeImporter(Importer):
 
         self.record_full[string_list] = self.record_full[string_list].astype(str)
 
-        self.record_full = self.record_full.replace({'True': True, 'False': False})
+        self.record_full = self.record_full.replace({'True': True, 'False': False}).infer_objects(copy=False)
 
         self.record_full = self.record_full.replace([None, 'nan', np.nan, '<NA>'], '')
 
@@ -307,7 +307,6 @@ class PicturaeImporter(Importer):
         self.parent_author = taxon_list[0]
 
 
-
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -325,27 +324,28 @@ class PicturaeImporter(Importer):
 
         for i in range(1, matches+1):
             try:
-                first_index = column_names.index(f'collector_first_name{i}')
-                middle_index = column_names.index(f'collector_middle_name{i}')
-                last_index = column_names.index(f'collector_last_name{i}')
-                id_index = column_names.index(f'agent_id{i}')
-
-                first = row[first_index]
-                middle = row[middle_index]
-                last = row[last_index]
-                agent_id = row[id_index]
-
+                first = escape_apostrophes(getattr(row, f'collector_first_name{i}', ''))
+                middle = escape_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
+                last = escape_apostrophes(getattr(row, f'collector_last_name{i}', ''))
+                agent_id = escape_apostrophes(getattr(row, f'agent_id{i}', ''))
 
             except ValueError:
                 break
 
-            if agent_id and pd.notna(agent_id):
+            if pd.notna(agent_id) and agent_id != '':
                 # note do not convert agent_id to string it will mess with sql
-                collector_dict = {f'collector_first_name': str(first),
-                                  f'collector_middle_initial': str(middle),
-                                  f'collector_last_name': str(last),
-                                  f'collector_title': '',
-                                  f'agent_id': agent_id}
+                collector_dict = {
+                    'collector_first_name': first,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last,
+                    'collector_title': '',
+                    'agent_id': agent_id
+                }
+
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -354,6 +354,8 @@ class PicturaeImporter(Importer):
                 # first name title taking priority over last
                 first_name, title_first = assign_collector_titles(first_last='first', name=f"{first}",
                                                                   config=self.picturae_config)
+
+
 
                 last_name, title_last = assign_collector_titles(first_last='last', name=f"{last}",
                                                                 config=self.picturae_config)
@@ -364,7 +366,7 @@ class PicturaeImporter(Importer):
                     title = title_last
 
                 middle = middle
-                elements = [first_name, last_name, title, middle]
+                elements = [str(first_name).strip(), str(last_name).strip(), str(title).strip(), str(middle).strip()]
 
                 for index in range(len(elements)):
                     if pd.isna(elements[index]) or elements[index] == '':
@@ -374,12 +376,18 @@ class PicturaeImporter(Importer):
 
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name, last_name, middle, title)
 
-                collector_dict = {f'collector_first_name': str(first_name),
-                                  f'collector_middle_initial': str(middle),
-                                  f'collector_last_name': str(last_name),
-                                  f'collector_title': str(title),
-                                  f'agent_id': agent_id}
+                collector_dict = {
+                    'collector_first_name': first_name,
+                    'collector_middle_initial': middle,
+                    'collector_last_name': last_name,
+                    'collector_title': title,
+                    'agent_id': agent_id
+                }
 
+                collector_dict = {
+                    key: str(value).strip() if pd.notna(value) else ''
+                    for key, value in collector_dict.items()
+                }
 
                 self.full_collector_list.append(collector_dict)
 
@@ -428,6 +436,8 @@ class PicturaeImporter(Importer):
         self.sheet_notes = row.sheet_notes
 
         self.tax_notes = row.cover_notes
+
+        self.label_data = row.label_data
 
         self.redacted = False
 
@@ -653,7 +663,8 @@ class PicturaeImporter(Importer):
                        'EndDate',
                        'LocalityID',
                        'ModifiedByAgentID',
-                       'CreatedByAgentID'
+                       'CreatedByAgentID',
+                       'VerbatimLocality'
                        ]
 
         value_list = [f'{time_utils.get_pst_time_now_string()}',
@@ -667,7 +678,8 @@ class PicturaeImporter(Importer):
                       f'{self.end_date}',
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
-                      f'{self.created_by_agent}'
+                      f'{self.created_by_agent}',
+                      f'{self.label_data}'
                       ]
 
         # removing na values from both lists
@@ -770,6 +782,9 @@ class PicturaeImporter(Importer):
         else:
             notes = ""
 
+        notes += " Transcribed and imaged as part of a mass digitization project." if notes \
+                 else "Transcribed and imaged as part of a mass digitization project."
+
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'CollectingEventID',
@@ -787,6 +802,7 @@ class PicturaeImporter(Importer):
                        'CatalogerID',
                        'Remarks',
                        'ReservedText',
+                       'Modifier',
                        'YesNo2'
                        ]
 
@@ -807,6 +823,7 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{notes}",
                       f"{self.picturae_config.PROJECT_NAME}",
+                      f"CAS",
                       self.redacted]
 
         # removing na values from both lists
@@ -838,7 +855,6 @@ class PicturaeImporter(Importer):
                            'TimestampModified',
                            'Version',
                            'CollectionMemberID',
-                           # 'DeterminedDate',
                            'DeterminedDatePrecision',
                            'IsCurrent',
                            'Qualifier',
@@ -847,7 +863,6 @@ class PicturaeImporter(Importer):
                            'CollectionObjectID',
                            'ModifiedByAgentID',
                            'CreatedByAgentID',
-                           # 'DeterminerID',
                            'PreferredTaxonID'
                            ]
             value_list = [f"{time_utils.get_pst_time_now_string()}",
@@ -893,7 +908,7 @@ class PicturaeImporter(Importer):
             agent_id = agent_dict['agent_id']
 
             if agent_id != '' and pd.notna(agent_id):
-                agent_id = agent_dict['agent_id']
+                pass
             else:
                 self.logger.info("new agent pulling agent id")
                 agent_id = self.sql_csv_tools.check_agent_name_sql(first_name=agent_dict["collector_first_name"],
@@ -924,6 +939,7 @@ class PicturaeImporter(Importer):
                           f"{agent_id}"]
 
             # removing na values from both lists
+
             value_list, column_list = remove_two_index(value_list, column_list)
 
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,

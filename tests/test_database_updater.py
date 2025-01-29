@@ -31,7 +31,8 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
                             "state": "California",
                             "country": "United States",
                             "sheet_notes": "[notes]",
-                            "cover_notes": "[notes]"
+                            "cover_notes": "[notes]",
+                            "label_data": "Random text"
                             }
 
         self.record_full = pd.DataFrame(self.record_full)

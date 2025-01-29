@@ -32,18 +32,27 @@ def remove_non_numerics(string: str):
     return re.sub('[^0-9]+', '', string)
 
 
-def replace_apostrophes(string: str):
-    """replaces apostrophes in possessive adjectives with double quotes to be readable by mysql
-    args:
-        string: a string containing an apostrophe
-    returns:
-        re.sub: a string with all apostrophes replaces by double quotes
+def escape_apostrophes(string: str, reverse=False):
     """
-    # using double quotes on one and single on the other is actually important this time
-    if isinstance(string, str):
-        return re.sub("'", "''", string)
+    Replaces single apostrophes with double apostrophes for MySQL compatibility,
+    but skips already escaped double apostrophes.
+
+    Args:
+        string: A string that may contain apostrophes.
+        reverse: to replace pre-escaped apostrophes in reverse with single apostrophes
+
+    Returns:
+        str: A string with unescaped apostrophes replaced by double apostrophes.
+    """
+    if isinstance(string, str) and reverse is False:
+        # Replace single apostrophes not preceded by another apostrophe
+        return re.sub(r"(?<!')'", "''", string)
+    elif isinstance(string, str) and reverse is True:
+        # replace only even pairs of apostrophes
+        return re.sub(r"(?<!')''(?!')", "'", string)
     else:
         return string
+
 
 
 def move_first_substring(string: str, n_char: int):
@@ -76,9 +85,9 @@ def assign_collector_titles(first_last, name: str, config):
     first_name_titles = config.AGENT_FIRST_TITLES
     last_name_titles = config.AGENT_LAST_TITLES
     title = ""
-
+    new_name = name
     # Split the full name into words
-    if pd.notna(name) and name != '':
+    if name and pd.notna(name) and name != '':
         name_parts = name.split()
     # Find the title in the name_parts
         if name_parts:
@@ -92,8 +101,6 @@ def assign_collector_titles(first_last, name: str, config):
             else:
                 # If no title is found, assign the full name to the first name
                 new_name = name
-    else:
-        new_name = name
 
     return new_name, title
 

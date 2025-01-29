@@ -384,7 +384,7 @@ def table_sql_list():
                         CONSTRAINT FK_TaxonTreeDefID FOREIGN KEY (TaxonTreeDefID) REFERENCES taxontreedef (TaxonTreeDefID)
                         );''',
 
-                    '''CREATE TABLE "localitydetail" (
+                    '''CREATE TABLE IF NOT EXISTS localitydetail (
                       "LocalityDetailID" INTEGER PRIMARY KEY AUTOINCREMENT,
                       "TimestampCreated" DATETIME NOT NULL,
                       "TimestampModified" DATETIME DEFAULT NULL,

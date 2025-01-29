@@ -35,8 +35,7 @@ class ImageClient:
     def __init__(self, config=None):
         self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
 
-        ptc_timezone = timezone(timedelta(hours=-8), name="PST")
-        self.datetime_now = datetime.now(ptc_timezone)
+        self.ptc_timezone = timezone(timedelta(hours=-8), name="PST")
         self.update_time_delta()
         self.config = config
 
@@ -115,6 +114,7 @@ class ImageClient:
             errstring = f"Bad input failures to upload to image server: {full_path} {redacted} {collection}"
             print(errstring, file=sys.stderr, flush=True)
             raise UploadFailureException(errstring)
+        datetime_now = datetime.now(self.ptc_timezone)
         local_filename = full_path
         uuid = str(uuid4())
         extension = local_filename.split(".")[-1]
@@ -132,7 +132,7 @@ class ImageClient:
             'original_path': upload_path,
             'redacted': str(redacted),
             'notes': None,
-            'datetime': self.datetime_now.strftime(TIME_FORMAT)
+            'datetime': datetime_now.strftime(TIME_FORMAT)
         }
 
         files = {
@@ -153,7 +153,8 @@ class ImageClient:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
             if self.config.MAILING_LIST:
-                self.monitoring_dict[id] = [original_path, False]
+                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
+                                                                                    original_path, False)
 
             raise UploadFailureException
         else:
@@ -171,7 +172,8 @@ class ImageClient:
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             logging.info("adding to image")
             if self.config.MAILING_LIST:
-                self.monitoring_dict[id] = [original_path, True]
+                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
+                                                                                    original_path, True)
 
         self.logger.debug("Upload to file server complete")
 
