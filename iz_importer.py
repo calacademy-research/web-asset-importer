@@ -97,6 +97,8 @@ class IzImporter(Importer):
                 is_public = attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC]
                 # see comments in import_single_file_to_image_db_and_specify;
                 # This is a bit silly but we're faking up the "redact" flag using the logic here.
+                self.logger.debug(f"importing single file: {cur_filepath}")
+
                 attach_loc = self.import_single_file_to_image_db_and_specify(cur_filepath=cur_filepath,
                                                                              collection_object_id=collection_object_id,
                                                                              agent_id=agent,
@@ -104,6 +106,8 @@ class IzImporter(Importer):
                                                                              attachment_properties_map=attachment_properties_map,
                                                                              force_redacted=not is_public,
                                                                              id=casiz_number)
+                self.logger.debug(f"importing single file COMPLETE: {cur_filepath}")
+
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
@@ -175,7 +179,24 @@ class IzImporter(Importer):
 
         return None
 
+    def extract_exact_casiz_match(self, candidate_string):
+        match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
+        if match is not None:
+            casiz_number = re.search(r'\d+', match.group())
+            if casiz_number:
+                return int(casiz_number.group())
+        return None
+
+
+
     def extract_casiz_from_string(self, input_string):
+        # Joe: if casiz XXXX exists, use just that. Otherwise, the below.
+        #     e.g.: 'casiz 214769, gal-90; izacc 83513'
+        exact = self.extract_exact_casiz_match(input_string)
+        if exact is not None:
+            self.casiz_numbers = [exact]
+            return
+
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
             integers = set()
