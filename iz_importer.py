@@ -382,60 +382,6 @@ class IzImporter(Importer):
                              copyright=self.copyright)
         return True
 
-    def remove_file_from_database(self, full_path):
-        """
-        Removes the file's attachment record from the Specify database,
-        removes the CollectionObjectAttachment record, and contacts the image server
-        to delete the image.
-        """
-        try:
-            # Step 1: Find attachment ID in Specify
-            attachment_id = self.attachment_utils.get_attachmentid_from_filepath(full_path)
-            if not attachment_id:
-                self.logger.warning(f"No attachment ID found for {full_path}, skipping removal.")
-                return
-
-            # Step 2: Check if the attachment is still in the database
-            sql_check_attachment = f"SELECT COUNT(*) FROM attachment WHERE attachmentid = {attachment_id}"
-            count = self.specify_db_connection.get_one_record(sql_check_attachment)
-            if count == 0:
-                self.logger.info(
-                    f"Attachment ID {attachment_id} for {full_path} is already removed. Skipping operation.")
-                return
-
-            self.logger.info(f"Removing attachment ID {attachment_id} for file {full_path}")
-
-
-            #  Remove from the image server via REST API
-            try:
-                internal_filename = self.image_client.get_internal_filename(full_path, self.collection_name)
-
-                if internal_filename:
-                    self.image_client.delete_from_image_server(internal_filename, self.collection_name)
-                    self.logger.info(
-                        f"Successfully removed image {full_path} (internal filename: {internal_filename}) from image server.")
-                else:
-                    self.logger.warning(f"Internal filename not found for {full_path}, skipping deletion.")
-                    return
-
-            except FileNotFoundException:
-                self.logger.warning(f"File {full_path} not found on image server, skipping deletion.")
-                return
-            except DeleteFailureException:
-                self.logger.error(f"Failed to remove image {full_path} from server.")
-                return
-
-            #  Remove the CollectionObjectAttachment link
-            sql_delete_co_attachment = f"DELETE FROM collectionobjectattachment WHERE attachmentid = {attachment_id}"
-            self.specify_db_connection.execute(sql_delete_co_attachment)
-
-            #  Remove the attachment record from Specify
-            sql_delete_attachment = f"DELETE FROM attachment WHERE attachmentid = {attachment_id}"
-            self.specify_db_connection.execute(sql_delete_attachment)
-
-
-        except Exception as e:
-            self.logger.error(f"Error removing file {full_path}: {e}")
 
     def _check_and_increment_counter(self):
         if 'counter' not in globals():
