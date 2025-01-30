@@ -7,8 +7,8 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from monitoring_tools import MonitoringTools
 from metadata_tools.metadata_tools import MetadataTools
+from image_client import FileNotFoundException, DeleteFailureException
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -97,6 +97,8 @@ class IzImporter(Importer):
                 is_public = attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC]
                 # see comments in import_single_file_to_image_db_and_specify;
                 # This is a bit silly but we're faking up the "redact" flag using the logic here.
+                self.logger.debug(f"importing single file: {cur_filepath}")
+
                 attach_loc = self.import_single_file_to_image_db_and_specify(cur_filepath=cur_filepath,
                                                                              collection_object_id=collection_object_id,
                                                                              agent_id=agent,
@@ -104,6 +106,8 @@ class IzImporter(Importer):
                                                                              attachment_properties_map=attachment_properties_map,
                                                                              force_redacted=not is_public,
                                                                              id=casiz_number)
+                self.logger.debug(f"importing single file COMPLETE: {cur_filepath}")
+
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
                     return
@@ -175,7 +179,24 @@ class IzImporter(Importer):
 
         return None
 
+    def extract_exact_casiz_match(self, candidate_string):
+        match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
+        if match is not None:
+            casiz_number = re.search(r'\d+', match.group())
+            if casiz_number:
+                return int(casiz_number.group())
+        return None
+
+
+
     def extract_casiz_from_string(self, input_string):
+        # Joe: if casiz XXXX exists, use just that. Otherwise, the below.
+        #     e.g.: 'casiz 214769, gal-90; izacc 83513'
+        exact = self.extract_exact_casiz_match(input_string)
+        if exact is not None:
+            self.casiz_numbers = [exact]
+            return True
+
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
             integers = set()
@@ -332,6 +353,12 @@ class IzImporter(Importer):
         filename = os.path.basename(full_path)
         if self._should_skip_file(filename, full_path):
             return False
+        file_key = self._read_file_key(full_path)
+
+        if file_key and str(file_key.get('remove', '')).lower() == 'true':
+            self.logger.info(f"Marked for removal: {full_path}")
+            self.remove_file_from_database(full_path)
+            return False
 
         if self._is_file_already_processed(full_path, orig_case_full_path):
             return False
@@ -340,8 +367,6 @@ class IzImporter(Importer):
         casiz_source = self.get_casiz_ids(full_path, exif_metadata)
         if not casiz_source:
             return False
-
-        file_key = self._read_file_key(full_path)
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:
@@ -356,6 +381,7 @@ class IzImporter(Importer):
                              casiznumber_method=casiz_source, id=self.casiz_numbers, copyright_method=copyright_method,
                              copyright=self.copyright)
         return True
+
 
     def _check_and_increment_counter(self):
         if 'counter' not in globals():
@@ -557,7 +583,9 @@ class IzImporter(Importer):
             'ispublic': 'IsPublic',
             'subtype': 'subType',
             'createdbyagent': 'createdByAgent',
-            'metadatatext': 'creator'
+            'metadatatext': 'creator',
+            'remove': 'remove'
+
         }
 
         result_dict = {mapped_key: None for mapped_key in column_mappings.values()}
