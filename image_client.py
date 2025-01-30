@@ -12,6 +12,7 @@ from monitoring_tools import MonitoringTools
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 
+
 TIME_FORMAT = "%Y-%m-%d %H:%M:%S%z"
 
 
@@ -108,6 +109,31 @@ class ImageClient:
         if r.status_code != 200:
             print(f"Deletion failed, aborted: {r.status_code}:{r.text}")
             raise DeleteFailureException
+
+    def get_internal_filename(self, original_path, collection):
+        """Retrieve the internal filename from the server based on the original file path."""
+        params = {
+            'file_string': quote(original_path),
+            'coll': collection,
+            'search_type': 'path',  # Query by file path
+            'token': self.generate_token(quote(original_path))
+        }
+
+        url = self.build_url("getImageRecord")
+        r = requests.get(url, params=params)
+
+        if r.status_code == 404:
+            self.logger.warning(f"No record found for path {original_path} in collection {collection}.")
+            return None
+        elif r.status_code == 200:
+            response_data = r.json()
+            if isinstance(response_data, list) and len(response_data) > 0:
+                internal_filename = response_data[0].get("internal_filename")  # Adjust key if necessary
+                self.logger.debug(f"Found internal filename for {original_path}: {internal_filename}")
+                return internal_filename
+
+        self.logger.error(f"Failed to retrieve internal filename for {original_path}. Status: {r.status_code}")
+        return None
 
     def upload_to_image_server(self, full_path, redacted, collection, original_path=None, id=None):
         if full_path is None or redacted is None or collection is None:
