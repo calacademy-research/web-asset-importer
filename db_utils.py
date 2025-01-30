@@ -3,7 +3,7 @@ import sys
 import traceback
 from mysql.connector import errorcode
 import mysql.connector
-
+import time
 
 class DatabaseInconsistentError(Exception):
     pass
@@ -39,43 +39,62 @@ class DbUtils:
         self.connect()
 
     def connect(self):
-
         if self.cnx is None:
             self.logger.debug(f"Connecting to db {self.database_host}...")
 
-            try:
-                self.cnx = mysql.connector.connect(user=self.database_user,
-                                                   password=self.database_password,
-                                                   host=self.database_host,
-                                                   port=self.database_port,
-                                                   database=self.database_name)
-            except mysql.connector.Error as err:
-                if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                    self.logger.error(f"Starting client...")
+            max_duration = 10800  # 3 hours in seconds
+            start_time = time.time()
+            delay = 0  # Initial delay
+            last_error = None  # Store last encountered error
 
-                    self.logger.error("SQL: Access denied")
-                elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                    self.logger.error("Database does not exist")
-                else:
-                    self.logger.error(err)
-                sys.exit(1)
-            except Exception as err:
-                self.logger.error(f"Unknown exception: {err}")
-                sys.exit(1)
+            while time.time() - start_time < max_duration:
+                try:
+                    self.cnx = mysql.connector.connect(
+                        user=self.database_user,
+                        password=self.database_password,
+                        host=self.database_host,
+                        port=self.database_port,
+                        database=self.database_name
+                    )
+                    self.logger.info("Db connected")
+                    return  # Exit function on success
 
-            self.logger.info("Db connected")
+                except mysql.connector.Error as err:
+                    last_error = err  # Store the last MySQL error
+
+                    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                        self.logger.error("SQL: Access denied")
+                        sys.exit(1)  # No need to retry incorrect credentials
+
+                    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                        self.logger.error("Database does not exist")
+                        sys.exit(1)  # No need to retry if database does not exist
+
+                    else:
+                        self.logger.error(f"Database connection failed: {err}")
+
+                except Exception as err:
+                    last_error = err  # Store the last unknown error
+                    self.logger.error(f"Unknown exception: {err}")
+
+                self.logger.debug(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+
+                # Increase the delay by 30 seconds for the next attempt
+                delay += 30
+
+            # If we exit the loop, all attempts have failed within 3 hours
+            raise RuntimeError(f"Failed to connect to database within 3 hours. Last error: {last_error}")
+
         else:
             try:
                 self.cnx.ping(reconnect=True)
             except Exception as e:
-                self.logger.warning(f"connection not responsive with Exception as {e}, "
-                                    f"attempting to reset connection")
+                self.logger.warning(f"Connection not responsive: {e}. Attempting to reset connection.")
                 self.reset_connection()
-            # self.logger.debug(f"Already connected db {self.database_host}...")
 
-    # added buffered = true so will work properly with forloops
     def get_one_record(self, sql):
-
+        # added buffered = true so will work properly with forloops
         cursor = self.get_cursor(buffered=True)
         try:
             cursor.execute(sql)

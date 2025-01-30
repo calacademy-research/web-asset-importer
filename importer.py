@@ -423,48 +423,32 @@ class Importer:
                 self.logger.error(traceback.format_exc())
 
     def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
-        """cleanup_incomplete_import: deletes attachment and image db record, if one or more parts of
-        the import fail during import_to_imagedb_and_specify."""
-
+        """
+        Deletes attachment and image database record if one or more parts of the import
+        fail during import_to_imagedb_and_specify.
+        """
         record_list = self.image_db.get_image_record_by_original_path(original_path=cur_filepath, exact=exact,
                                                                       collection=collection)
-
         attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_filepath=os.path.basename(cur_filepath))
 
-        # cleanup if image db record created
+        # Cleanup if image DB record was created
         if record_list:
             for record in record_list:
                 record_dict = dict(record)
                 internal_filename = record_dict['internal_filename']
                 self.image_client.delete_from_image_server(internal_filename, collection)
 
-                # check and cleanup of any attachment records
                 if attach_id:
-                    sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
-                    and AttachmentID = {attach_id};'''
-
-                    self.specify_db_connection.execute(sql)
-
-                    sql = f'''DELETE FROM attachment WHERE AttachmentLocation = {internal_filename};'''
-
-                    self.specify_db_connection.execute(sql)
+                    self.remove_file_from_database(cur_filepath)
                 else:
-                    self.logger.info(f"image-db record removed, no specify attachment created")
+                    self.logger.info(f"Image DB record removed, but no Specify attachment was created.")
 
-        # cleanup if image db record failed to create but attachment creates
-        elif attach_id and not record_list:
+        # Cleanup if image DB record failed but attachment was created
+        elif attach_id:
+            self.remove_file_from_database(cur_filepath)
 
-            sql = f'''DELETE FROM collectionobjectattachment WHERE CollectionObjectID = {collection_object_id} 
-                            and AttachmentID = {attach_id};'''
-
-            self.specify_db_connection.execute(sql)
-
-            sql = f'''DELETE FROM attachment WHERE AttachmentID = {attach_id};'''
-
-            self.specify_db_connection.execute(sql)
         else:
-            self.logger.info(f"no cleanup required after incomplete upload of: {cur_filepath}")
-
+            self.logger.info(f"No cleanup required after incomplete upload of: {cur_filepath}")
 
 
     def check_for_valid_image(self, full_path):
