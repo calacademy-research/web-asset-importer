@@ -253,18 +253,45 @@ class ImageClient:
         else:
             return None
 
+    import time
+    import requests
+
     def decode_response(self, params):
         url = self.build_url("getImageRecord")
-        r = requests.get(url, params=params)
-        if r.status_code == 404:
-            self.logger.debug(f"Checked {params['file_string']} and found no duplicates")
-            return False
-        if r.status_code == 200:
-            self.logger.debug(f"Checked {params['file_string']} - already imported")
-            return True
-        if r.status_code == 500:
-            self.logger.error(f"500: Internal server error checking {params['file_string']}")
-            self.logger.error(f"URL: {url}")
-            assert False
+        max_duration = 10800  # 3 hours in seconds
+        start_time = time.time()
+        last_status_code = None
+        last_error = None
+        delay = 0
 
-        assert False
+        while time.time() - start_time < max_duration:
+            try:
+                r = requests.get(url, params=params)
+                last_status_code = r.status_code  # Store last response code
+
+                if r.status_code == 200:
+                    self.logger.debug(f"Checked {params['file_string']} - already imported")
+                    return True  # Success
+
+                if r.status_code == 404:
+                    self.logger.error(f"Checked {params['file_string']} - No duplicates found (404)")
+
+                if r.status_code == 500:
+                    self.logger.error(f"500: Internal server error checking {params['file_string']}")
+                    self.logger.error(f"URL: {url}")
+
+            except requests.RequestException as e:
+                last_error = str(e)  # Store last exception message
+                self.logger.error(f"Request failed: {e}")
+
+            self.logger.debug(f"Retrying in {delay} seconds...")
+            time.sleep(delay)
+            delay += 30
+
+        # If we exit the loop, all attempts have failed within 3 hours
+        error_message = (
+            f"Failed to get a valid response for {params['file_string']} within 3 hours. "
+            f"Last status code: {last_status_code}, Last error: {last_error}"
+        )
+        raise RuntimeError(error_message)
+
