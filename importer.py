@@ -290,10 +290,11 @@ class Importer:
                 return (url, attach_loc)
             except UploadFailureException as e:
                 self.logger.error(f"Upload attempt {attempt + 1} failed: {str(e)}")
+                last_exception = e  # Store the exception
                 time.sleep(10)  # Wait 10 seconds before retrying
 
         # If the second attempt fails, re-throw the most recent exception
-        raise e
+        raise last_exception
 
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []

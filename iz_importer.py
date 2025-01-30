@@ -7,8 +7,8 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from monitoring_tools import MonitoringTools
 from metadata_tools.metadata_tools import MetadataTools
+from image_client import FileNotFoundException, DeleteFailureException
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -195,7 +195,7 @@ class IzImporter(Importer):
         exact = self.extract_exact_casiz_match(input_string)
         if exact is not None:
             self.casiz_numbers = [exact]
-            return
+            return True
 
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
@@ -353,6 +353,12 @@ class IzImporter(Importer):
         filename = os.path.basename(full_path)
         if self._should_skip_file(filename, full_path):
             return False
+        file_key = self._read_file_key(full_path)
+
+        if file_key and str(file_key.get('remove', '')).lower() == 'true':
+            self.logger.info(f"Marked for removal: {full_path}")
+            self.remove_file_from_database(full_path)
+            return False
 
         if self._is_file_already_processed(full_path, orig_case_full_path):
             return False
@@ -361,8 +367,6 @@ class IzImporter(Importer):
         casiz_source = self.get_casiz_ids(full_path, exif_metadata)
         if not casiz_source:
             return False
-
-        file_key = self._read_file_key(full_path)
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:
@@ -377,6 +381,61 @@ class IzImporter(Importer):
                              casiznumber_method=casiz_source, id=self.casiz_numbers, copyright_method=copyright_method,
                              copyright=self.copyright)
         return True
+
+    def remove_file_from_database(self, full_path):
+        """
+        Removes the file's attachment record from the Specify database,
+        removes the CollectionObjectAttachment record, and contacts the image server
+        to delete the image.
+        """
+        try:
+            # Step 1: Find attachment ID in Specify
+            attachment_id = self.attachment_utils.get_attachmentid_from_filepath(full_path)
+            if not attachment_id:
+                self.logger.warning(f"No attachment ID found for {full_path}, skipping removal.")
+                return
+
+            # Step 2: Check if the attachment is still in the database
+            sql_check_attachment = f"SELECT COUNT(*) FROM attachment WHERE attachmentid = {attachment_id}"
+            count = self.specify_db_connection.get_one_record(sql_check_attachment)
+            if count == 0:
+                self.logger.info(
+                    f"Attachment ID {attachment_id} for {full_path} is already removed. Skipping operation.")
+                return
+
+            self.logger.info(f"Removing attachment ID {attachment_id} for file {full_path}")
+
+
+            #  Remove from the image server via REST API
+            try:
+                internal_filename = self.image_client.get_internal_filename(full_path, self.collection_name)
+
+                if internal_filename:
+                    self.image_client.delete_from_image_server(internal_filename, self.collection_name)
+                    self.logger.info(
+                        f"Successfully removed image {full_path} (internal filename: {internal_filename}) from image server.")
+                else:
+                    self.logger.warning(f"Internal filename not found for {full_path}, skipping deletion.")
+                    return
+
+            except FileNotFoundException:
+                self.logger.warning(f"File {full_path} not found on image server, skipping deletion.")
+                return
+            except DeleteFailureException:
+                self.logger.error(f"Failed to remove image {full_path} from server.")
+                return
+
+            #  Remove the CollectionObjectAttachment link
+            sql_delete_co_attachment = f"DELETE FROM collectionobjectattachment WHERE attachmentid = {attachment_id}"
+            self.specify_db_connection.execute(sql_delete_co_attachment)
+
+            #  Remove the attachment record from Specify
+            sql_delete_attachment = f"DELETE FROM attachment WHERE attachmentid = {attachment_id}"
+            self.specify_db_connection.execute(sql_delete_attachment)
+
+
+        except Exception as e:
+            self.logger.error(f"Error removing file {full_path}: {e}")
 
     def _check_and_increment_counter(self):
         if 'counter' not in globals():
@@ -578,7 +637,9 @@ class IzImporter(Importer):
             'ispublic': 'IsPublic',
             'subtype': 'subType',
             'createdbyagent': 'createdByAgent',
-            'metadatatext': 'creator'
+            'metadatatext': 'creator',
+            'remove': 'remove'
+
         }
 
         result_dict = {mapped_key: None for mapped_key in column_mappings.values()}
