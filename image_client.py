@@ -53,6 +53,51 @@ class ImageClient:
 
             self.monitoring_tools = MonitoringTools(config=config, report_path=report_path, active=active)
 
+    def request_with_retries(self, method, url, params=None, data=None, json=None, files=None,
+                             max_duration=10800, retry_interval=30):
+        """
+        Makes an HTTP request with retries only on connection-related failures.
+
+        Parameters:
+        - method: "GET" or "POST"
+        - url: The request URL
+        - max_duration: Total retry duration in seconds (default: 3 hours)
+        - retry_interval: Delay between retries in seconds (default: 30 sec)
+        - kwargs: Additional request parameters (headers, data, json, etc.)
+
+        Returns:
+        - Response object if successful
+        - None if all retries fail
+        """
+        start_time = time.time()
+        retry = 0
+
+        while True:
+            try:
+                if method.upper() == "GET":
+                    r = requests.get(url, params=params)
+                elif method.upper() == "POST":
+                    r = requests.post(url, data=data, json=json, files=files)
+                else:
+                    raise ValueError("Unsupported HTTP method")
+
+                # If not 500 connection error return response
+                if r.status_code not in [502, 503, 504]:
+                    return r
+
+                self.logger.error(f"Server error {r.status_code}, retrying in {retry_interval} sec...")
+
+            except (requests.ConnectionError, requests.Timeout) as e:
+                # Only retry on connection-related errors
+                elapsed_time = time.time() - start_time
+                if elapsed_time >= max_duration:
+                    self.logger.error(f"Max retry duration reached ({max_duration}s). Giving up with last error {e}.")
+                    return None
+
+                self.logger.error(f"Connection error: {e}. Retrying in {retry_interval} sec...")
+
+            time.sleep(retry_interval)
+            retry += retry_interval + 30
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -84,7 +129,7 @@ class ImageClient:
         return int(time.time()) + server_time_delta
 
     def update_time_delta(self):
-        response = requests.get(self.build_url(""))
+        response = self.request_with_retries(url=self.build_url(""), method="GET")
         self.update_time_delta_from_response(response)
 
     def generate_token(self, filename):
@@ -103,7 +148,7 @@ class ImageClient:
         }
         url = self.build_url("filedelete")
         self.logger.debug(f"Deleting {url} from server")
-        r = requests.post(url, data=data)
+        r = self.request_with_retries(url=url, method="POST", data=data)
         if r.status_code == 404:
             raise FileNotFoundException
         if r.status_code != 200:
@@ -120,7 +165,7 @@ class ImageClient:
         }
 
         url = self.build_url("getImageRecord")
-        r = requests.get(url, params=params)
+        r = self.request_with_retries(url=url, params=params, method="GET")
 
         if r.status_code == 404:
             self.logger.warning(f"No record found for path {original_path} in collection {collection}.")
@@ -166,7 +211,7 @@ class ImageClient:
         }
         url = self.build_url("fileupload")
         self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
-        r = requests.post(url, files=files, data=data)
+        r = self.request_with_retries(url=url, files=files, data=data, method="POST")
 
         if id is None:
             id = 'N/A'
@@ -191,7 +236,7 @@ class ImageClient:
                 'token': self.generate_token(attach_loc)
             }
 
-            r = requests.get(self.build_url("getfileref"), params=params)
+            r = self.request_with_retries(url=self.build_url("getfileref"), params=params, method="GET")
             url = r.text
             assert r.status_code == 200
 
@@ -227,7 +272,7 @@ class ImageClient:
 
         url = self.build_url('updateexifdata')
 
-        response = requests.post(url, data=data)
+        response = self.request_with_retries(url=url, data=data, method="POST")
 
         if response.status_code == 200:
             self.logger.debug(f"EXIF data for '{filename}' updated successfully.")
@@ -246,52 +291,26 @@ class ImageClient:
                   }
         url = self.build_url("getexifdata")
 
-        response = requests.get(url=url, params=params)
+        response = self.request_with_retries(url=url, params=params, method="GET")
 
         if response.status_code == 200:
             return response.json()
         else:
             return None
 
-    import time
-    import requests
-
     def decode_response(self, params):
         url = self.build_url("getImageRecord")
-        max_duration = 10800  # 3 hours in seconds
-        start_time = time.time()
-        last_status_code = None
-        last_error = None
-        delay = 0
+        r = self.request_with_retries(url=url, params=params, method="GET")
+        if r.status_code == 404:
+            self.logger.debug(f"Checked {params['file_string']} and found no duplicates")
+            return False
+        if r.status_code == 200:
+            self.logger.debug(f"Checked {params['file_string']} - already imported")
+            return True
+        if r.status_code == 500:
+            self.logger.error(f"500: Internal server error checking {params['file_string']}")
+            self.logger.error(f"URL: {url}")
+            assert False
 
-        while time.time() - start_time < max_duration:
-            try:
-                r = requests.get(url, params=params)
-                last_status_code = r.status_code  # Store last response code
-
-                if r.status_code == 200:
-                    self.logger.debug(f"Checked {params['file_string']} - already imported")
-                    return True  # Success
-
-                if r.status_code == 404:
-                    self.logger.error(f"Checked {params['file_string']} - No duplicates found (404)")
-
-                if r.status_code == 500:
-                    self.logger.error(f"500: Internal server error checking {params['file_string']}")
-                    self.logger.error(f"URL: {url}")
-
-            except requests.RequestException as e:
-                last_error = str(e)  # Store last exception message
-                self.logger.error(f"Request failed: {e}")
-
-            self.logger.debug(f"Retrying in {delay} seconds...")
-            time.sleep(delay)
-            delay += 30
-
-        # If we exit the loop, all attempts have failed within 3 hours
-        error_message = (
-            f"Failed to get a valid response for {params['file_string']} within 3 hours. "
-            f"Last status code: {last_status_code}, Last error: {last_error}"
-        )
-        raise RuntimeError(error_message)
+        assert False
 

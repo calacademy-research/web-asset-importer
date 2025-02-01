@@ -6,9 +6,39 @@ import settings
 from datetime import datetime
 import logging
 import traceback
-
+import time
+import sys
 TIME_FORMAT_NO_OFFSET = "%Y-%m-%d %H:%M:%S"
 TIME_FORMAT = TIME_FORMAT_NO_OFFSET + "%z"
+
+
+def retry_with_backoff(max_duration=10800, initial_delay=0):
+    """Decorator to retry a function with exponential backoff."""
+
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            start_time = time.time()
+            delay = initial_delay
+            last_error = None
+
+            while time.time() - start_time < max_duration:
+                try:
+                    return func(*args, **kwargs)  # Attempt to execute the function
+                except Exception as ex:
+                    last_error = ex
+                    args[0].logger.error(f"Error in {func.__name__}: {ex}")
+
+                args[0].logger.debug(f"Retrying {func.__name__} in {delay} seconds...")
+                time.sleep(delay)
+                delay += delay + 30  # increasing backoff
+
+            args[0].logger.error(
+                f"Failed to execute {func.__name__} within {max_duration} seconds. Last error: {last_error}")
+            return None  # Return None if all retries fail
+
+        return wrapper
+
+    return decorator
 
 
 class ImageDb():
@@ -23,8 +53,7 @@ class ImageDb():
         pass
 
 
-    @retry(retry_on_exception=lambda e: isinstance(e, mysql.connector.OperationalError), stop_max_attempt_number=3,
-           wait_exponential_multiplier=2)
+    # @retry_with_backoff()
     def get_cursor(self):
         try:
             if self.cnx is None:
@@ -35,6 +64,7 @@ class ImageDb():
             self.reset_connection()
             raise e
 
+    # @retry_with_backoff()
     def reset_connection(self):
         self.log(f"Resetting connection to {settings.SQL_HOST}")
 
@@ -45,30 +75,43 @@ class ImageDb():
                 pass
         self.connect()
 
+    @retry_with_backoff()
     def connect(self):
+        """Attempt to establish a database connection with retry logic."""
+        if self.cnx is not None:
+            try:
+                self.cnx.ping(reconnect=True)
+                return
+            except Exception as e:
+                self.log(f"Connection not responsive: {e}. Attempting to reset connection.")
+                self.reset_connection()
+                return
+
+        self.log(f"Connecting to db {settings.SQL_HOST}...")
 
         try:
-            self.cnx = mysql.connector.connect(user=settings.SQL_USER,
-                                               password=settings.SQL_PASSWORD,
-                                               host=settings.SQL_HOST,
-                                               port=settings.SQL_PORT,
-                                               database=settings.SQL_DATABASE)
-
+            self.cnx = mysql.connector.connect(
+                user=settings.SQL_USER,
+                password=settings.SQL_PASSWORD,
+                host=settings.SQL_HOST,
+                port=settings.SQL_PORT,
+                database=settings.SQL_DATABASE
+            )
+            self.log("Db connected")
         except mysql.connector.Error as err:
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                self.log(
-                    f"SQL: Access denied to image server database. host: {settings.SQL_HOST} user: {settings.SQL_USER}")
+                self.log(f"SQL: Access denied. Host: {settings.SQL_HOST}, User: {settings.SQL_USER}")
+                return False
             elif err.errno == errorcode.ER_BAD_DB_ERROR:
                 self.log("Database does not exist")
+                return False
             else:
-                self.log(err)
-            return False
+                self.log(f"Database connection failed: {err}")
+                raise
         except Exception as ex:
-            self.log(f"Unknown error:{ex}")
-            return False
-        self.log("Db connected")
+            self.log(f"Unknown error: {ex}")
+            raise
 
-        return True
 
     def create_tables(self):
         TABLES = {}
@@ -128,7 +171,6 @@ class ImageDb():
                             original_image_md5
                             ):
 
-        cursor = self.get_cursor()
         if original_filename is None:
             original_filename = "NULL"
         if original_image_md5 is None:
@@ -147,12 +189,11 @@ class ImageDb():
                         "{int(redacted)}", 
                         "{datetime_record.strftime(TIME_FORMAT_NO_OFFSET)}",
                         "{original_image_md5}")""")
+        self.execute(add_image)
         self.log(f"Inserting imageInserting image record. SQL: {add_image}")
-        cursor.execute(add_image)
-        self.cnx.commit()
-        cursor.close()
 
-    @retry(retry_on_exception=lambda e: isinstance(e, Exception), stop_max_attempt_number=3)
+    # is this necessary when we have self.execute or is this just debugging?
+    @retry_with_backoff()
     def update_redacted(self, internal_filename, is_redacted):
         sql = f"""
         update images set redacted = {is_redacted} where internal_filename = '{internal_filename}' 
@@ -170,6 +211,7 @@ class ImageDb():
 
         cursor.close()
 
+    @retry_with_backoff()
     def get_record(self, where_clause):
 
         cursor = self.get_cursor()
@@ -198,6 +240,7 @@ class ImageDb():
         cursor.close()
         return record_list
 
+    @retry_with_backoff()
     def get_image_record_by_internal_filename(self, internal_filename):
         cursor = self.get_cursor()
 
@@ -233,6 +276,7 @@ class ImageDb():
         cursor.close()
         return record_list
 
+    @retry_with_backoff()
     def get_image_record_by_pattern(self, pattern, column, exact, collection):
         cursor = self.get_cursor()
         if exact:
@@ -305,6 +349,7 @@ class ImageDb():
         self.cnx.commit()
         cursor.close()
 
+    @retry_with_backoff()
     def execute(self, sql):
         cursor = self.get_cursor()
         logging.debug(f"SQL: {sql}")
