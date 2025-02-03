@@ -4,6 +4,7 @@ import traceback
 from mysql.connector import errorcode
 import mysql.connector
 import time
+import settings
 
 class DatabaseInconsistentError(Exception):
     pass
@@ -16,39 +17,9 @@ class InvalidFilenameError(Exception):
 class DataInvariantException(Exception):
     pass
 
-
-def retry_with_backoff(max_duration=10800, initial_delay=0):
-    """Decorator to retry a function with exponential backoff."""
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            start_time = time.time()
-            delay = initial_delay
-            last_error = None
-
-            while time.time() - start_time < max_duration:
-                try:
-                    return func(*args, **kwargs)  # Attempt to execute the function
-                except Exception as ex:
-                    last_error = ex
-                    args[0].logger.error(f"Error in {func.__name__}: {ex}")
-
-                args[0].logger.debug(f"Retrying {func.__name__} in {delay} seconds...")
-                time.sleep(delay)
-                delay += delay + 30  # increasing backoff
-
-            args[0].logger.error(
-                f"Failed to execute {func.__name__} within {max_duration} seconds. Last error: {last_error}")
-            return None  # Return None if all retries fail
-
-        return wrapper
-
-    return decorator
-
-
 class DbUtils:
     def __init__(self, database_user, database_password, database_port, database_host, database_name):
-        self.logger = logging.getLogger(f'Client.DbUtils') # must hardcode to see base class name
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
         self.database_user = database_user
         self.database_password = database_password
         self.database_port = database_port
@@ -56,18 +27,34 @@ class DbUtils:
         self.database_name = database_name
         self.cnx = None
 
+    @staticmethod
+    def retry_with_backoff(max_duration=10800, initial_delay=0):
+        """Decorator to retry a function with exponential backoff."""
 
-    def reset_connection(self):
+        def decorator(func):
+            def wrapper(*args, **kwargs):
+                start_time = time.time()
+                delay = initial_delay
+                last_error = None
 
-        self.logger.info(f"Resetting connection to {self.database_host}")
-        if self.cnx:
-            try:
-                self.cnx.close()
-            except Exception:
-                pass
-        self.cnx = None
-        self.connect()
+                while time.time() - start_time < max_duration:
+                    try:
+                        return func(*args, **kwargs)  # Attempt to execute the function
+                    except Exception as ex:
+                        last_error = ex
+                        logging.error(f"Error in {func.__name__}: {ex}")
 
+                    logging.info(f"Retrying {func.__name__} in {delay} seconds...")
+                    time.sleep(delay)
+                    delay += delay + 30  # increasing backoff
+
+                logging.error(
+                    f"Failed to execute {func.__name__} within {max_duration} seconds. Last error: {last_error}")
+                return None  # Return None if all retries fail
+
+            return wrapper
+
+        return decorator
 
     @retry_with_backoff()
     def connect(self):
@@ -90,12 +77,19 @@ class DbUtils:
             return True  # Successfully connected
 
         except mysql.connector.Error as err:
-            self.logger.error(f"Database connection failed: {err}")
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                self.logger.error(f"SQL: Access denied. Host: {settings.SQL_HOST}, User: {settings.SQL_USER}")
+                return False
+            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                self.logger.error("Database does not exist")
+                return False
+            else:
+                self.logger.error(f"Database connection failed: {err}")
+                raise
 
         except Exception as err:
             self.logger.error(f"Unknown exception during connection: {err}")
-
-        return False  # Return False if connection failed
+            raise
 
 
     @retry_with_backoff()
@@ -127,11 +121,29 @@ class DbUtils:
         cursor.close()
         return record_list
 
-    @retry_with_backoff()
+    def reset_connection(self):
+        """Closes the connection and reconnects."""
+        self.logger.info(f"Resetting connection to {settings.SQL_HOST}")
+
+        if self.cnx:
+            try:
+                self.cnx.close()
+            except Exception as e:
+                self.logger.warning(f"Error closing connection: {e}")
+
+        self.connect()  # This will automatically retry with @retry_with_backoff
+
+
     def get_cursor(self, buffered=False):
-        self.connect()
-        cursor = self.cnx.cursor(buffered=buffered)
-        return cursor
+        """Gets a database cursor, ensuring connection is available."""
+        try:
+            if self.cnx is None or not self.cnx.is_connected():
+                self.connect()  # Let retry_with_backoff handle reconnection
+            return self.cnx.cursor(buffered=buffered)
+        except mysql.connector.OperationalError:
+            self.logger.error("Failed to connect, resetting DB connection")
+            self.reset_connection()
+            return self.cnx.cursor(buffered=buffered)  # Retry getting the cursor
 
 
     @retry_with_backoff()
