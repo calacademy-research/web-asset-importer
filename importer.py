@@ -16,7 +16,6 @@ import traceback
 import hashlib
 from image_client import DuplicateImageException
 from specify_constants import SpecifyConstants
-from image_db import ImageDb
 import atexit
 from image_client import UploadFailureException
 import time
@@ -44,11 +43,9 @@ class Importer:
         self.collection_name = collection_name
         self.specify_db_connection = SpecifyDb(db_config_class)
         self.image_client = ImageClient(config=db_config_class)
-        self.image_db = ImageDb()
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
         self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
-
         self.execute_at_exit()
 
     def split_filepath(self, filepath):
@@ -91,7 +88,7 @@ class Importer:
             os.mkdir(self.TMP_JPG)
 
         file_name_no_extention, extention = self.split_filepath(basename)
-        if extention not in ['tif', 'dng','tiff','jpeg']:
+        if extention not in ['tif', 'dng', 'tiff', 'jpeg']:
             self.logger.error(f"Bad filename, can't convert {image_filepath}")
             raise ConvertException(f"Bad filename, can't convert {image_filepath}")
 
@@ -102,7 +99,7 @@ class Importer:
 
         jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
 
-        proc = subprocess.Popen(['convert', '-quality', '99', image_filepath, jpg_dest],
+        proc = subprocess.Popen(['magick', '-quality', '99', image_filepath, jpg_dest],
                                 stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
@@ -334,7 +331,7 @@ class Importer:
             try:
                 cur_file_base, cur_file_ext = cur_filename.split(".")
             except ValueError as e:
-                print(f"Can't parse {cur_filename}, skipping.")
+                self.logger.warning(f"Can't parse {cur_filename}, skipping.")
                 continue
             if not self.image_client.check_image_db_if_filename_imported(self.collection_name,
                                                                          cur_file_base + ".jpg",
@@ -422,13 +419,14 @@ class Importer:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
                 self.logger.error(traceback.format_exc())
 
-    def cleanup_incomplete_import(self, cur_filepath, collection_object_id, exact, collection):
+    def cleanup_incomplete_import(self, cur_filepath, collection):
         """
         Deletes attachment and image database record if one or more parts of the import
         fail during import_to_imagedb_and_specify.
         """
-        record_list = self.image_db.get_image_record_by_original_path(original_path=cur_filepath, exact=exact,
-                                                                      collection=collection)
+        record_list = self.image_client.get_internal_filename(original_path=cur_filepath, collection=collection,
+                                                              return_list=True)
+
         attach_id = self.attachment_utils.get_attachmentid_from_filepath(orig_filepath=os.path.basename(cur_filepath))
 
         # Cleanup if image DB record was created
@@ -456,7 +454,7 @@ class Importer:
         if not filetype.is_image(full_path):
             logging.debug(f"Not identified as a file, looks like: {filetype.guess(full_path)}")
             if full_path.lower().endswith(".tif") or full_path.lower().endswith(".tiff"):
-                print("Tiff file misidentified as not an image, overriding auto-recognition")
+                self.logger.info("Tiff file misidentified as not an image, overriding auto-recognition")
             else:
                 return False
 

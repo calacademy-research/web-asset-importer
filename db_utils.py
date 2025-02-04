@@ -1,5 +1,4 @@
 import logging
-import sys
 import traceback
 from mysql.connector import errorcode
 import mysql.connector
@@ -33,6 +32,7 @@ class DbUtils:
 
         def decorator(func):
             def wrapper(*args, **kwargs):
+                logger = args[0].logger
                 start_time = time.time()
                 delay = initial_delay
                 last_error = None
@@ -42,14 +42,13 @@ class DbUtils:
                         return func(*args, **kwargs)  # Attempt to execute the function
                     except Exception as ex:
                         last_error = ex
-                        logging.error(f"Error in {func.__name__}: {ex}")
+                        logger.error(f"Error in {func.__name__}: {ex}")
 
-                    logging.info(f"Retrying {func.__name__} in {delay} seconds...")
+                    logger.info(f"Retrying {func.__name__} in {delay} seconds...")
                     time.sleep(delay)
                     delay += delay + 30  # increasing backoff
 
-                logging.error(
-                    f"Failed to execute {func.__name__} within {max_duration} seconds. Last error: {last_error}")
+                logging.error(f"Failed to execute {func.__name__} within {max_duration} seconds. Last error: {last_error}")
                 return None  # Return None if all retries fail
 
             return wrapper
@@ -91,25 +90,50 @@ class DbUtils:
             self.logger.error(f"Unknown exception during connection: {err}")
             raise
 
-
     @retry_with_backoff()
     def get_one_record(self, sql):
-        # added buffered = true so will work properly with forloops
-        cursor = self.get_cursor(buffered=True)
+        """Fetches a single record from the database and returns the first column value or None if no result is found."""
+
+        cursor = None
+        retval = None
+
         try:
+            cursor = self.get_cursor(buffered=True)
             cursor.execute(sql)
-            retval = cursor.fetchone()
-        except Exception as e:
-            print(f"Exception thrown while processing sql: {sql}\n{e}\n", file=sys.stderr, flush=True)
+            row = cursor.fetchone()  # Fetch one record
+            retval = row[0] if row else None  # Avoids NoneType indexing error
+
+        except mysql.connector.Error as err:
+            self.logger.error(f"SQL error while processing query: {sql}\n{err}\n")
             self.logger.error(traceback.format_exc())
 
-            retval = None
-        if retval is None:
+            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+                self.logger.error(f"Access denied: User: {self.database_user}, Host: {self.database_host}")
+                retval = None  # Return None since access issues are non-retryable
 
-            self.logger.info(f"Info: No results from: \n\n{sql}\n")
-        else:
-            retval = retval[0]
-        cursor.close()
+            elif err.errno == errorcode.ER_BAD_DB_ERROR:
+                self.logger.error("Database does not exist")
+                retval = None  # Non-retryable
+
+            elif err.errno >= 500:
+                self.logger.error("Retryable MySQL error occurred")
+                raise  # Allow retry mechanism to handle it
+
+            else:
+                retval = None  # Non-retryable errors return None
+
+        except Exception as err:
+            self.logger.error(f"Unexpected exception during query execution: {err}")
+            self.logger.error(traceback.format_exc())
+            raise  # Raise for unknown exceptions
+
+        finally:
+            if cursor:
+                cursor.close()  # Ensure cursor is always closed
+
+        if retval is None:
+            self.logger.info(f"Info: No results from query:\n\n{sql}\n")
+
         return retval
 
     @retry_with_backoff()
@@ -132,7 +156,6 @@ class DbUtils:
                 self.logger.warning(f"Error closing connection: {e}")
 
         self.connect()  # This will automatically retry with @retry_with_backoff
-
 
     def get_cursor(self, buffered=False):
         """Gets a database cursor, ensuring connection is available."""
