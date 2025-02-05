@@ -166,37 +166,21 @@ class IzImporter(Importer):
         self.log_file.write(
             f"{id}\t{filename}\t{casiznumber_method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
 
-    def extract_casiz_single(self, candidate_string):
-        ints = re.findall(self.iz_importer_config.CASIZ_NUMBER, candidate_string)
-        if len(ints) > 0:
-            return ints[0]
-        return None
-
-    def extract_casiz(self, candidate_string):
-        ints = re.findall(self.iz_importer_config.CASIZ_MATCH, candidate_string)
-        if len(ints) > 0:
-            return ints[0][1]
-
-        return None
-
-    def extract_exact_casiz_match(self, candidate_string):
-        match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
-        if match is not None:
+    def extract_casiz_number(self, candidate_string, pattern):
+        match = re.search(pattern, candidate_string)
+        if match:
             casiz_number = re.search(r'\d+', match.group())
             if casiz_number:
                 return int(casiz_number.group())
         return None
 
+    def extract_exact_casiz_match(self, candidate_string):
+        return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_MATCH)
 
+    def extract_casiz_single(self, candidate_string):
+        return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_NUMBER)
 
     def extract_casiz_from_string(self, input_string):
-        # Joe: if casiz XXXX exists, use just that. Otherwise, the below.
-        #     e.g.: 'casiz 214769, gal-90; izacc 83513'
-        exact = self.extract_exact_casiz_match(input_string)
-        if exact is not None:
-            self.casiz_numbers = [exact]
-            return True
-
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
             integers = set()
@@ -216,13 +200,16 @@ class IzImporter(Importer):
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
 
         if match:
-            casiz_number = self.extract_casiz_single(input_string)
-            self.title = os.path.splitext(input_string)[0]
-            if casiz_number is not None:
-                self.casiz_numbers = [casiz_number]
+            exact = self.extract_exact_casiz_match(input_string)
+            if exact is not None:
+                self.casiz_numbers = [exact]
                 return True
 
-
+        casiz_number = self.extract_casiz_single(input_string)
+        if casiz_number is not None:
+            self.casiz_numbers = [casiz_number]
+            self.title = os.path.splitext(input_string)[0]
+            return True
 
         return False
 
