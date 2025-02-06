@@ -8,9 +8,6 @@ import logging
 from dir_tools import DirTools
 from uuid import uuid4
 from time_utils import get_pst_time_now_string
-from monitoring_tools import MonitoringTools
-from attachment_utils import DatabaseInconsistentError
-from db_utils import DbUtils
 # I:\botany\PLANT FAMILIES
 #
 # I:\botany\TYPE IMAGES
@@ -40,7 +37,6 @@ class BotanyImporter(Importer):
         self.barcode_map = {}
         self.logger.debug("Botany import mode")
         self.monitoring_tools = None
-
 
         for cur_dir in self.paths:
             self.dir_tools.process_files_or_directories_recursive(cur_dir)

@@ -1,74 +1,27 @@
 import mysql.connector
 from mysql.connector import errorcode
-from retrying import retry
-
 import settings
 from datetime import datetime
 import logging
-import traceback
-
+import time
+from db_utils import DbUtils
 TIME_FORMAT_NO_OFFSET = "%Y-%m-%d %H:%M:%S"
 TIME_FORMAT = TIME_FORMAT_NO_OFFSET + "%z"
 
-
-class ImageDb():
+class ImageDb(DbUtils):
     def __init__(self):
-        self.cnx = None
+        self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
+        self.image_db_connection = super().__init__(
+            settings.SQL_USER,
+            settings.SQL_PASSWORD,
+            settings.SQL_PORT,
+            settings.SQL_HOST,
+            settings.SQL_DATABASE)
 
-    def log(self, msg):
-        if settings.DEBUG_APP:
-            print(msg)
-
-    def retry_if_operational_error(exception):
-        pass
-
-
-    @retry(retry_on_exception=lambda e: isinstance(e, mysql.connector.OperationalError), stop_max_attempt_number=3,
-           wait_exponential_multiplier=2)
-    def get_cursor(self):
-        try:
-            if self.cnx is None:
-                self.connect()
-            return self.cnx.cursor(buffered=True)
-        except mysql.connector.OperationalError as e:
-            logging.warning("Failed to connect, resetting DB connection and sleeping")
-            self.reset_connection()
-            raise e
-
-    def reset_connection(self):
-        self.log(f"Resetting connection to {settings.SQL_HOST}")
-
-        if self.cnx:
-            try:
-                self.cnx.close()
-            except Exception:
-                pass
-        self.connect()
-
-    def connect(self):
-
-        try:
-            self.cnx = mysql.connector.connect(user=settings.SQL_USER,
-                                               password=settings.SQL_PASSWORD,
-                                               host=settings.SQL_HOST,
-                                               port=settings.SQL_PORT,
-                                               database=settings.SQL_DATABASE)
-
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                self.log(
-                    f"SQL: Access denied to image server database. host: {settings.SQL_HOST} user: {settings.SQL_USER}")
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                self.log("Database does not exist")
-            else:
-                self.log(err)
-            return False
-        except Exception as ex:
-            self.log(f"Unknown error:{ex}")
-            return False
-        self.log("Db connected")
-
-        return True
+    @staticmethod
+    def retry_with_backoff(max_duration=10800, initial_delay=0):
+        """Custom backoff logic with a shorter retry window."""
+        return DbUtils.retry_with_backoff(max_duration, initial_delay)
 
     def create_tables(self):
         TABLES = {}
@@ -87,24 +40,24 @@ class ImageDb():
             "  `collection` varchar(50)"
             ") ENGINE=InnoDB")
 
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         for table_name in TABLES:
             table_description = TABLES[table_name]
             try:
-                self.log(f"Creating table {table_name}...")
-                self.log(f"Sql: {TABLES[table_name]}")
+                self.logger.info(f"Creating table {table_name}...")
+                self.logger.info(f"Sql: {TABLES[table_name]}")
                 cursor.execute(table_description)
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_TABLE_EXISTS_ERROR:
-                    self.log("already exists.")
+                    self.logger.error("already exists.")
                 else:
-                    self.log(err.msg)
+                    self.logger.error(err.msg)
             else:
-                self.log("OK")
+                self.logger.info("OK")
 
         cursor.close()
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         cursor.execute(
             "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'images' AND column_name = 'orig_md5'")
@@ -128,7 +81,6 @@ class ImageDb():
                             original_image_md5
                             ):
 
-        cursor = self.get_cursor()
         if original_filename is None:
             original_filename = "NULL"
         if original_image_md5 is None:
@@ -147,32 +99,32 @@ class ImageDb():
                         "{int(redacted)}", 
                         "{datetime_record.strftime(TIME_FORMAT_NO_OFFSET)}",
                         "{original_image_md5}")""")
-        self.log(f"Inserting imageInserting image record. SQL: {add_image}")
-        cursor.execute(add_image)
-        self.cnx.commit()
-        cursor.close()
+        self.image_db_connection.execute(add_image)
+        self.logger.info(f"Inserting imageInserting image record. SQL: {add_image}")
 
-    @retry(retry_on_exception=lambda e: isinstance(e, Exception), stop_max_attempt_number=3)
+    # is this necessary when we have self.execute or is this just debugging?
+    @retry_with_backoff()
     def update_redacted(self, internal_filename, is_redacted):
         sql = f"""
         update images set redacted = {is_redacted} where internal_filename = '{internal_filename}' 
         """
 
         logging.debug(f"updating stop 0: {sql}")
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
         logging.debug(f"updating stop 1")
 
         cursor.execute(sql)
         logging.debug(f"updating stop 2")
 
-        self.cnx.commit()
+        self.image_db_connection.cnx.commit()
         logging.debug(f"updating stop 3")
 
         cursor.close()
 
+    @retry_with_backoff()
     def get_record(self, where_clause):
 
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
            FROM images 
@@ -198,8 +150,9 @@ class ImageDb():
         cursor.close()
         return record_list
 
+    @retry_with_backoff()
     def get_image_record_by_internal_filename(self, internal_filename):
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
            FROM images 
@@ -233,8 +186,9 @@ class ImageDb():
         cursor.close()
         return record_list
 
+    @retry_with_backoff()
     def get_image_record_by_pattern(self, pattern, column, exact, collection):
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
         if exact:
             query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
             FROM images 
@@ -247,7 +201,7 @@ class ImageDb():
         if collection is not None:
             query += f""" AND collection = '{collection}'"""
 
-        self.log(f"Query get_image_record_by_{column}: {query}")
+        self.logger.info(f"Query get_image_record_by_{column}: {query}")
 
 
         cursor.execute(query)
@@ -257,9 +211,9 @@ class ImageDb():
         if rows:
             pass
         else:
-            self.log("No rows were returned.")
+            self.logger.warning("No rows were returned.")
 
-        self.log(f"Fetched rows: {rows}")
+        self.logger.info(f"Fetched rows: {rows}")
 
         record_list = []
 
@@ -278,7 +232,7 @@ class ImageDb():
                                 'datetime': datetime_record,
                                 'orig_md5': orig_md5
                                 })
-            self.log(f"Found at least one record: {record_list[-1]}")
+            self.logger.info(f"Found at least one record: {record_list[-1]}")
 
         cursor.close()
         return record_list
@@ -295,25 +249,20 @@ class ImageDb():
         record_list = self.get_image_record_by_pattern(md5, 'orig_md5', True, collection)
         return record_list
 
+    @retry_with_backoff()
     def delete_image_record(self, internal_filename):
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         delete_image = (f"""delete from images where internal_filename='{internal_filename}' ;""")
 
-        self.log(f"deleting image record. SQL: {delete_image}")
+        self.logger.info(f"deleting image record. SQL: {delete_image}")
         cursor.execute(delete_image)
-        self.cnx.commit()
+        self.image_db_connection.cnx.commit()
         cursor.close()
 
-    def execute(self, sql):
-        cursor = self.get_cursor()
-        logging.debug(f"SQL: {sql}")
-        cursor.execute(sql)
-        self.cnx.commit()
-        cursor.close()
-
+    @retry_with_backoff()
     def get_collection_list(self):
-        cursor = self.get_cursor()
+        cursor = self.image_db_connection.get_cursor()
 
         query = f"""select collection from collection"""
 
