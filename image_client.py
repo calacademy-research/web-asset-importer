@@ -53,51 +53,97 @@ class ImageClient:
 
             self.monitoring_tools = MonitoringTools(config=config, report_path=report_path, active=active)
 
+
     def request_with_retries(self, method, url, params=None, data=None, json=None, files=None,
-                             max_duration=10800, retry_interval=30):
+                             max_duration=10800, retry_interval=0):
         """
         Makes an HTTP request with retries only on connection-related failures.
 
-        Parameters:
+        :parameter
         - method: "GET" or "POST"
         - url: The request URL
         - max_duration: Total retry duration in seconds (default: 3 hours)
         - retry_interval: Delay between retries in seconds (default: 30 sec)
-        - kwargs: Additional request parameters (headers, data, json, etc.)
+        - files: Dictionary containing file uploads
 
-        Returns:
+        :returns
         - Response object if successful
         - None if all retries fail
         """
         start_time = time.time()
-        retry = 0
 
         while True:
+            last_error = ""
+
+            # Reopen the file before each retry to prevent it from being empty
+            if files:
+                new_files = {key: (val[0], open(val[1].name, 'rb')) for key, val in files.items()}
+            else:
+                new_files = None
+
             try:
                 if method.upper() == "GET":
                     r = requests.get(url, params=params)
                 elif method.upper() == "POST":
-                    r = requests.post(url, data=data, json=json, files=files)
+                    r = requests.post(url, data=data, json=json, files=new_files)
                 else:
                     raise ValueError("Unsupported HTTP method")
 
-                # If not 500 connection error return response
+                # Close reopened files
+                if new_files:
+                    for f in new_files.values():
+                        f[1].close()
+
+                # If not a server error, return response
                 if r.status_code not in [500, 502, 503, 504]:
                     return r
 
-                self.logger.error(f"Server error {r.status_code}: {r.text}, retrying in {retry_interval} sec...")
+                self.logger.error(
+                    f"Server error {r.status_code}: {r.text}, retrying in {retry_interval} sec..."
+                )
 
             except (requests.ConnectionError, requests.Timeout) as e:
-                # Only retry on connection-related errors
+                last_error = e
                 elapsed_time = time.time() - start_time
                 if elapsed_time >= max_duration:
                     self.logger.error(f"Max retry duration reached ({max_duration}s). Giving up with last error {e}.")
                     return None
 
-                self.logger.error(f"Connection error: {e}. Retrying in {retry_interval} sec...")
+            retry_interval += retry_interval + 30
+
+            self.logger.error(f"Connection error: {last_error}. Retrying in {retry_interval} sec...")
 
             time.sleep(retry_interval)
-            retry += retry_interval + 30
+
+            # If URL contains "/fileupload", send a file delete request before retrying
+            if "/fileupload" in url:
+                self.cleanup_failed_fileupload(data=data)
+
+    def cleanup_failed_fileupload(self, data):
+        """Makes an HTTP request to clean up paths for failed /fileupload before retry
+            :parameter
+                data: contains the data dictionary from the prior /fileupload command
+            :returns
+                None
+        """
+        try:
+            delete_data = {
+                'filename': data['store'],
+                'coll': data['coll'],
+                'token': self.generate_token(data['store'])
+            }
+            delete_url = self.build_url("filedelete")
+            delete_response = requests.post(url=delete_url, data=delete_data)
+
+            if delete_response.status_code == 200:
+                self.logger.info(f"File deleted at {data['store']}")
+            elif delete_response.status_code >= 500:
+                self.logger.error(
+                    f"Server error during filedelete: {delete_response.status_code} - {delete_response.text}")
+            else:
+                pass
+        except Exception as e:
+            self.logger.error(f"Unexpected error in filedelete: {e}")
 
     def split_filepath(self, filepath):
         cur_filename = os.path.basename(filepath)
@@ -213,11 +259,10 @@ class ImageClient:
             'datetime': datetime_now.strftime(TIME_FORMAT)
         }
 
-        files = {
-            'image': (attach_loc, open(local_filename, 'rb')),
-        }
         url = self.build_url("fileupload")
         self.logger.debug(f"Attempting upload of local converted file {local_filename} to {url}")
+
+        files = {'image': (attach_loc, open(local_filename, 'rb')),}
 
         r = self.request_with_retries(url=url, files=files, data=data, method="POST")
 
