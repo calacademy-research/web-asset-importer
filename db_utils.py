@@ -92,19 +92,23 @@ class DbUtils:
 
     @retry_with_backoff()
     def get_one_record(self, sql):
-        """Fetches a single record from the database and returns the first column value or None if no result is found."""
-
+        """Fetch a single record from the database with retries."""
         cursor = None
-        retval = None
-
         try:
             cursor = self.get_cursor(buffered=True)
+            if cursor is None:
+                raise mysql.connector.Error("Failed to acquire a database cursor")
+
             cursor.execute(sql)
-            row = cursor.fetchone()  # Fetch one record
-            retval = row[0] if row else None  # Avoids NoneType indexing error
+            retval = cursor.fetchone()
+
+            if retval is None:
+                self.logger.warning(f"Warning: No results from: \n\n{sql}\n")
+            else:
+                retval = retval[0]
 
         except mysql.connector.Error as err:
-            self.logger.error(f"SQL error while processing query: {sql}\n{err}\n")
+            self.logger.error(f"SQL error while executing SQL: {sql}\nError: {err}")
             self.logger.error(traceback.format_exc())
 
             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
@@ -123,19 +127,15 @@ class DbUtils:
                 retval = None  # Non-retryable errors return None
 
         except Exception as err:
-            self.logger.error(f"Unexpected exception during query execution: {err}")
-            self.logger.error(traceback.format_exc())
-            raise  # Raise for unknown exceptions
+                self.logger.error(f"Unexpected exception during query execution: {err}")
+                self.logger.error(traceback.format_exc())
+                raise  # Ensure retry is triggered
 
         finally:
             if cursor:
-                cursor.close()  # Ensure cursor is always closed
-
-        if retval is None:
-            self.logger.info(f"Info: No results from query:\n\n{sql}\n")
+                cursor.close()
 
         return retval
-
     @retry_with_backoff()
     def get_records(self, query):
         cursor = self.get_cursor()
