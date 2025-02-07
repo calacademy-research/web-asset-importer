@@ -71,16 +71,14 @@ class ImageClient:
         - None if all retries fail
         """
         start_time = time.time()
-
+        retry_interval = 0
         while True:
-            last_error = ""
 
             # Reopen the file before each retry to prevent it from being empty
             if files:
                 new_files = {key: (val[0], open(val[1].name, 'rb')) for key, val in files.items()}
             else:
                 new_files = None
-
             try:
                 if method.upper() == "GET":
                     r = requests.get(url, params=params)
@@ -98,20 +96,25 @@ class ImageClient:
                 if r.status_code not in [500, 502, 503, 504]:
                     return r
 
+
+
                 self.logger.error(
                     f"Server error {r.status_code}: {r.text}, retrying in {retry_interval} sec..."
                 )
 
-            except (requests.ConnectionError, requests.Timeout) as e:
-                last_error = e
                 elapsed_time = time.time() - start_time
+
+                if elapsed_time >= max_duration:
+                    self.logger.error(
+                        f"Max retry duration reached ({max_duration}s). Giving up with last error {r.status_code}.")
+                    return r  # Return last response instead of stopping abruptly
+
+            except (requests.ConnectionError, requests.Timeout) as e:
                 if elapsed_time >= max_duration:
                     self.logger.error(f"Max retry duration reached ({max_duration}s). Giving up with last error {e}.")
                     return None
 
-            retry_interval += retry_interval + 30
-
-            self.logger.error(f"Connection error: {last_error}. Retrying in {retry_interval} sec...")
+            retry_interval += 30
 
             time.sleep(retry_interval)
 

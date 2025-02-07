@@ -10,8 +10,6 @@ import sys
 from specify_db import SpecifyDb
 import logging
 from typing import Union
-import re
-import numpy as np
 
 class DatabaseConnectionError(Exception):
     pass
@@ -205,12 +203,7 @@ class SqlCsvTools:
         elif match_type == int:
             sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = {match};'''
 
-        result = self.get_record(sql=sql)
-
-        if isinstance(result, (list, dict, set, tuple)):
-            return result[0]
-        else:
-            return result
+        return self.get_record(sql=sql)
 
 
 
