@@ -24,7 +24,7 @@ class PicturaeUndoBatch(Importer):
         sql = f'''SELECT AttachmentLocation FROM attachment WHERE 
                   TimestampCreated >= "{timestamp1}" AND TimestampCreated <= "{timestamp2}" 
                   AND CreatedByAgentID = "{self.picturae_config.IMPORTER_AGENT_ID}";'''
-        list_of_attachments = self.specify_db_connection.get_records(query=sql)
+        list_of_attachments = self.specify_db_connection.get_records(sql)
         image_location = [record[0] for record in list_of_attachments]
         return image_location
 
