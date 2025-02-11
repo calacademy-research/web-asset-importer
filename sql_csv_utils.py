@@ -10,8 +10,6 @@ import sys
 from specify_db import SpecifyDb
 import logging
 from typing import Union
-import re
-import numpy as np
 
 class DatabaseConnectionError(Exception):
     pass
@@ -54,7 +52,8 @@ class SqlCsvTools:
         return self.specify_db_connection.get_one_record(sql=sql)
 
     def get_records(self, sql):
-        return self.specify_db_connection.get_records(query=sql)
+        return self.specify_db_connection.get_records(sql=sql)
+
     def get_cursor(self):
         """standard db cursor"""
         return self.specify_db_connection.get_cursor()
@@ -166,7 +165,7 @@ class SqlCsvTools:
                       AND LOWER(FullName) LIKE "%{parts[2]}%"
                       AND LOWER(FullName) LIKE "%{basename}%";'''
 
-            result = self.specify_db_connection.get_records(query=sql)
+            result = self.specify_db_connection.get_records(sql=sql)
 
             if result:
                 taxon_id = result[0]
@@ -205,12 +204,7 @@ class SqlCsvTools:
         elif match_type == int:
             sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = {match};'''
 
-        result = self.get_record(sql=sql)
-
-        if isinstance(result, (list, dict, set, tuple)):
-            return result[0]
-        else:
-            return result
+        return self.get_record(sql=sql)
 
 
 
