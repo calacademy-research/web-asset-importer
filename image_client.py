@@ -71,7 +71,6 @@ class ImageClient:
         - None if all retries fail
         """
         start_time = time.time()
-        retry_interval = 0
         while True:
 
             # Reopen the file before each retry to prevent it from being empty

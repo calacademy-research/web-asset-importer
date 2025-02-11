@@ -40,7 +40,7 @@ class RemovePartialAttachments(Importer):
                  LEFT JOIN collectionobjectattachment ON attachment.AttachmentID = collectionobjectattachment.AttachmentID
                  WHERE collectionobjectattachment.AttachmentID IS NULL;'''
 
-        data = self.specify_db_connection.get_records(query=sql)
+        data = self.specify_db_connection.get_records(sql=sql)
 
         no_coa_df = pd.DataFrame(data, columns=['AttachmentLocation', 'AttachmentID', 'origFilename', 'GUID'])
 
@@ -120,7 +120,7 @@ class RemovePartialAttachments(Importer):
 
             sql = f"""SELECT AttachmentID FROM attachment WHERE origFilename like '%{barcode}%';"""
 
-            attachment_ids = self.specify_db_connection.get_records(query=sql)
+            attachment_ids = self.specify_db_connection.get_records(sql=sql)
 
             # this will work well only after the first function which
             # eliminates attachments without collectionobjectattachments

@@ -52,7 +52,8 @@ class SqlCsvTools:
         return self.specify_db_connection.get_one_record(sql=sql)
 
     def get_records(self, sql):
-        return self.specify_db_connection.get_records(query=sql)
+        return self.specify_db_connection.get_records(sql=sql)
+
     def get_cursor(self):
         """standard db cursor"""
         return self.specify_db_connection.get_cursor()
@@ -164,7 +165,7 @@ class SqlCsvTools:
                       AND LOWER(FullName) LIKE "%{parts[2]}%"
                       AND LOWER(FullName) LIKE "%{basename}%";'''
 
-            result = self.specify_db_connection.get_records(query=sql)
+            result = self.specify_db_connection.get_records(sql=sql)
 
             if result:
                 taxon_id = result[0]

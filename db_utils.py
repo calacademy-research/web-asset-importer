@@ -107,44 +107,57 @@ class DbUtils:
 
             cursor.execute(sql)
             retval = cursor.fetchone()
-
+            cursor.close()
             if retval is None:
                 self.logger.warning(f"Warning: No results from: \n\n{sql}\n")
             else:
                 retval = retval[0]
-
+        # Raises ensure retry is triggered
         except mysql.connector.Error as err:
             self.logger.error(f"Database error while executing SQL: {sql}\nError: {err}")
-            self.logger.error(traceback.format_exc())  # Capture full traceback
-            raise  # Ensure retry is triggered
+            self.logger.error(traceback.format_exc())
+            raise
 
         except Exception as e:
             self.logger.error(f"Exception thrown while processing SQL: {sql}\n{e}\n")
-            self.logger.error(traceback.format_exc())  # Capture full traceback
-            raise  # Ensure retry is triggered
-
-        cursor.close()
+            self.logger.error(traceback.format_exc())
+            raise
         return retval
 
     @retry_with_backoff()
-    def get_records(self, query):
-        cursor = self.get_cursor()
-        cursor.execute(query)
-        record_list = list(cursor.fetchall())
-        self.logger.debug(f"get records SQL: {query}")
-        cursor.close()
+    def get_records(self, sql):
+        """gets multiple records at once"""
+        cursor = self.get_cursor(buffered=True)
+        try:
+            if cursor is None:
+                raise mysql.connector.Error("Failed to acquire a database cursor")
+            cursor.execute(sql)
+            record_list = list(cursor.fetchall())
+            self.logger.debug(f"get records SQL: {sql}")
+            cursor.close()
+        # Raises ensure retry is triggered
+        except mysql.connector.Error as err:
+            self.logger.error(f"Database error while executing SQL: {sql}\nError: {err}")
+            self.logger.error(traceback.format_exc())
+            raise
+
+        except Exception as e:
+            self.logger.error(f"Exception thrown while processing SQL: {sql}\n{e}\n")
+            self.logger.error(traceback.format_exc())
+            raise
+
         return record_list
 
 
     def reset_connection(self):
-
+        """Closes the connection and reconnects."""
         self.logger.info(f"Resetting connection to {self.database_host}")
         if self.cnx:
             try:
                 self.cnx.close()
-            except Exception:
-                pass
-        self.cnx = None
+            except Exception as e:
+                self.logger.warning(f"Error closing connection: {e}")
+
         self.connect()
 
 
@@ -152,12 +165,13 @@ class DbUtils:
         """Gets a database cursor, ensuring connection is available."""
         try:
             if self.cnx is None or not self.cnx.is_connected():
-                self.connect()  # Let retry_with_backoff handle reconnection
+                self.connect()
             return self.cnx.cursor(buffered=buffered)
         except mysql.connector.OperationalError:
             self.logger.error("Failed to connect, resetting DB connection")
             self.reset_connection()
-            return self.cnx.cursor(buffered=buffered)  # Retry getting the cursor
+            return self.cnx.cursor(buffered=buffered)
+
 
     @retry_with_backoff()
     def execute(self, sql):
@@ -173,18 +187,18 @@ class DbUtils:
             cursor.execute(sql)
             self.cnx.commit()
             cursor.close()
-            return True  # Execution successful
+            return True
 
         except mysql.connector.Error as err:
             self.logger.error(f"SQL execution failed: {err}")
             if err.errno in {errorcode.CR_SERVER_GONE_ERROR, errorcode.CR_SERVER_LOST}:
-                self.reset_connection()  # Reset on connection loss
+                self.reset_connection()
 
         except Exception as ex:
             self.logger.error(f"Unknown error during SQL execution: {ex}")
-            self.reset_connection()  # Reset and try again
+            self.reset_connection()
 
-        return False  # Return False on failure
+        return False
 
     def commit(self):
         self.cnx.commit()
