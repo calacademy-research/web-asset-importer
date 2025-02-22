@@ -147,7 +147,7 @@ class SqlCsvTools:
 
         return collector_list
 
-    def get_one_hybrid(self, match, fullname):
+    def get_one_hybrid(self, match, fullname, family=None):
         """get_one_hybrid:
             used instead of get_one_record for hybrids to
             match multi-term hybrids irrespective of order
@@ -156,36 +156,31 @@ class SqlCsvTools:
                         match - "A X B"
                 fullname = the full name of the taxonomic name.
         """
+
         parts = match.split()
-        if len(parts) == 3:
-            basename = fullname.split()[0]
-            sql = f'''SELECT TaxonID FROM taxon WHERE 
-                      LOWER(FullName) LIKE "%{parts[0]}%" 
-                      AND LOWER(FullName) LIKE "%{parts[1]}%"
-                      AND LOWER(FullName) LIKE "%{parts[2]}%"
-                      AND LOWER(FullName) LIKE "%{basename}%";'''
+        basename = fullname.split()[0]
 
-            result = self.specify_db_connection.get_records(sql=sql)
+        sql = f'''SELECT TaxonID FROM vtaxon2 WHERE
+                  LOWER(FullName) LIKE "%{parts[0]}%" 
+                  AND LOWER(FullName) LIKE "%{parts[1]}%"
+                  AND LOWER(FullName) LIKE "%{parts[2]}%"
+                  AND LOWER(FullName) LIKE "%{basename}%"'''
+        if family:
+            sql += f'''AND Family={family}'''
 
-            if result:
-                taxon_id = result[0]
-            else:
-                taxon_id = None
+        sql += ''';'''
 
-            return taxon_id
+        result = self.specify_db_connection.get_records(sql=sql)
 
-        elif len(parts) < 3:
-            taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname,
-                                          match_type=str)
-
-            return taxon_id
+        if result:
+            taxon_id = result[0]
         else:
-            self.logger.error("hybrid tax name has more than 3 terms")
+            taxon_id = None
 
-            return None
+        return taxon_id
 
 
-    def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
+    def get_one_match(self, tab_name, id_col, key_col, match, match_type=str, return_list=False):
         """populate_sql:
                 creates a custom select statement for get one record,
                 from which a result can be gotten more seamlessly
@@ -193,18 +188,34 @@ class SqlCsvTools:
            args:
                 tab_name: the name of the table to select
                 id_col: the name of the column in which the unique id is stored
-                key_col: column on which to match values
-                match: value with which to match key_col
-                match_type: "string" or "integer", optional with default as "string"
+                key_col: column(s) on which to match values (str or list)
+                match: value(s) with which to match key_col (str, int, or list)
+                match_type: type of values, typically str or int
                             puts quotes around sql terms or not depending on data type
         """
-        sql = ""
-        if match_type == str:
-            sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = "{match}";'''
-        elif match_type == int:
-            sql = f'''SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = {match};'''
+        if isinstance(key_col, str):
+            key_col = [key_col]
+        if not isinstance(match, (list, tuple)):
+            match = [match]
 
-        return self.get_record(sql=sql)
+        if len(key_col) != len(match):
+            raise ValueError("key_col and match must have the same length")
+
+        conditions = []
+        for col, val in zip(key_col, match):
+            if match_type == str:
+                conditions.append(f'`{col}` = "{val}"')
+            elif match_type == int:
+                conditions.append(f'`{col}` = {val}')
+            else:
+                raise ValueError("Unsupported match_type")
+
+        where_clause = ' AND '.join(conditions)
+        sql = f'SELECT {id_col} FROM {tab_name} WHERE {where_clause};'
+        if return_list:
+            return self.get_records(sql=sql)
+        else:
+            return self.get_record(sql=sql)
 
 
 
@@ -326,7 +337,15 @@ class SqlCsvTools:
 
         return sql
 
-    def taxon_get(self, name, hybrid=False, taxname=None):
+    def construct_taxon_sql(self, fullname, family):
+        """standard sql query constructor of get taxon"""
+        if family:
+            sql = f'''SELECT taxonid FROM vtaxon2 WHERE `Fullname` = "{fullname}" AND `Family` = "{family}"; '''
+        else:
+            sql = f'''SELECT TaxonID FROM taxon WHERE `Fullname` = "{fullname}";'''
+        return sql
+
+    def taxon_get(self, name, family=None, hybrid=False, taxname=None):
         """taxon_get: function to retrieve taxon id from specify database:
             args:
                 name: the full taxon name to check
@@ -337,8 +356,10 @@ class SqlCsvTools:
         name = name.lower()
         if hybrid is False:
             if "subsp." in name or "var." in name:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                               match_type=str)
+                sql = self.construct_taxon_sql(name, family)
+
+                result_id = self.get_record(sql=sql)
+
                 if result_id is None:
                     if "subsp." in name:
                         name = name.replace(" subsp. ", " var. ")
@@ -346,15 +367,27 @@ class SqlCsvTools:
                         name = name.replace(" var. ", " subsp. ")
                     else:
                         pass
+                    self.construct_taxon_sql(name, family)
 
-                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                                   match_type=str)
+                    result_id = self.get_record(sql=sql)
             else:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                               match_type=str)
+                sql = self.construct_taxon_sql(name, family)
+
+                result_id = self.get_record(sql=sql)
+
             return result_id
         else:
-            result_id = self.get_one_hybrid(match=taxname, fullname=name)
+            parts = taxname.split()
+            if len(parts) == 3:
+                result_id = self.get_one_hybrid(match=taxname, fullname=name, family=family)
+            elif len(parts) < 3:
+                sql = self.construct_taxon_sql(name, family)
+
+                result_id = self.get_record(sql=sql)
+            else:
+                self.logger.error("hybrid tax name has more than 3 terms")
+
+                result_id = None
 
             return result_id
 
@@ -370,10 +403,10 @@ class SqlCsvTools:
         taxa_frame = taxa_frame.drop_duplicates(subset=['fullname'])
         for index, row in taxa_frame.iterrows():
             tax_id = self.get_one_match(tab_name='picturaetaxa_added',
-                                                id_col='newtaxID',
-                                                key_col='fullname',
-                                                match=row['fullname'],
-                                                match_type=str)
+                                        id_col='newtaxID',
+                                        key_col='fullname',
+                                        match=row['fullname'],
+                                        match_type=str)
             if tax_id is None:
                 sql = self.create_new_tax_tab(row=row, tab_name='picturaetaxa_added', agent_id=agent_id)
 

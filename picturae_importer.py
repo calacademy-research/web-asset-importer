@@ -441,6 +441,10 @@ class PicturaeImporter(Importer):
 
         self.redacted = False
 
+        self.taxon_guid = None
+
+        self.family_diff = row.family_diff
+
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, uuid4())
@@ -468,22 +472,25 @@ class PicturaeImporter(Importer):
                 raise ValueError(f"Family {self.family_name} not present in taxon tree")
                 # self.taxon_list.append(self.family_name)
 
-        elif not self.is_hybrid and self.full_name != "missing taxon in row":
-            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
-        else:
+        elif self.is_hybrid and self.full_name != "missing taxon in row":
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
-                                                         taxname=self.tax_name, hybrid=True)
+                                                         taxname=self.tax_name, hybrid=self.is_hybrid,
+                                                         family=self.family_name)
+        else:
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name, family=self.family_name)
+
         # append taxon full name
         if not self.taxon_id or pd.isna(self.taxon_id):
             self.taxon_list.append(self.full_name)
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
-                self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
+                self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra, family=self.family_name)
+
                 if not self.first_intra_id or pd.isna(self.first_intra):
                     self.taxon_list.append(self.first_intra)
 
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
-                self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec)
+                self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec, family=self.family_name)
                 # check high taxa gen_spec for author
                 self.taxa_author_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
@@ -493,7 +500,7 @@ class PicturaeImporter(Importer):
                 # base value for gen spec id is set as None so will work either way.
                 # checking for genus id
             if self.full_name != self.genus:
-                self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus)
+                self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus, family=self.family_name)
                 # adding genus name if missing
                 if not self.genus_id or pd.isna(self.genus_id):
                     self.taxon_list.append(self.genus)
@@ -508,9 +515,18 @@ class PicturaeImporter(Importer):
                 index: index num in the taxon list.
                 taxon: the taxon name in the taxon list ,
                        iterrated through from highest to lowest rank"""
-        taxon_guid = uuid4()
+
+        parent_guid = self.taxon_guid
+        self.taxon_guid = uuid4()
         rank_name = taxon
-        parent_id = self.sql_csv_tools.taxon_get(name=self.parent_list[index + 1])
+        if parent_guid:
+            parent_id = self.sql_csv_tools.get_one_match(tab_name="taxon",
+                                                         id_col="ParentID",
+                                                         key_col="GUID",
+                                                         match=parent_guid)
+        else:
+            parent_id = self.sql_csv_tools.taxon_get(name=self.parent_list[index + 1], family=self.family_name)
+
         if taxon == self.full_name:
             rank_end = self.tax_name
         else:
@@ -539,7 +555,7 @@ class PicturaeImporter(Importer):
         if self.is_hybrid is True:
             author_insert = ''
 
-        return author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id
+        return author_insert, tree_item_id, rank_end, parent_id, rank_id
 
 
     def create_locality_record(self):
@@ -701,9 +717,8 @@ class PicturaeImporter(Importer):
         self.parent_list = unique_ordered_list(self.parent_list)
         for index, taxon in reversed(list(enumerate(self.taxon_list))):
             # getting index pos of taxon in parent list
-
             author_insert, tree_item_id, rank_end, \
-                            parent_id, taxon_guid, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
+                            parent_id, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
 
             if BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection, taxon_id=parent_id):
                 self.redacted = True
@@ -730,7 +745,7 @@ class PicturaeImporter(Importer):
                           1,
                           author_insert,
                           f"{taxon}",
-                          f"{taxon_guid}",
+                          f"{self.taxon_guid}",
                           "World Checklist of Vascular Plants 2023",
                           True,
                           self.is_hybrid,
@@ -1014,7 +1029,7 @@ class PicturaeImporter(Importer):
 
                 self.create_agent_list(row)
 
-                if not self.taxon_id or pd.isna(self.taxon_id):
+                if self.family_diff or not self.taxon_id or pd.isna(self.taxon_id):
                     self.populate_taxon()
                     self.create_taxon()
 
