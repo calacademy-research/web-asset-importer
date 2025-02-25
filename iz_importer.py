@@ -8,7 +8,6 @@ from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
 from metadata_tools.metadata_tools import MetadataTools
-from image_client import FileNotFoundException, DeleteFailureException
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -87,6 +86,9 @@ class IzImporter(Importer):
         filepath_list = self.remove_specify_imported_and_id_linked_from_path(filepath_list, collection_object_id)
 
         for cur_filepath in filepath_list:
+            if not os.path.exists(cur_filepath):
+                self.logger.warning(f"File not found - possibly moved after start of ingest: {cur_filepath}, skipping.")
+                continue
             attachment_id = self.attachment_utils.get_attachmentid_from_filepath(cur_filepath)
             if attachment_id is not None:
                 self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id,
