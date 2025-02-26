@@ -297,15 +297,16 @@ class Importer:
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []
         for cur_filepath in filepath_list:
-            sql = f"""
-                    select at.AttachmentId
-                           from attachment as at,
-                           collectionobjectattachment as cat
-                           where at.OrigFilename='{cur_filepath}' and 
-                           cat.CollectionObjectID='{collection_object_id}'
-                           and cat.AttachmentId = at.AttachmentId
+            sql = """
+                        SELECT at.AttachmentId
+                        FROM attachment AS at
+                        JOIN collectionobjectattachment AS cat ON cat.AttachmentId = at.AttachmentId
+                        WHERE at.OrigFilename = %s AND cat.CollectionObjectID = %s
                     """
-            aid = self.attachment_utils.db_utils.get_one_record(sql)
+            params = (cur_filepath if cur_filepath is not None else None,
+                      collection_object_id if collection_object_id is not None else None)
+
+            aid = self.attachment_utils.db_utils.get_one_record(sql, params=params)
 
             if aid is None:
                 keep_filepaths.append(cur_filepath)
@@ -481,8 +482,12 @@ class Importer:
                 return
 
             # Step 2: Check if the attachment is still in the database
-            sql_check_attachment = f"SELECT COUNT(*) FROM attachment WHERE attachmentid = {attachment_id}"
-            count = self.specify_db_connection.get_one_record(sql_check_attachment)
+            sql_check_attachment = "SELECT COUNT(*) FROM attachment WHERE attachmentid = %s"
+
+            params = (attachment_id if attachment_id is not None else None,)
+
+            count = self.specify_db_connection.get_one_record(sql_check_attachment, params)
+
             if count == 0:
                 self.logger.info(
                     f"Attachment ID {attachment_id} for {full_path} is already removed. Skipping operation.")
@@ -510,12 +515,12 @@ class Importer:
                 return
 
             #  Remove the CollectionObjectAttachment link
-            sql_delete_co_attachment = f"DELETE FROM collectionobjectattachment WHERE attachmentid = {attachment_id}"
-            self.specify_db_connection.execute(sql_delete_co_attachment)
+            sql_delete_co_attachment = "DELETE FROM collectionobjectattachment WHERE attachmentid = %s"
+            self.specify_db_connection.execute(sql_delete_co_attachment, params)
 
             #  Remove the attachment record from Specify
-            sql_delete_attachment = f"DELETE FROM attachment WHERE attachmentid = {attachment_id}"
-            self.specify_db_connection.execute(sql_delete_attachment)
+            sql_delete_attachment = "DELETE FROM attachment WHERE attachmentid = %s"
+            self.specify_db_connection.execute(sql_delete_attachment, params)
 
 
         except Exception as e:

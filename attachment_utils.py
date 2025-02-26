@@ -13,30 +13,27 @@ class AttachmentUtils:
         self.db_utils = db_utils
 
     def get_collectionobjectid_from_filename(self, attachment_location):
-        sql = f"""
-        select cat.CollectionObjectID
-               from attachment as at
-               , collectionobjectattachment as cat
-
-               where at.AttachmentLocation='{attachment_location}'
-        and cat.AttachmentId = at.AttachmentId
+        sql = """
+        SELECT cat.CollectionObjectID
+        FROM attachment AS at
+        JOIN collectionobjectattachment AS cat ON cat.AttachmentId = at.AttachmentId
+        WHERE at.AttachmentLocation = %s
         """
-        coid = self.db_utils.get_one_record(sql)
+        params = (str(attachment_location) if attachment_location is not None else None,)
+        coid = self.db_utils.get_one_record(sql, params)
         logging.debug(f"Got collectionObjectId: {coid}")
-
         return coid
 
     def get_attachmentid_from_filepath(self, orig_filepath):
-        orig_filename = repr(orig_filepath)
-        sql = f"""
-        select at.AttachmentID
-               from attachment as at
-               where at.OrigFilename={orig_filename}
-        """
-        aid = self.db_utils.get_one_record(sql)
+        sql = """
+         SELECT at.AttachmentID
+         FROM attachment AS at
+         WHERE at.OrigFilename = %s
+         """
+        params = (str(orig_filepath) if orig_filepath is not None else None,)
+        aid = self.db_utils.get_one_record(sql, params)
         if aid is not None:
             logging.debug(f"Got AttachmentId: {aid}")
-
         return aid
 
     @staticmethod
@@ -80,6 +77,8 @@ class AttachmentUtils:
                     CURRENT_TIMESTAMP, %s, %s, 0, NULL, NULL, %s, NULL, NULL, NULL
                 )
             """
+
+        # self val already checks for none so no need for if not none logic
         params = (
             attachment_location,
             self.val(properties.get(SpecifyConstants.ST_COPYRIGHT_DATE), 'ST_COPYRIGHT_DATE'),
@@ -108,92 +107,67 @@ class AttachmentUtils:
         cursor.close()
 
     def create_collection_object_attachment(self, attachment_id, collection_object_id, ordinal, agent_id):
-        # 68835 Joe russack ich
-        # 95728 Joe russack botany
+        sql = """
+        INSERT INTO collectionobjectattachment (
+            collectionmemberid, ordinal, remarks, timestampcreated, timestampmodified,
+            version, AttachmentID, CollectionObjectID, CreatedByAgentID, ModifiedByAgentID
+        ) VALUES (
+            4, %s, NULL, %s, %s, 0, %s, %s, %s, NULL
+        )
+        """
+        params = (
+            ordinal if ordinal is not None else None,
+            time_utils.get_pst_time_now_string() if ordinal is not None else None,
+            time_utils.get_pst_time_now_string() if ordinal is not None else None,
+            attachment_id if ordinal is not None else None,
+            collection_object_id if ordinal is not None else None,
+            agent_id if ordinal is not None else None
+        )
         cursor = self.db_utils.get_cursor()
-
-        sql = (f"""INSERT INTO collectionobjectattachment 
-            (collectionmemberid, 
-            ordinal, 
-            remarks, 
-            timestampcreated,
-            timestampmodified, 
-            version, 
-            AttachmentID, 
-            CollectionObjectID,
-            CreatedByAgentID, 
-            ModifiedByAgentID)
-        VALUES (
-            4, 
-            {ordinal}, 
-            NULL, 
-            '{time_utils.get_pst_time_now_string()}', 
-            '{time_utils.get_pst_time_now_string()}',
-            0, 
-            {attachment_id}, 
-            {collection_object_id}, 
-            {agent_id},
-            NULL)""")
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.db_utils.commit()
         cursor.close()
 
+
     def get_attachment_id(self, uuid):
-        sql = f"select attachmentid from attachment where guid='{uuid}'"
-        return self.db_utils.get_one_record(sql)
+        sql = "SELECT attachmentid FROM attachment WHERE guid = %s"
+        return self.db_utils.get_one_record(sql, (uuid,))
 
     def get_ordinal_for_collection_object_attachment(self, collection_object_id):
-        sql = f"select max(ordinal) from collectionobjectattachment where CollectionObjectID={collection_object_id}"
-        return self.db_utils.get_one_record(sql)
+        sql = "SELECT MAX(ordinal) FROM collectionobjectattachment WHERE CollectionObjectID = %s"
+        return self.db_utils.get_one_record(sql, (collection_object_id,))
 
     def get_is_attachment_redacted(self, internal_id):
-        sql = f"""
-            select a.AttachmentID,a.ispublic  from attachment a
-            where AttachmentLocation='{internal_id}'
-
-            """
+        sql = """
+        SELECT ispublic FROM attachment WHERE AttachmentLocation = %s
+        """
         cursor = self.db_utils.get_cursor()
-
-        cursor.execute(sql)
+        params = (f"{internal_id}" if internal_id is not None else None)
+        cursor.execute(sql, params)
         retval = cursor.fetchone()
         cursor.close()
-        if retval is None:
-            logging.error(f"Error fetching attachment internal id: {internal_id}\n sql:{sql}")
-            raise db_utils.DatabaseInconsistentError()
 
-        retval = retval[1]
         if retval is None:
-            logging.warning(f"Warning: No results from: \n\n{sql}\n")
-        else:
-            if retval is False or retval == 0:
-                return True
-        return False
+            logging.error(f"Error fetching attachment internal id: {internal_id}\n SQL: {sql}")
+            raise DatabaseInconsistentError()
+        return retval[0] in [False, 0]
 
     def get_is_botany_collection_object_redacted(self, collection_object_id):
-        sql = f"""SELECT co.YesNo2          AS `CO redact locality`
-             , vt.RedactLocality  AS `taxon_redact_locality`
-             , vta.RedactLocality AS `accepted_taxon_redact_locality`
+        sql = """
+        SELECT co.YesNo2, vt.RedactLocality, vta.RedactLocality
         FROM casbotany.collectionobject co
-                 LEFT JOIN casbotany.determination de ON co.CollectionObjectID = de.CollectionObjectID AND de.IsCurrent = TRUE
-                 LEFT JOIN casbotany.vtaxon2 vt ON de.TaxonID = vt.TaxonID
-                 LEFT JOIN casbotany.vtaxon2 vta ON de.PreferredTaxonID = vta.taxonid
-        WHERE co.CollectionObjectID = {collection_object_id};"""
-        # logging.debug(f"isredacted sql: {sql}")
+        LEFT JOIN casbotany.determination de ON co.CollectionObjectID = de.CollectionObjectID AND de.IsCurrent = TRUE
+        LEFT JOIN casbotany.vtaxon2 vt ON de.TaxonID = vt.TaxonID
+        LEFT JOIN casbotany.vtaxon2 vta ON de.PreferredTaxonID = vta.taxonid
+        WHERE co.CollectionObjectID = %s
+        """
         cursor = self.db_utils.get_cursor()
-
-        cursor.execute(sql)
+        params = (str(collection_object_id) if collection_object_id is not None else None,)
+        cursor.execute(sql, params)
         retval = cursor.fetchone()
         cursor.close()
-        if retval is None:
-            logging.error(f"Error fetching collection object id: {collection_object_id}\n sql:{sql}")
-            raise DatabaseInconsistentError(f"DB error. SQL: {sql}")
 
-        # logging.debug(f"Taxonid {retval[-1]}")
-        # retval = retval[:4]
         if retval is None:
-            logging.warning(f"Warning: No results from: \n\n{sql}\n")
-        else:
-            for val in retval:
-                if val is True or val == 1 or val == b'\x01':
-                    return True
-        return False
+            logging.error(f"Error fetching collection object id: {collection_object_id}\n SQL: {sql}")
+            raise DatabaseInconsistentError()
+        return any(val in [True, 1, b'\x01'] for val in retval)
