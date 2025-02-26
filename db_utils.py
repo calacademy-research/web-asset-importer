@@ -98,14 +98,18 @@ class DbUtils:
 
     # added buffered = true so will work properly with forloops
     @retry_with_backoff()
-    def get_one_record(self, sql):
+    def get_one_record(self, sql, params=None):
         """Fetch a single record from the database with retries."""
         cursor = self.get_cursor(buffered=True)
         try:
             if cursor is None:
                 raise mysql.connector.Error("Failed to acquire a database cursor")
 
-            cursor.execute(sql)
+            if params is None:
+                cursor.execute(sql)  # No parameters
+            else:
+                cursor.execute(sql, params)
+
             retval = cursor.fetchone()
             cursor.close()
             if retval is None:
@@ -125,13 +129,16 @@ class DbUtils:
         return retval
 
     @retry_with_backoff()
-    def get_records(self, sql):
+    def get_records(self, sql, params=None):
         """gets multiple records at once"""
         cursor = self.get_cursor(buffered=True)
         try:
             if cursor is None:
                 raise mysql.connector.Error("Failed to acquire a database cursor")
-            cursor.execute(sql)
+            if params:
+                cursor.execute(sql, params)
+            else:
+                cursor.execute(sql)
             record_list = list(cursor.fetchall())
             self.logger.debug(f"get records SQL: {sql}")
             cursor.close()

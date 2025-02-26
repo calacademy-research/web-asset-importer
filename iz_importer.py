@@ -77,8 +77,9 @@ class IzImporter(Importer):
 
     def process_casiz_number(self, casiz_number, filepath_list):
         self.logger.debug(f"Processing casiz_numbers: {casiz_number}")
-        sql = f"select collectionobjectid from collectionobject where catalognumber={casiz_number}"
-        collection_object_id = self.specify_db_connection.get_one_record(sql)
+        sql = f"select collectionobjectid from collectionobject where catalognumber= %s"
+        params = (casiz_number,)
+        collection_object_id = self.specify_db_connection.get_one_record(sql, params=params)
         if collection_object_id is None:
             print(f"No record found for casiz_number {casiz_number}, skipping.")
             return

@@ -135,14 +135,23 @@ class BotanyImporter(Importer):
             DisciplineID
         )
         VALUES (
-            '{time_utils.get_pst_time_now_string()}',
-            '{time_utils.get_pst_time_now_string()}',
-            0,
-            '{collecting_event_guid}',
-            3
+             %s,
+             %s,
+             %s,
+             %s,
+             %s
         );""")
+
+        params = (
+            f'{time_utils.get_pst_time_now_string()}',
+            f'{time_utils.get_pst_time_now_string()}',
+            0,
+            f'{collecting_event_guid}',
+            3
+        )
+
         self.logger.debug(sql)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.specify_db_connection.commit()
 
         cursor.close()
@@ -164,29 +173,42 @@ class BotanyImporter(Importer):
         Date1Precision,
         InventoryDatePrecision    
         )
-        VALUES ('{time_utils.get_pst_time_now_string()}',
-        '{time_utils.get_pst_time_now_string()}',
-        {collecting_event_id},
+        VALUES (%s,
+        %s,
+        %s,
+        %s,
+        %s,
+        %s, 
+        %s,
+        %s,
+        %s,
+        %s,
+        %s
+        )""")
+
+        params = (f'{time_utils.get_pst_time_now_string()}',
+        f'{time_utils.get_pst_time_now_string()}',
+        collecting_event_id,
         0,
         4,
-        '{barcode}', 
+        f'{barcode}',
         1,
-        '{uuid4()}',
+        f'{uuid4()}',
         4,
         1,
         1
-        )""")
+                  )
         self.logger.debug(sql)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.specify_db_connection.commit()
         cursor.close()
 
     @staticmethod
     def get_is_taxon_id_redacted(conn, taxon_id):
         """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid={taxon_id};"""
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
         cursor = conn.get_cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, (taxon_id,))
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:
