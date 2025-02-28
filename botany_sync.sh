@@ -18,5 +18,5 @@ else
     source ./env/bin/activate
     git pull
     git submodule update --init --recursive
-    python3 ./nightly_sync.py Botany >& botany_sync_log.txt
+    python3 ./nightly_sync.py Botany > botany_sync_log.txt 2>&1
 fi
