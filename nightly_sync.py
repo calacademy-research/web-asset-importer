@@ -24,7 +24,7 @@ def get_specify_state(internal_filename):
     redacted_collection_object = attachment_utils.get_is_botany_collection_object_redacted(coid)
     redacted_attachment = attachment_utils.get_is_attachment_redacted(internal_filename)
     logging.debug(
-        f"get specify state {internal_filename}, colleciton object: {coid} collection object state: {redacted_collection_object} attachment state: {redacted_attachment}")
+        f"get specify state {internal_filename}, collection object: {coid} collection object state: {redacted_collection_object} attachment state: {redacted_attachment}")
 
     return redacted_collection_object or redacted_attachment
 
@@ -105,4 +105,3 @@ if __name__ == '__main__':
         main()
     except Exception as e:
         traceback.print_exc()
-
