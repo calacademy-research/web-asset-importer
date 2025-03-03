@@ -113,16 +113,12 @@ class ImageDb(DbUtils):
 
         sql = f"""update images set redacted = {is_redacted} where internal_filename = %s"""
 
-        logging.debug(f"updating stop 0: {sql}")
         cursor = self.get_cursor()
-        logging.debug(f"updating stop 1")
-
+        self.logger.info(f"updating redacted: {sql}")
         cursor.execute(sql, (internal_filename,))
-        logging.debug(f"updating stop 2")
 
         self.commit()
-        logging.debug(f"updating stop 3")
-
+        self.logger.info(f"redaction update complete...")
         cursor.close()
 
     @retry_with_backoff()
