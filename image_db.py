@@ -11,7 +11,7 @@ TIME_FORMAT = TIME_FORMAT_NO_OFFSET + "%z"
 class ImageDb(DbUtils):
     def __init__(self):
         self.logger = logging.getLogger(f'Client.{self.__class__.__name__}')
-        self.image_db_connection = super().__init__(
+        super().__init__(
             settings.SQL_USER,
             settings.SQL_PASSWORD,
             settings.SQL_PORT,
@@ -40,7 +40,7 @@ class ImageDb(DbUtils):
             "  `collection` varchar(50)"
             ") ENGINE=InnoDB")
 
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         for table_name in TABLES:
             table_description = TABLES[table_name]
@@ -57,7 +57,7 @@ class ImageDb(DbUtils):
                 self.logger.info("OK")
 
         cursor.close()
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         cursor.execute(
             "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'images' AND column_name = 'orig_md5'")
@@ -104,32 +104,27 @@ class ImageDb(DbUtils):
             original_image_md5 if original_image_md5 is not None else None
         )
 
-        self.image_db_connection.execute(add_image, params)
+        self.execute(add_image, params)
         self.logger.info(f"Inserting imageInserting image record. SQL: {add_image}")
 
     # is this necessary when we have self.execute or is this just debugging?
     @retry_with_backoff()
     def update_redacted(self, internal_filename, is_redacted):
-        sql = f"""
-        update images set redacted = {is_redacted} where internal_filename = %s
-        """
 
-        logging.debug(f"updating stop 0: {sql}")
-        cursor = self.image_db_connection.get_cursor()
-        logging.debug(f"updating stop 1")
+        sql = f"""update images set redacted = {is_redacted} where internal_filename = %s"""
 
+        cursor = self.get_cursor()
+        self.logger.info(f"updating redacted: {sql}")
         cursor.execute(sql, (internal_filename,))
-        logging.debug(f"updating stop 2")
 
-        self.image_db_connection.cnx.commit()
-        logging.debug(f"updating stop 3")
-
+        self.commit()
+        self.logger.info(f"redaction update complete...")
         cursor.close()
 
     @retry_with_backoff()
     def get_record(self, where_clause):
 
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
            FROM images 
@@ -157,7 +152,7 @@ class ImageDb(DbUtils):
 
     @retry_with_backoff()
     def get_image_record_by_internal_filename(self, internal_filename):
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         query = f"""SELECT id, original_filename, url, universal_url, internal_filename, collection,original_path, notes, redacted, datetime, orig_md5
            FROM images 
@@ -260,18 +255,18 @@ class ImageDb(DbUtils):
 
     @retry_with_backoff()
     def delete_image_record(self, internal_filename):
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         delete_image = (f"""delete from images where internal_filename= %s ;""")
 
         self.logger.info(f"deleting image record. SQL: {delete_image}")
         cursor.execute(delete_image, (internal_filename,))
-        self.image_db_connection.cnx.commit()
+        self.commit()
         cursor.close()
 
     @retry_with_backoff()
     def get_collection_list(self):
-        cursor = self.image_db_connection.get_cursor()
+        cursor = self.get_cursor()
 
         query = f"""select collection from collection"""
 

@@ -142,7 +142,7 @@ class AttachmentUtils:
         SELECT ispublic FROM attachment WHERE AttachmentLocation = %s
         """
         cursor = self.db_utils.get_cursor()
-        params = (f"{internal_id}" if internal_id is not None else None)
+        params = (str(internal_id) if internal_id is not None else None,)
         cursor.execute(sql, params)
         retval = cursor.fetchone()
         cursor.close()
