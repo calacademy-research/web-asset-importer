@@ -37,8 +37,7 @@ class UpdatePICFields:
 
         collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectionobject',
                                                                id_col='CollectingEventID',
-                                                               key_col='CatalogNumber', match=barcode,
-                                                               match_type=int)
+                                                               key_col='CatalogNumber', match=barcode)
         return collecting_event_id
 
     def get_locality_id_with_collectingevent(self, collecting_event_id):
@@ -49,8 +48,7 @@ class UpdatePICFields:
 
         locality_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                        id_col='LocalityID',
-                                                       key_col='CollectingEventID', match=collecting_event_id,
-                                                       match_type=int)
+                                                       key_col='CollectingEventID', match=collecting_event_id)
         return locality_id
 
 
@@ -62,16 +60,16 @@ class UpdatePICFields:
 
         is_present = self.sql_csv_tools.get_one_match(tab_name='collectionobject', id_col="AltCatalogNumber",
                                                       key_col="CatalogNumber",
-                                                      match=f"{barcode}", match_type=int)
+                                                      match=f"{barcode}")
 
         if pd.isna(is_present) or self.force_update:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
                                                              val_list=[accession], condition=condition,
                                                              agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
         else:
             self.logger.info(f"Accession number already in collectionobject table at: {barcode}")
 
@@ -87,11 +85,11 @@ class UpdatePICFields:
 
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
-                                                             val_list=[herb_code], condition=condition,
-                                                             agent_id=self.AGENT_ID)
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
+                                                                     val_list=[herb_code], condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
         else:
             self.logger.info(f"Herbarium code already in collectionobject table at:{barcode}")
 
@@ -118,11 +116,11 @@ class UpdatePICFields:
             condition = f"""WHERE LocalityID = {locality_id};"""
 
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                             val_list=val_list, condition=condition,
-                                                             agent_id=self.AGENT_ID)
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
+                                                                     val_list=val_list, condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"Lat/Long already present in locality table at: {locality_id}")
@@ -138,18 +136,17 @@ class UpdatePICFields:
         collecting_event_id = self.get_collectingevent_id(barcode=barcode)
 
         is_present = self.sql_csv_tools.get_one_match(tab_name='collectingevent', id_col="Remarks",
-                                                      key_col="CollectingEventID", match=f"{collecting_event_id}",
-                                                      match_type=int)
+                                                      key_col="CollectingEventID", match=f"{collecting_event_id}")
 
         if is_present or self.force_update:
 
             condition = f"""WHERE CollectingEventID = {collecting_event_id}"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
                                                              val_list=[habitat_string], condition=condition,
                                                              agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"Remarks already filled in collectingevent table at: {collecting_event_id}")
@@ -163,20 +160,19 @@ class UpdatePICFields:
         locality_id = self.get_locality_id_with_collectingevent(collecting_event_id=collecting_event_id)
 
         is_present = self.sql_csv_tools.get_one_match(tab_name='locality', id_col="LocalityName",
-                                                      key_col="LocalityID", match=f"{locality_id}",
-                                                      match_type=int)
+                                                      key_col="LocalityID", match=f"{locality_id}")
 
         if pd.isna(is_present) or self.force_update:
 
             condition = f"""WHERE LocalityID = {locality_id};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
-                                                             val_list=[loc_string],
-                                                             condition=condition,
-                                                             agent_id=self.AGENT_ID
-                                                             )
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
+                                                                     val_list=[loc_string],
+                                                                     condition=condition,
+                                                                     agent_id=self.AGENT_ID
+                                                                     )
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"Locality string already in locality table at:{locality_id}")
@@ -196,13 +192,13 @@ class UpdatePICFields:
         locality_id = self.get_locality_id_with_collectingevent(collecting_event_id=collecting_event_id)
 
         is_present = self.sql_csv_tools.get_one_match(tab_name="locality", id_col="MaxElevation", key_col="LocalityID",
-                                                      match=f"{locality_id}", match_type=int)
+                                                      match=f"{locality_id}")
 
         if pd.isna(is_present) or self.force_update:
 
             condition = f"""WHERE LocalityID = {locality_id};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['MaxElevation',
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['MaxElevation',
                                                                                             'MinElevation',
                                                                                             'OriginalElevationUnit'],
                                                              val_list=[max_elev, min_elev, elev_unit],
@@ -210,7 +206,7 @@ class UpdatePICFields:
                                                              agent_id=self.AGENT_ID
                                                              )
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"Elevation already in locality table at: {locality_id}")
@@ -258,9 +254,9 @@ class UpdatePICFields:
             values, columns = remove_two_index(value_list=value_list, column_list=column_list)
 
             sql = self.sql_csv_tools.create_insert_statement(val_list=values, col_list=columns,
-                                                             tab_name="localitydetail")
+                                                            tab_name="localitydetail")
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(values))
 
 
     def update_locality_det(self, row):
@@ -276,8 +272,7 @@ class UpdatePICFields:
 
         locality_det_id = self.sql_csv_tools.get_one_match(tab_name='localitydetail',
                                                            id_col='LocalityDetailID',
-                                                           key_col='LocalityID', match=locality_id,
-                                                           match_type=int)
+                                                           key_col='LocalityID', match=locality_id)
 
         if not locality_det_id:
             self.create_locality_detail_tab(row=row)
@@ -306,20 +301,20 @@ class UpdatePICFields:
 
         is_present = self.sql_csv_tools.get_one_match(tab_name="localitydetail", id_col="Township",
                                                       key_col="LocalityDetailID",
-                                                      match=f"{locality_det_id}", match_type=int)
+                                                      match=f"{locality_det_id}")
 
         if is_present or self.force_update:
 
             condition = f"""WHERE LocalityDetailID = {locality_det_id};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
-                                                             col_list=['Township', 'RangeDesc', 'Section'],
-                                                             val_list=[row['Township'], row['Range'],
-                                                                       row['Section']],
-                                                             condition=condition,
-                                                             agent_id=self.AGENT_ID)
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
+                                                                     col_list=['Township', 'RangeDesc', 'Section'],
+                                                                     val_list=[row['Township'], row['Range'],
+                                                                               row['Section']],
+                                                                     condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"TRS already present in localitydetail table at: {locality_det_id}")
@@ -333,20 +328,20 @@ class UpdatePICFields:
 
         is_present = self.sql_csv_tools.get_one_match(tab_name="localitydetail", id_col="UtmEasting",
                                                       key_col="LocalityDetailID",
-                                                      match=f"{locality_det_id}", match_type=int)
+                                                      match=f"{locality_det_id}")
 
         if is_present or self.force_update:
 
             condition = f"""WHERE LocalityDetailID = {locality_det_id};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
                                                              col_list=['UtmEasting', 'UtmNorthing', 'UtmDatum'],
                                                              val_list=[row['UtmEasting'], row['UtmNorthing'],
                                                                        row['UtmDatum']],
                                                              condition=condition,
                                                              agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
         else:
             self.logger.info(f"UTM already present in localitydetail table at: {locality_det_id}")

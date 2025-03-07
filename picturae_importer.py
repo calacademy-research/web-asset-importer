@@ -143,11 +143,11 @@ class PicturaeImporter(Importer):
         """updating md5 fields for new taxon and taxon mismatch batches"""
         ending_time_stamp = datetime.now()
 
-        sql = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
+        sql, params = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
                                                        batch_md5=self.batch_md5, batch_size=batch_size,
                                                        agent_id=self.created_by_agent)
 
-        self.batch_sql_tools.insert_table_record(sql=sql)
+        self.batch_sql_tools.insert_table_record(sql=sql, params=params)
 
 
     def exit_timestamp(self):
@@ -443,7 +443,8 @@ class PicturaeImporter(Importer):
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
-            setattr(self, guid_string, uuid4())
+            setattr(self, guid_string, str(uuid4()))
+
 
         self.geography_string = (str(row.County) + ", " + str(row.State) + ", " + str(row.Country)).strip(", ")
 
@@ -473,9 +474,12 @@ class PicturaeImporter(Importer):
         else:
             self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
                                                          taxname=self.tax_name, hybrid=True)
+
         # append taxon full name
         if not self.taxon_id or pd.isna(self.taxon_id):
+
             self.taxon_list.append(self.full_name)
+
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
                 self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
@@ -584,7 +588,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
 
     def create_agent_id(self):
@@ -634,7 +638,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
                                                              val_list=values)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(values))
 
 
     def create_collecting_event(self):
@@ -688,7 +692,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
 
     def create_taxon(self):
@@ -748,7 +752,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
             logging.info(f"taxon: {taxon} created")
 
@@ -832,7 +836,7 @@ class PicturaeImporter(Importer):
         sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
 
     def create_determination(self):
@@ -886,7 +890,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
@@ -945,7 +949,7 @@ class PicturaeImporter(Importer):
             sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
 
     def hide_unwanted_files(self):

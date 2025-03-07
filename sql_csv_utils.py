@@ -54,9 +54,9 @@ class SqlCsvTools:
     def get_records(self, sql, params):
         return self.specify_db_connection.get_records(sql=sql, params=params)
 
-    def get_cursor(self):
+    def get_cursor(self, buffered=False):
         """standard db cursor"""
-        return self.specify_db_connection.get_cursor()
+        return self.specify_db_connection.get_cursor(buffered=buffered)
 
     def commit(self):
         """standard db commit"""
@@ -76,17 +76,22 @@ class SqlCsvTools:
         """
         sql = """
                 SELECT AgentID FROM agent
-                WHERE (FirstName = %s OR FirstName IS NULL)
-                AND (LastName = %s OR LastName IS NULL)
-                AND (MiddleInitial = %s OR MiddleInitial IS NULL)
-                AND (Title = %s OR Title IS NULL)
-                """
-        params = (
-            escape_apostrophes(first_name, reverse=True) if first_name else None,
-            escape_apostrophes(last_name, reverse=True) if last_name else None,
-            escape_apostrophes(middle_initial, reverse=True) if middle_initial else None,
-            escape_apostrophes(title, reverse=True) if title else None,
+                WHERE 
+                    (FirstName = %s OR (%s IS NULL AND FirstName IS NULL))
+                    AND (LastName = %s OR (%s IS NULL AND LastName IS NULL))
+                    AND (MiddleInitial = %s OR (%s IS NULL AND MiddleInitial IS NULL))
+                    AND (Title = %s OR (%s IS NULL AND Title IS NULL))
+            """
+        name_list = [first_name, last_name, middle_initial, title]
+
+        params = tuple(
+            item
+            for name in name_list
+            for item in (lambda processed: (processed, processed))(
+                escape_apostrophes(name, reverse=True) if name not in (None, "") else None
+            )
         )
+
         result = self.get_record(sql, params=params)
         return result[0] if isinstance(result, (list, dict, set)) else result
 
@@ -134,13 +139,17 @@ class SqlCsvTools:
         parts = match.split()
         if len(parts) == 3:
             basename = fullname.split()[0]
-            sql = f'''SELECT TaxonID FROM taxon WHERE 
-                      LOWER(FullName) LIKE "%{parts[0]}%" 
-                      AND LOWER(FullName) LIKE "%{parts[1]}%"
-                      AND LOWER(FullName) LIKE "%{parts[2]}%"
-                      AND LOWER(FullName) LIKE "%{basename}%";'''
 
-            result = self.specify_db_connection.get_records(sql=sql)
+            sql = '''SELECT TaxonID FROM taxon WHERE 
+                             LOWER(FullName) LIKE %s 
+                             AND LOWER(FullName) LIKE %s 
+                             AND LOWER(FullName) LIKE %s 
+                             AND LOWER(FullName) LIKE %s;'''
+
+            # Creating the params tuple with wildcard "%" for LIKE
+            params = (f"%{parts[0]}%", f"%{parts[1]}%", f"%{parts[2]}%", f"%{basename}%")
+
+            result = self.get_records(sql=sql, params=params)
 
             if result:
                 taxon_id = result[0]
@@ -150,8 +159,7 @@ class SqlCsvTools:
             return taxon_id
 
         elif len(parts) < 3:
-            taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname,
-                                          match_type=str)
+            taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname)
 
             return taxon_id
         else:
@@ -159,8 +167,7 @@ class SqlCsvTools:
 
             return None
 
-
-    def get_one_match(self, tab_name, id_col, key_col, match, match_type=str):
+    def get_one_match(self, tab_name, id_col, key_col, match):
         """populate_sql:
                 creates a custom select statement for get one record,
                 from which a result can be gotten more seamlessly
@@ -170,8 +177,6 @@ class SqlCsvTools:
                 id_col: the name of the column in which the unique id is stored
                 key_col: column on which to match values
                 match: value with which to match key_col
-                match_type: "string" or "integer", optional with default as "string"
-                            puts quotes around sql terms or not depending on data type
         """
         sql = f"SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = %s;"
 
@@ -293,8 +298,7 @@ class SqlCsvTools:
         name = name.lower()
         if hybrid is False:
             if "subsp." in name or "var." in name:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                               match_type=str)
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
                 if result_id is None:
                     if "subsp." in name:
                         name = name.replace(" subsp. ", " var. ")
@@ -303,11 +307,9 @@ class SqlCsvTools:
                     else:
                         pass
 
-                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                                   match_type=str)
+                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
             else:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name,
-                                               match_type=str)
+                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
             return result_id
         else:
             result_id = self.get_one_hybrid(match=taxname, fullname=name)

@@ -87,8 +87,7 @@ class UpdateBotDbFields:
 
         collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectionobject',
                                                                id_col='CollectingEventID',
-                                                               key_col='CatalogNumber', match=barcode,
-                                                               match_type=int)
+                                                               key_col='CatalogNumber', match=barcode)
         return collecting_event_id
 
     def get_locality_id_with_collectingevent(self, collecting_event_id):
@@ -99,8 +98,7 @@ class UpdateBotDbFields:
 
         locality_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                        id_col='LocalityID',
-                                                       key_col='CollectingEventID', match=collecting_event_id,
-                                                       match_type=int)
+                                                       key_col='CollectingEventID', match=collecting_event_id)
         return locality_id
 
 
@@ -112,16 +110,16 @@ class UpdateBotDbFields:
 
         is_present = self.sql_csv_tools.get_one_match(tab_name='collectionobject', id_col="AltCatalogNumber",
                                                       key_col="CatalogNumber",
-                                                      match=f"{barcode}", match_type=int)
+                                                      match=f"{barcode}")
 
         if pd.isna(is_present) or self.force_update:
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
-                                                             val_list=[accession], condition=condition,
-                                                             agent_id=self.AGENT_ID)
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
+                                                                     val_list=[accession], condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
         else:
             self.logger.info(f"Accession number already in collectionobject table at: {barcode}")
 
@@ -137,11 +135,11 @@ class UpdateBotDbFields:
 
             condition = f"""WHERE CatalogNumber = {barcode};"""
 
-            sql = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
-                                                             val_list=[herb_code], condition=condition,
-                                                             agent_id=self.AGENT_ID)
+            sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
+                                                                     val_list=[herb_code], condition=condition,
+                                                                     agent_id=self.AGENT_ID)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql, params=params)
         else:
             self.logger.info(f"Herbarium code already in collectionobject table at:{barcode}")
 
@@ -186,11 +184,11 @@ class UpdateBotDbFields:
 
                     condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
-                    sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['LocalityID'],
-                                                                     val_list=[self.locality_id], condition=condition,
-                                                                     agent_id=self.AGENT_ID)
+                    sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['LocalityID'],
+                                                                             val_list=[self.locality_id], condition=condition,
+                                                                             agent_id=self.AGENT_ID)
 
-                    self.sql_csv_tools.insert_table_record(sql=sql)
+                    self.sql_csv_tools.insert_table_record(sql=sql, params=params)
         else:
             pass
 
@@ -215,11 +213,11 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE LocalityID = '{self.locality_id}';"""
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                         val_list=val_list, condition=condition,
-                                                         agent_id=self.AGENT_ID)
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
+                                                                 val_list=val_list, condition=condition,
+                                                                 agent_id=self.AGENT_ID)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
 
 
@@ -236,11 +234,11 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
-                                                         val_list=[habitat_string], condition=condition,
-                                                         agent_id=self.AGENT_ID)
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
+                                                                 val_list=[habitat_string], condition=condition,
+                                                                 agent_id=self.AGENT_ID)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
 
     def update_locality_string(self, row, loc_string):
@@ -250,19 +248,22 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE LocalityID = {self.locality_id};"""
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
-                                                         val_list=[loc_string],
-                                                         condition=condition,
-                                                         agent_id=self.AGENT_ID
-                                                         )
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
+                                                                 val_list=[loc_string],
+                                                                 condition=condition,
+                                                                 agent_id=self.AGENT_ID
+                                                                )
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
     def check_key_unique(self, tab, id_col, id, primarykey):
 
-        sql = f'''SELECT COUNT(DISTINCT {primarykey}) from {tab} WHERE {id_col}={id}'''
+        sql = f'''SELECT COUNT(DISTINCT %s) from %s WHERE %s = %s'''
 
-        count = self.sql_csv_tools.get_record(sql=sql)
+
+        params = (primarykey, tab, id_col, id, )
+
+        count = self.sql_csv_tools.get_record(sql=sql, params=params)
 
         if not pd.isna(count):
             count = int(count)
@@ -284,13 +285,13 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE LocalityID = {self.locality_id};"""
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
-                                                         val_list=val_list,
-                                                         condition=condition,
-                                                         agent_id=self.AGENT_ID
-                                                         )
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
+                                                                 val_list=val_list,
+                                                                 condition=condition,
+                                                                 agent_id=self.AGENT_ID
+                                                                 )
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
 
 
@@ -305,7 +306,7 @@ class UpdateBotDbFields:
 
         geography_id = self.sql_csv_tools.get_one_match(tab_name="locality", id_col="GeographyID",
                                                         key_col="LocalityName",
-                                                        match=row['LocalityName'], match_type=str)
+                                                        match=row['LocalityName'])
 
         column_list = ['TimestampCreated',
                        'TimestampModified',
@@ -400,16 +401,14 @@ class UpdateBotDbFields:
             args:
             row: row of update csv to process"""
         self.locality_det_id = self.sql_csv_tools.get_one_match(tab_name="localitydetail", id_col="LocalityDetailID",
-                                                                key_col="LocalityID", match=self.locality_id,
-                                                                match_type=int)
+                                                                key_col="LocalityID", match=self.locality_id)
 
         if self.locality_det_id is None:
             self.create_locality_detail_tab(row=row)
 
             self.locality_det_id = self.sql_csv_tools.get_one_match(tab_name="localitydetail",
                                                                     id_col="LocalityDetailID",
-                                                                    key_col="LocalityID", match=self.locality_id,
-                                                                    match_type=int)
+                                                                    key_col="LocalityID", match=self.locality_id)
         else:
             self.logger.info("editing existing localitydetail entry")
 
@@ -438,13 +437,13 @@ class UpdateBotDbFields:
 
         col_list = self.make_update_list(['Township', 'RangeDesc', 'Section'])
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
                                                          col_list=col_list,
                                                          val_list=row[col_list],
                                                          condition=condition,
                                                          agent_id=self.AGENT_ID)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
 
     def update_utm(self, row):
@@ -457,13 +456,13 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE LocalityDetailID = {self.locality_det_id};"""
 
-        sql = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
-                                                         col_list=col_list,
-                                                         val_list=row[col_list],
-                                                         condition=condition,
-                                                         agent_id=self.AGENT_ID)
+        sql, params = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
+                                                                 col_list=col_list,
+                                                                 val_list=row[col_list],
+                                                                 condition=condition,
+                                                                 agent_id=self.AGENT_ID)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql=sql, params=params)
 
 
 # def update_dummy():
