@@ -1,8 +1,5 @@
 import logging
-import sys
 import traceback
-import re
-import sqlite3
 import time
 from mysql.connector import errorcode
 import mysql.connector

@@ -81,7 +81,6 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
         for index, row in self.test_picturae_importer_lite.record_full.iterrows():
             self.test_picturae_importer_lite.populate_fields(row)
             self.test_picturae_importer_lite.populate_taxon()
-            self.test_picturae_importer_lite.logger.info(f"SAK{self.test_picturae_importer_lite.taxon_list}")
             self.assertEqual(self.test_picturae_importer_lite.taxon_list, tax_names[index])
 
     def test_generate_taxon_fields(self):

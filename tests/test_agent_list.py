@@ -1,5 +1,3 @@
-import logging
-
 import pandas as pd
 from tests.pic_importer_test_class import AltPicturaeImporter
 import unittest

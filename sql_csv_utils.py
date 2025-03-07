@@ -5,7 +5,6 @@ import time_utils
 from datetime import datetime
 from datetime import timedelta
 import string_utils
-from string_utils import escape_apostrophes
 import sys
 from specify_db import SpecifyDb
 import logging
@@ -88,7 +87,7 @@ class SqlCsvTools:
             item
             for name in name_list
             for item in (lambda processed: (processed, processed))(
-                escape_apostrophes(name, reverse=True) if name not in (None, "") else None
+                name if name not in (None, "") else None
             )
         )
 
@@ -212,11 +211,12 @@ class SqlCsvTools:
                           requires database ip, which sqlite does not have
         """
         cursor = self.get_cursor()
-        self.logger.debug(f"running query - {sql}")
         try:
             if params:
+                self.logger.debug(f"running query - {sql} with params {params}")
                 cursor.execute(sql, params)
             else:
+                self.logger.debug(f"running query - {sql}")
                 cursor.execute(sql)
             self.commit()
         except Exception as e:
