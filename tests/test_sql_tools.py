@@ -21,7 +21,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
     def setUp(self):
         """setting up instance of PicturaeImporter"""
-        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite()
 
         self.sqlite_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
@@ -42,15 +42,15 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
            creates the correct multi-value sql string for insert statements"""
 
         sql = self.sqlite_csv_tools.create_insert_statement(tab_name="codetab", val_list=[4, 5, "on mt"],
-                                                         col_list=['code4', 'code5', 'local'])
+                                                            col_list=['code4', 'code5', 'local'])
 
-        self.assertEqual(sql, f'''INSERT INTO codetab (code4, code5, local) VALUES(4, 5, 'on mt');''')
+        self.assertEqual(sql, f'''INSERT INTO codetab (code4, code5, local) VALUES (%s, %s, %s);''')
 
         sql = self.sqlite_csv_tools.create_insert_statement(tab_name="cattab",
-                                                         val_list=[1, 2, 3, "cat"],
-                                                         col_list=['tax1', 'tax2', 'tax3', 'feline1'])
+                                                            val_list=[1, 2, 3, "cat"],
+                                                            col_list=['tax1', 'tax2', 'tax3', 'feline1'])
 
-        self.assertEqual(sql, f'''INSERT INTO cattab (tax1, tax2, tax3, feline1) VALUES(1, 2, 3, 'cat');''')
+        self.assertEqual(sql, f'''INSERT INTO cattab (tax1, tax2, tax3, feline1) VALUES (%s, %s, %s, %s);''')
 
     def test_remove_two_index(self):
         """tests whether remove two index will drop
@@ -71,7 +71,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         self.collecting_event_id = 123456
         self.barcode = 45678
         self.starting_time_stamp = datetime.now()
-        self.collection_ob_guid = uuid4()
+        self.collection_ob_guid = str(uuid4())
         self.created_by_agent = 98765
         table = 'collectionobject'
 
@@ -98,17 +98,15 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         sql = self.sqlite_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                             val_list=value_list)
 
-        self.sqlite_csv_tools.insert_table_record(sql=sql)
+        self.sqlite_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
 
         collection_ob_guid = self.sqlite_csv_tools.get_one_match(id_col="GUID", tab_name="collectionobject",
                                                                  key_col="CatalogNumber",
-                                                                 match=self.barcode,
-                                                                 match_type=int)
+                                                                 match=self.barcode)
 
         catalog_number = self.sqlite_csv_tools.get_one_match(id_col="CatalogNumber", tab_name="collectionobject",
                                                              key_col="GUID",
-                                                             match=self.collection_ob_guid,
-                                                             match_type=str)
+                                                             match=self.collection_ob_guid)
 
         # asserting that station field number is in right column
 
@@ -129,10 +127,11 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
         self.test_picturae_importer_lite.create_locality_record()
 
+        print(self.test_picturae_importer_lite.locality)
+
         data_base_locality = self.sqlite_csv_tools.get_one_match(id_col="LocalityID", tab_name="locality",
                                                                  key_col="LocalityName",
-                                                                 match=self.test_picturae_importer_lite.locality,
-                                                                 match_type=str)
+                                                                 match=self.test_picturae_importer_lite.locality)
 
         self.assertFalse(data_base_locality is None)
 
@@ -140,8 +139,7 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
 
         data_base_geo_code = self.sqlite_csv_tools.get_one_match(id_col="GeographyID", tab_name="locality",
                                                                  key_col="LocalityName",
-                                                                 match=self.test_picturae_importer_lite.locality,
-                                                                 match_type=str)
+                                                                 match=self.test_picturae_importer_lite.locality)
 
         self.assertEqual(data_base_geo_code, self.test_picturae_importer_lite.GeographyID)
 

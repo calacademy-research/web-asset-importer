@@ -47,21 +47,26 @@ def parse_command_line():
 
     search_parser.add_argument('term')
 
-    parser.add_argument('-d', '--date', nargs="?", help='batch date in the form YYYYMMDD, the date which the batch was imaged.', default=None)
+    parser.add_argument('-d', '--date', nargs="?", help='batch date in the form YYYYMMDD, '
+                                                        'the date which the batch was imaged.',
+                                                        default=None)
 
-    parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database', default=None)
+    parser.add_argument('-m', '--md5', nargs="?", type=str,  help='md5 batch to remove from database',
+                                                                  default=None)
 
     parser.add_argument('-f', '--full_import', nargs="?", type=bool, help='Set to True if doing an '
-                                                                           'import that imports both data and images',
-                        default=False)
+                                                                          'import that imports both data and images',
+                                                                          default=False)
+
     parser.add_argument('-e', '--existing_barcodes', nargs="?", type=bool, help="if True, skips creating skeleton"
                                                                                 "record and creating new image record"
                                                                                 "for images without collection objects",
-                                                                            default=False)
+                                                                                default=False)
 
     parser.add_argument('-uf', '--force_update', nargs="?", type=bool, help='Set to True if '
                                                                             'you desire to overwrite '
-                                                                            'existing data when updating', default=False)
+                                                                            'existing data when updating',
+                                                                            default=False)
 
     return parser.parse_args()
 
