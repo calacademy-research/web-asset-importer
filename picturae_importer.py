@@ -324,10 +324,10 @@ class PicturaeImporter(Importer):
 
         for i in range(1, matches+1):
             try:
-                first = escape_apostrophes(getattr(row, f'collector_first_name{i}', ''))
-                middle = escape_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
-                last = escape_apostrophes(getattr(row, f'collector_last_name{i}', ''))
-                agent_id = escape_apostrophes(getattr(row, f'agent_id{i}', ''))
+                first = getattr(row, f'collector_first_name{i}', '')
+                middle = getattr(row, f'collector_middle_name{i}', '')
+                last = getattr(row, f'collector_last_name{i}', '')
+                agent_id = getattr(row, f'agent_id{i}', '')
 
             except ValueError:
                 break
@@ -531,7 +531,6 @@ class PicturaeImporter(Importer):
             rank_id = 140
             tree_item_id = 11
 
-        self.logger.info(f"{self.full_name}")
         if rank_id < 220 or (taxon == self.full_name and float(self.overall_score) < .90):
             author_insert = ''
 
