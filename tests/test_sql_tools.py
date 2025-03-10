@@ -41,16 +41,16 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         """testing if create_sql_string
            creates the correct multi-value sql string for insert statements"""
 
-        sql = self.sqlite_csv_tools.create_insert_statement(tab_name="codetab", val_list=[4, 5, "on mt"],
+        sql_statement = self.sqlite_csv_tools.create_insert_statement(tab_name="codetab", val_list=[4, 5, "on mt"],
                                                             col_list=['code4', 'code5', 'local'])
 
-        self.assertEqual(sql, f'''INSERT INTO codetab (code4, code5, local) VALUES (%s, %s, %s);''')
+        self.assertEqual(sql_statement.sql, f'''INSERT INTO codetab (code4, code5, local) VALUES (%s, %s, %s);''')
 
-        sql = self.sqlite_csv_tools.create_insert_statement(tab_name="cattab",
+        sql_statement = self.sqlite_csv_tools.create_insert_statement(tab_name="cattab",
                                                             val_list=[1, 2, 3, "cat"],
                                                             col_list=['tax1', 'tax2', 'tax3', 'feline1'])
 
-        self.assertEqual(sql, f'''INSERT INTO cattab (tax1, tax2, tax3, feline1) VALUES (%s, %s, %s, %s);''')
+        self.assertEqual(sql_statement.sql, f'''INSERT INTO cattab (tax1, tax2, tax3, feline1) VALUES (%s, %s, %s, %s);''')
 
     def test_remove_two_index(self):
         """tests whether remove two index will drop
@@ -95,10 +95,10 @@ class TestSqlInsert(unittest.TestCase, TestingTools):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sqlite_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
-                                                            val_list=value_list)
+        sql_statement = self.sqlite_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+                                                                      val_list=value_list)
 
-        self.sqlite_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+        self.sqlite_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
         collection_ob_guid = self.sqlite_csv_tools.get_one_match(id_col="GUID", tab_name="collectionobject",
                                                                  key_col="CatalogNumber",

@@ -2,16 +2,22 @@ import traceback
 import pandas as pd
 from gen_import_utils import remove_two_index
 import time_utils
+from dataclasses import dataclass
 from datetime import datetime
 from datetime import timedelta
 import string_utils
 import sys
 from specify_db import SpecifyDb
 import logging
-from typing import Union
+from typing import Union, Optional, List
 
 class DatabaseConnectionError(Exception):
     pass
+
+@dataclass
+class SqlStatement:
+    sql: str
+    params: Optional[List] = None
 
 class SqlCsvTools:
     def __init__(self, config, logging_level=logging.INFO):
@@ -196,7 +202,7 @@ class SqlCsvTools:
         column_list = ', '.join(col_list)
         placeholders = ', '.join(['%s'] * len(val_list))
         sql = f'''INSERT INTO {tab_name} ({column_list}) VALUES ({placeholders});'''
-        return sql
+        return SqlStatement(sql=sql, params=val_list if val_list else None)
 
     def insert_table_record(self, sql, params=None):
         """create_table_record:
@@ -214,6 +220,7 @@ class SqlCsvTools:
         try:
             if params:
                 self.logger.debug(f"running query - {sql} with params {params}")
+                params = tuple(params)
                 cursor.execute(sql, params)
             else:
                 self.logger.debug(f"running query - {sql}")
@@ -262,9 +269,9 @@ class SqlCsvTools:
 
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.create_insert_statement(col_list=column_list, val_list=value_list, tab_name="picturae_batch")
+        sql_statement = self.create_insert_statement(col_list=column_list, val_list=value_list, tab_name="picturae_batch")
 
-        return sql, tuple(value_list)
+        return sql_statement
 
     def create_update_statement(self, tab_name, agent_id, col_list, val_list, condition):
         """create_update_string: function used to create sql string used to upload a list of values in the database
@@ -285,7 +292,7 @@ class SqlCsvTools:
 
         update_string = update_string.rstrip(',')
         sql = f"UPDATE {tab_name} " + update_string + ' ' + condition
-        return sql, params
+        return SqlStatement(sql=sql, params=params if params else None)
 
     def taxon_get(self, name, hybrid=False, taxname=None):
         """taxon_get: function to retrieve taxon id from specify database:
@@ -328,8 +335,8 @@ class SqlCsvTools:
         for _, row in taxa_frame.iterrows():
             tax_id = self.get_one_match('picturaetaxa_added', 'newtaxID', 'fullname', row['fullname'], str)
             if tax_id is None:
-                sql, params = self.create_new_tax_tab(row, 'picturaetaxa_added', agent_id)
-                self.insert_table_record(sql, params)
+                sql_statement = self.create_new_tax_tab(row, 'picturaetaxa_added', agent_id)
+                self.insert_table_record(sql_statement.sql, sql_statement.params)
 
     def create_new_tax_tab(self, row, tab_name: str, agent_id: Union[str, int]):
         """create_new_tax: does a similar function as create_unmatch_tab,
@@ -365,5 +372,5 @@ class SqlCsvTools:
 
         val_list, col_list = remove_two_index(val_list, col_list)
 
-        sql = self.create_insert_statement(col_list, val_list, tab_name)
-        return sql, tuple(val_list)
+        sql_statement = self.create_insert_statement(col_list, val_list, tab_name)
+        return sql_statement

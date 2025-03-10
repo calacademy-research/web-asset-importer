@@ -104,7 +104,7 @@ class DbUtils:
             if params is None:
                 cursor.execute(sql)  # No parameters
             else:
-                cursor.execute(sql, params)
+                cursor.execute(sql, tuple(params))
 
             retval = cursor.fetchone()
             cursor.close()
@@ -132,7 +132,7 @@ class DbUtils:
             if cursor is None:
                 raise mysql.connector.Error("Failed to acquire a database cursor")
             if params:
-                cursor.execute(sql, params)
+                cursor.execute(sql, tuple(params))
             else:
                 cursor.execute(sql)
             record_list = list(cursor.fetchall())
@@ -189,7 +189,7 @@ class DbUtils:
 
             cursor = self.cnx.cursor(buffered=True)  # Use buffered cursor
             if params:
-                cursor.execute(sql, params=params)
+                cursor.execute(sql, params=tuple(params))
             else:
                 cursor.execute(sql)
 

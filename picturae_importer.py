@@ -143,11 +143,11 @@ class PicturaeImporter(Importer):
         """updating md5 fields for new taxon and taxon mismatch batches"""
         ending_time_stamp = datetime.now()
 
-        sql, params = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                       batch_md5=self.batch_md5, batch_size=batch_size,
-                                                       agent_id=self.created_by_agent)
+        sql_statement = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
+                                                                 batch_md5=self.batch_md5, batch_size=batch_size,
+                                                                 agent_id=self.created_by_agent)
 
-        self.batch_sql_tools.insert_table_record(sql=sql, params=params)
+        self.batch_sql_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
 
     def exit_timestamp(self):
@@ -584,10 +584,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_agent_id(self):
@@ -634,10 +634,10 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             values, columns = remove_two_index(values, columns)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
                                                              val_list=values)
 
-            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(values))
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_collecting_event(self):
@@ -688,10 +688,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_taxon(self):
@@ -748,10 +748,10 @@ class PicturaeImporter(Importer):
 
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+            self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
             logging.info(f"taxon: {taxon} created")
 
@@ -832,10 +832,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_determination(self):
@@ -886,10 +886,10 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
@@ -945,10 +945,10 @@ class PicturaeImporter(Importer):
 
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql, params=tuple(value_list))
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def hide_unwanted_files(self):
