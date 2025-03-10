@@ -27,7 +27,7 @@ class HideFilesTest(unittest.TestCase,TestingTools):
                                    f"_BATCH_0001/CAS{123456}.JPG"
 
         # initializing
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter()
 
         self.test_picturae_importer.image_list = [self.expected_image_path]
 

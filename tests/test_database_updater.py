@@ -14,7 +14,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
     def setUp(self):
         """setup: creates dummy database and backup copy of sqlite database"""
 
-        self.alt_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
+        self.alt_importer_lite = AltPicturaeImporterlite()
 
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
@@ -90,7 +90,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
         acc_num = self.sql_csv_tools.get_one_match(tab_name="collectionobject",
                                                    id_col="AltCatalogNumber",
                                                    key_col="CatalogNumber",
-                                                   match=999999972, match_type=int)
+                                                   match=999999972)
         self.assertEqual("2000000", acc_num)
 
 
@@ -108,7 +108,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
         herb_code = self.sql_csv_tools.get_one_match(tab_name="collectionobject",
                                                      id_col="Modifier",
                                                      key_col="CatalogNumber",
-                                                     match=999999972, match_type=int)
+                                                     match=999999972)
         self.assertEqual("CAS", herb_code)
 
 
@@ -216,8 +216,7 @@ class TestDatabaseUpdater(unittest.TestCase, TestingTools):
             locality_det_id = self.sql_csv_tools.get_one_match(tab_name='localitydetail',
                                                                id_col='LocalityDetailID',
                                                                key_col='LocalityID',
-                                                               match=self.alt_importer_lite.locality_id,
-                                                               match_type=int)
+                                                               match=self.alt_importer_lite.locality_id)
             self.assertFalse(pd.isna(locality_det_id))
 
             up_list = self.alt_update_db.make_update_list(check_list=['Township', 'RangeDesc',

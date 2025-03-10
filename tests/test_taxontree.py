@@ -14,13 +14,12 @@ from gen_import_utils import unique_ordered_list
 class Testtaxontrees(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.md5_hash = self.generate_random_md5()
         self.logger = logging.getLogger("TestSqlInsert")
         self.taxon_dicts = []
 
 
     def setUp(self):
-        self.test_picturae_importer_lite = AltPicturaeImporterlite(date_string=self.md5_hash)
+        self.test_picturae_importer_lite = AltPicturaeImporterlite()
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
@@ -73,6 +72,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
     def test_populate_taxon(self):
         """will test iterative taxon sorting function"""
+        # empty bracket is for taxonomic name already in database.
         tax_names = [[],
                      ["Castilleja miniata subsp. fakus var. fake x cool", "Castilleja miniata subsp. fakus"],
                      ["Rafflesia arnoldi var. summi", "Rafflesia arnoldi"],
@@ -80,66 +80,56 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
         for index, row in self.test_picturae_importer_lite.record_full.iterrows():
             self.test_picturae_importer_lite.populate_fields(row)
-
             self.test_picturae_importer_lite.populate_taxon()
-
             self.assertEqual(self.test_picturae_importer_lite.taxon_list, tax_names[index])
 
-
     def test_generate_taxon_fields(self):
-        """tests that generate taxon fields assigns the expected values to each field"""
+        """Tests that generate taxon fields assigns the expected values to each field"""
 
-        # test lists of expected order of ranks, and names
-        # order set as taxon added highest to lowest rank
+        # Expected values
         rank_list = [230, 240, 220, 240, 220]
         tax_ends = ["fakus", "fake x cool", "arnoldi", "summi", "x ambigua"]
+
         rank_num = 0
-        for index, row in self.test_picturae_importer_lite.record_full.iterrows():
+
+        for _, row in self.test_picturae_importer_lite.record_full.iterrows():
             self.test_picturae_importer_lite.populate_fields(row)
-
-            self.test_picturae_importer_lite.taxon_list = []
-
             self.test_picturae_importer_lite.populate_taxon()
 
-
+            # Generate taxon fields
             self.test_picturae_importer_lite.taxon_guid = uuid4()
-
-            self.test_picturae_importer_lite.parent_list = [self.test_picturae_importer_lite.full_name,
-                                                            self.test_picturae_importer_lite.first_intra,
-                                                            self.test_picturae_importer_lite.gen_spec,
-                                                            self.test_picturae_importer_lite.genus,
-                                                            self.test_picturae_importer_lite.family_name]
-
-            self.test_picturae_importer_lite.parent_list = unique_ordered_list(self.test_picturae_importer_lite.parent_list)
+            self.test_picturae_importer_lite.parent_list = unique_ordered_list([
+                self.test_picturae_importer_lite.full_name,
+                self.test_picturae_importer_lite.first_intra,
+                self.test_picturae_importer_lite.gen_spec,
+                self.test_picturae_importer_lite.genus,
+                self.test_picturae_importer_lite.family_name
+            ])
 
             for index, taxon in reversed(list(enumerate(self.test_picturae_importer_lite.taxon_list))):
+                author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id = (
+                    self.test_picturae_importer_lite.generate_taxon_fields(index=index, taxon=taxon)
+                )
 
-                author_insert, tree_item_id, \
-                rank_end, parent_id, taxon_guid, rank_id = self.test_picturae_importer_lite.generate_taxon_fields(
-                                                           index=index, taxon=taxon)
+                expected_parent_id = self.sql_csv_tools.get_one_match(
+                    id_col="TaxonID",
+                    tab_name="taxon",
+                    key_col="FullName",
+                    match=self.test_picturae_importer_lite.parent_list[index + 1]
+                )
 
-                test_parent_id = self.sql_csv_tools.get_one_match(id_col="TaxonID", tab_name="taxon",
-                                                                  key_col="FullName",
-                                                                  match=self.test_picturae_importer_lite.parent_list[index+1],
-                                                                  match_type=str)
-
-                self.assertEqual(parent_id, test_parent_id)
-
-                if self.test_picturae_importer_lite.is_hybrid is False and taxon == self.test_picturae_importer_lite.full_name:
-                    self.assertEqual(author_insert, row['matched_name_author'])
-
-                elif self.test_picturae_importer_lite.is_hybrid is False:
-                    pass
-
-                elif self.test_picturae_importer_lite.is_hybrid is True:
-                    self.assertTrue(pd.isna(author_insert) or author_insert == '')
-
+                # Assertions
+                self.assertEqual(parent_id, expected_parent_id)
                 self.assertEqual(rank_id, rank_list[rank_num])
-
                 self.assertEqual(rank_end, tax_ends[rank_num])
 
-                rank_num += 1
+                # Author insertion checks
+                if self.test_picturae_importer_lite.is_hybrid:
+                    self.assertTrue(pd.isna(author_insert) or author_insert == '')
+                elif taxon == self.test_picturae_importer_lite.full_name:
+                    self.assertEqual(author_insert, row['matched_name_author'])
 
+                rank_num += 1
 
 
     def test_taxon_insert(self):
@@ -169,28 +159,24 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
             name_pull = self.sql_csv_tools.get_one_match(id_col="Name", tab_name="taxon",
                                                          key_col="FullName",
-                                                         match=full_name[index],
-                                                         match_type=str)
+                                                         match=full_name[index])
             self.assertEqual(name_pull, tax_end)
 
-        # checking parent id
+            # checking parent id
 
             parent_id = self.sql_csv_tools.get_one_match(id_col="ParentID", tab_name="taxon",
-                                                        key_col="FullName",
-                                                        match=full_name[index],
-                                                        match_type=str)
+                                                         key_col="FullName",
+                                                         match=full_name[index])
 
             parent_name = self.sql_csv_tools.get_one_match(id_col="FullName", tab_name="taxon",
                                                            key_col="ParentID",
-                                                           match=parent_id,
-                                                           match_type=int)
+                                                           match=parent_id)
             self.assertTrue(parent_names[index], parent_name)
 
             # checking taxon id
             pull_taxid = self.sql_csv_tools.get_one_match(id_col="TaxonID", tab_name="taxon",
                                                           key_col="FullName",
-                                                          match=full_name[index],
-                                                          match_type=str)
+                                                          match=full_name[index])
 
             self.assertFalse(pd.isna(pull_taxid))
 
