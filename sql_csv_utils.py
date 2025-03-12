@@ -228,7 +228,6 @@ class SqlCsvTools:
             self.commit()
         except Exception as e:
             self.logger.error(traceback.format_exc())
-            sys.exit("terminating script")
         cursor.close()
 
     def create_batch_record(self, start_time: datetime, end_time: datetime,
@@ -333,7 +332,7 @@ class SqlCsvTools:
         """
         taxa_frame = df[df['fullname'].isin(taxon_list)].drop_duplicates(subset=['fullname'])
         for _, row in taxa_frame.iterrows():
-            tax_id = self.get_one_match('picturaetaxa_added', 'newtaxID', 'fullname', row['fullname'], str)
+            tax_id = self.get_one_match('picturaetaxa_added', 'newtaxID', 'fullname', row['fullname'])
             if tax_id is None:
                 sql_statement = self.create_new_tax_tab(row, 'picturaetaxa_added', agent_id)
                 self.insert_table_record(sql_statement.sql, sql_statement.params)
