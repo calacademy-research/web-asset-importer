@@ -178,7 +178,13 @@ class IzImporter(Importer):
         return None
 
     def extract_exact_casiz_match(self, candidate_string):
-        return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_MATCH)
+        match = None
+        if re.search(r'casiz', candidate_string, re.IGNORECASE):
+            match = re.search(self.iz_importer_config.CASIZ_NUMBER_EXACT, candidate_string, re.IGNORECASE)
+        else:
+            match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
+
+        return match
 
     def extract_casiz_single(self, candidate_string):
         return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_NUMBER)
