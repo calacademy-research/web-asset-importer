@@ -18,15 +18,13 @@ IzImporter.__init__
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import json
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from iz_importer import IzImporter
 from test_base import TestIzImporterBase
 
 @patch('importer.SpecifyDb')
-
 
 class TestIzImporterCasiz(TestIzImporterBase):
 
@@ -148,47 +146,44 @@ class TestIzImporterCasiz(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         
         # Get all image files from test directory
-        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
-        with open(mock_data_file, 'r') as f:
-            mock_data = json.load(f)
-        for file_path, casiz_info in mock_data['casiz_number_cases'].items():
+        mock_data = self.get_mock_data()
+        for file_path, file_info in mock_data['files'].items():
             result = self.importer.extract_exact_casiz_match(file_path)
-            if casiz_info is not None:
-                self.assertEqual(result.group(), casiz_info)
+            if file_info['casiz']['from_filename'] is not None:
+                self.assertEqual(result.group(), file_info['casiz']['from_filename'], \
+                                 f"Expected {file_info['casiz']['from_filename']} for {file_path}")
             else:
-                self.assertIsNone(result)
+                self.assertIsNone(result, f"Expected None for {file_path}")
 
     def test_get_casiz_from_exif(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         
         # Get all image files from test directory
         test_file_dir = os.path.join(os.path.dirname(__file__), '..')
-        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
-        with open(mock_data_file, 'r') as f:
-            mock_data = json.load(f)
+        mock_data = self.get_mock_data()
 
-        for file_path, casiz_numbers in mock_data['casiz_number_cases_exif'].items():
+        for file_path, file_info in mock_data['files'].items():
             file_path = os.path.join(test_file_dir, file_path)
             exif_metadata = self.importer._read_exif_metadata(file_path)
             result = self.importer.get_casiz_from_exif(exif_metadata)
-            if result is not None:
-                self.assertEqual(result, casiz_numbers)
+            if file_info['casiz']['from_exif'] is not None:
+                self.assertEqual(result, file_info['casiz']['from_exif'], \
+                                 f"Expected {file_info['casiz']['from_exif']} for {file_path}")
             else:
-                self.assertIsNone(result)
+                self.assertIsNone(result, f"Expected None for {file_path}")
     
     def test_attempt_directory_match(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         # Get all image files from test directory
         test_file_dir = os.path.join(os.path.dirname(__file__), '..')
-        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
-        with open(mock_data_file, 'r') as f:
-            mock_data = json.load(f)
-        for file, casiz_numbers in mock_data['directory_matches'].items():
-            directory = os.path.join(test_file_dir, file)
+        mock_data = self.get_mock_data()
+        for file_path, file_info in mock_data['files'].items():
+            directory = os.path.join(test_file_dir, file_path)
             result = self.importer.attempt_directory_match(directory)
 
             if result == True:
-                self.assertEqual(self.importer.casiz_numbers, casiz_numbers, f"Expected {casiz_numbers} for {directory}")
+                self.assertEqual(self.importer.casiz_numbers, file_info['casiz']['from_directory'], \
+                                 f"Expected {file_info['casiz']['from_directory']} for {directory}")
             else:
                 self.assertEqual(self.importer.casiz_numbers, [], f"Expected empty list for {directory}")
             self.importer.casiz_numbers = []

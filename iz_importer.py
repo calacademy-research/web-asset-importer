@@ -227,16 +227,32 @@ class IzImporter(Importer):
         return False
 
     def extract_copyright_from_string(self, copyright_string):
+        if not copyright_string:
+            return None
         copyright = None
 
-        if '©' in copyright_string:
-            copyright = copyright_string.split('©')[-1]
-        if 'copyright' in copyright_string:
-            copyright = copyright_string.split('copyright')[-1]
+        # Case-insensitive search for 'copyright' and literal '©'
+        lower_str = copyright_string.lower()
+        idx_c = lower_str.rfind('copyright')
+        idx_sym = copyright_string.rfind('©')
+
+        # Determine which one comes last in the string
+        if idx_c == -1 and idx_sym == -1:
+            return None
+        elif idx_c > idx_sym:
+            # Extract after 'copyright'
+            copyright = copyright_string[idx_c + len('copyright'):]
+        else:
+            # Extract after '©'
+            copyright = copyright_string[idx_sym + 1:]
+
+        # Clean it up
         if copyright is not None:
             copyright = copyright.strip()
             copyright = re.sub(r'\s*_.*$', '', copyright)
+
         return copyright
+
 
     def get_casiz_from_exif(self, exif_metadata):
         priority_tags = [
@@ -276,7 +292,8 @@ class IzImporter(Importer):
         return None
 
     def extract_copyright(self, orig_case_full_path, exif_metadata, file_key):
-        if file_key is not None and file_key['CopyrightHolder'] is not None:
+        if file_key is not None and 'CopyrightHolder' in file_key and \
+            file_key['CopyrightHolder'] is not None:
             self.copyright = file_key['CopyrightHolder']
             return 'file key'
 

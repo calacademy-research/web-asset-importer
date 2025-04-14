@@ -1,18 +1,15 @@
 import os
 import sys
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 import json
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from iz_importer import IzImporter
 @patch('importer.SpecifyDb')
 
-
 class TestIzImporterBase(unittest.TestCase):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def setUp(self):
         self.importer = None
 
     def _getImporter(self, mock_specify_db, image_db_result=False):
@@ -34,3 +31,9 @@ class TestIzImporterBase(unittest.TestCase):
         if not self.importer:
             raise Exception("Failed to initialize importer")
         return self.importer
+    
+    def get_mock_data(self):
+        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data_restructured.json')
+        with open(mock_data_file, 'r') as f:
+            mock_data = json.load(f)
+        return mock_data

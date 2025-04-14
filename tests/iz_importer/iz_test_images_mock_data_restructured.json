@@ -1,0 +1,4195 @@
+{
+  "files": {
+    "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg": {
+      "path": "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg",
+      "extension": ".jpeg",
+      "casiz_numbers": [
+        117433
+      ],
+      "has_key_file": true,
+      "size": 37164,
+      "modified": "2025-03-26T16:24:42",
+      "casiz": {
+        "from_filename": "CASIZ_117433",
+        "from_exif": [117433],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Ashley Kidd",
+        "from_exif": "\u00a9 A. Kidd licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 A. Kidd licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "A. Kidd"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Ashley Kidd"
+        ]
+      }
+    },
+    "iz_test_images/Robert Van Syoc Copyright CAS/058617IZ bottom.jpg": {
+      "path": "iz_test_images/Robert Van Syoc Copyright CAS/058617IZ bottom.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        58617
+      ],
+      "has_key_file": true,
+      "size": 43942,
+      "modified": "2025-03-26T16:24:43",
+      "casiz": {
+        "from_filename": "058617",
+        "from_exif": [
+          58617
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Robert Van Syoc",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Robert Van Syoc"
+        ]
+      }
+    },
+    "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG": {
+      "path": "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        190941
+      ],
+      "has_key_file": true,
+      "size": 29292,
+      "modified": "2025-03-26T16:24:43",
+      "casiz": {
+        "from_filename": "CASIZ 190941",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Nathan Hollenbeck licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Nathan Hollenbeck licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Nathan Hollenbeck"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Nathan Hollenbeck"
+        ]
+      }
+    },
+    "iz_test_images/Zyanya Mora Vallin Copyright CAS/IMG_8870.JPG": {
+      "path": "iz_test_images/Zyanya Mora Vallin Copyright CAS/IMG_8870.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 20060,
+      "modified": "2025-03-26T16:24:43",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          1097
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Zyanya Mora Vallin",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Zyanya Mora Vallin"
+        ]
+      }
+    },
+    "iz_test_images/Neil Fahy/CASIZ 058827 V1158A.jpg": {
+      "path": "iz_test_images/Neil Fahy/CASIZ 058827 V1158A.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        58827
+      ],
+      "has_key_file": true,
+      "size": 26962,
+      "modified": "2025-03-26T16:24:44",
+      "casiz": {
+        "from_filename": "CASIZ 058827",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Neil Fahy licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Neil Fahy licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Neil Fahy"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Neil Fahy"
+        ]
+      }
+    },
+    "iz_test_images/Christine Garcia Copyright CAS/43985_B,Radius4,Smoothing1_2.tif": {
+      "path": "iz_test_images/Christine Garcia Copyright CAS/43985_B,Radius4,Smoothing1_2.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        43985
+      ],
+      "has_key_file": true,
+      "size": 34582,
+      "modified": "2025-03-26T16:24:44",
+      "casiz": {
+        "from_filename": "43985",
+        "from_exif": [
+          43985
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christine Garcia",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christine Garcia"
+        ]
+      }
+    },
+    "iz_test_images/Rachel Quock Copyright CAS/CAS 005707 Schizobopyrina bombyliaster HOLOTYPE dorsal.tif": {
+      "path": "iz_test_images/Rachel Quock Copyright CAS/CAS 005707 Schizobopyrina bombyliaster HOLOTYPE dorsal.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        5707
+      ],
+      "has_key_file": true,
+      "size": 34724,
+      "modified": "2025-03-26T16:24:45",
+      "casiz": {
+        "from_filename": "005707",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          "2023"
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Rachel Quock",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Rachel Quock"
+        ]
+      }
+    },
+    "iz_test_images/Robert Van Syoc/198185 AND 214318 VS.jpg": {
+      "path": "iz_test_images/Robert Van Syoc/198185 AND 214318 VS.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        198185
+      ],
+      "has_key_file": true,
+      "size": 34631,
+      "modified": "2025-03-26T16:24:45",
+      "casiz": {
+        "from_filename": "198185",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Robert Van Syoc",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Robert Van Syoc"
+        ]
+      }
+    },
+    "iz_test_images/Barbara Andrews/Barbara in the Joaquin Rocks hole (3).jpg": {
+      "path": "iz_test_images/Barbara Andrews/Barbara in the Joaquin Rocks hole (3).jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 30940,
+      "modified": "2025-03-26T16:24:46",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          198185,
+          214318
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Barb Andrews",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "\"Barb Andrews",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Barb Andrews"
+        ]
+      }
+    },
+    "iz_test_images/Jackie Sones/Dosima_fascicularis CASIZ 202357.jpg": {
+      "path": "iz_test_images/Jackie Sones/Dosima_fascicularis CASIZ 202357.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        202357
+      ],
+      "has_key_file": true,
+      "size": 28672,
+      "modified": "2025-03-26T16:24:46",
+      "casiz": {
+        "from_filename": "CASIZ 202357",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Jackie Sones, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Jackie Sones",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Jackie Sones"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Jackie Sones"
+        ]
+      }
+    },
+    "iz_test_images/Credit unknown_CAS copyright_NOT photoslide scan/20220429_125033.jpg": {
+      "path": "iz_test_images/Credit unknown_CAS copyright_NOT photoslide scan/20220429_125033.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        220429,
+        125033
+      ],
+      "has_key_file": true,
+      "size": 47492,
+      "modified": "2025-03-26T16:24:46",
+      "casiz": {
+        "from_filename": "20220429",
+        "from_exif": [
+          125033,
+          20220429
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "California Academy of Sciences"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "unknown"
+        ]
+      }
+    },
+    "iz_test_images/Hanna Baek_not types/CASIZ 120138 Acesta sp. R valve Credit Hanna Baek.jpg": {
+      "path": "iz_test_images/Hanna Baek_not types/CASIZ 120138 Acesta sp. R valve Credit Hanna Baek.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        120138
+      ],
+      "has_key_file": true,
+      "size": 47613,
+      "modified": "2025-03-26T16:24:47",
+      "casiz": {
+        "from_filename": "CASIZ 120138",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          "2024"
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Hanna Baek",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "preserved specimen"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Hanna Baek"
+        ]
+      }
+    },
+    "iz_test_images/William Newman/CASIZ 219741Traite Illustrations.pdf737 (1)_recd from W Newman.tiff": {
+      "path": "iz_test_images/William Newman/CASIZ 219741Traite Illustrations.pdf737 (1)_recd from W Newman.tiff",
+      "extension": ".tiff",
+      "casiz_numbers": [
+        219741
+      ],
+      "has_key_file": true,
+      "size": 47558,
+      "modified": "2025-03-26T16:24:47",
+      "casiz": {
+        "from_filename": "CASIZ 219741",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 William Newman licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 William Newman licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "William Newman"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "William Newman"
+        ]
+      }
+    },
+    "iz_test_images/Credit Unknown copyright CAS Photoslide Scans/CASIZ 009736 Dendronephthia (Morchellana) S598 Credit Unknown.tif": {
+      "path": "iz_test_images/Credit Unknown copyright CAS Photoslide Scans/CASIZ 009736 Dendronephthia (Morchellana) S598 Credit Unknown.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        9736
+      ],
+      "has_key_file": true,
+      "size": 47616,
+      "modified": "2025-03-26T16:24:48",
+      "casiz": {
+        "from_filename": "CASIZ 009736",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS Photoslide Scans",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "California Academy of Sciences"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photoslide scan"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "unknown"
+        ]
+      }
+    },
+    "iz_test_images/Allyn G. Smith/CASIZ 061603 Janaria mirabilis S490 Credit A.G. Smith.tif": {
+      "path": "iz_test_images/Allyn G. Smith/CASIZ 061603 Janaria mirabilis S490 Credit A.G. Smith.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        61603
+      ],
+      "has_key_file": true,
+      "size": 47647,
+      "modified": "2025-03-26T16:24:48",
+      "casiz": {
+        "from_filename": "CASIZ 061603",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          "2024"
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Allyn G. Smith",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "scanned photo slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Allyn G. Smith"
+        ]
+      }
+    },
+    "iz_test_images/Kelly Markello/DSC_0001.JPG": {
+      "path": "iz_test_images/Kelly Markello/DSC_0001.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 34891,
+      "modified": "2025-03-26T16:24:48",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          215909,
+          93935
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Kelly Markello licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Kelly Markello licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Kelly Markello",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Kelly Markello"
+        ]
+      }
+    },
+    "iz_test_images/Coral Reef Research Foundation/CASIZ 300001.jpg": {
+      "path": "iz_test_images/Coral Reef Research Foundation/CASIZ 300001.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        300001
+      ],
+      "has_key_file": true,
+      "size": 34951,
+      "modified": "2025-03-26T16:24:49",
+      "casiz": {
+        "from_filename": "CASIZ 300001",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Coral Reef Research Foundation licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Coral Reef Research Foundation licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Coral Reef Research Foundation",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Coral Reef Research Foundation"
+        ]
+      }
+    },
+    "iz_test_images/Eric Sanford/CASIZ 202356 Hyalocylis_striata_shell_Sanford1.jpg": {
+      "path": "iz_test_images/Eric Sanford/CASIZ 202356 Hyalocylis_striata_shell_Sanford1.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        202356
+      ],
+      "has_key_file": true,
+      "size": 32034,
+      "modified": "2025-03-26T16:24:49",
+      "casiz": {
+        "from_filename": "CASIZ 202356",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Eric Sanford, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Eric Sanford",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Eric Sanford"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Eric Sanford"
+        ]
+      }
+    },
+    "iz_test_images/Daphne Fautin Dunn_Photoslide scans/CASIZ 009535 Stichodactyla haddoni S891 Credit Daphne F Dunn.tif": {
+      "path": "iz_test_images/Daphne Fautin Dunn_Photoslide scans/CASIZ 009535 Stichodactyla haddoni S891 Credit Daphne F Dunn.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        9535
+      ],
+      "has_key_file": true,
+      "size": 32267,
+      "modified": "2025-03-26T16:24:50",
+      "casiz": {
+        "from_filename": "CASIZ 009535",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Daphne Fautin Dunn",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photographic slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Daphne Fautin Dunn"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/IMG_0298.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/IMG_0298.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 24762,
+      "modified": "2025-03-26T16:24:53",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          177201
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/maldives specimen images/Maldives41562023_03_02.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/maldives specimen images/Maldives41562023_03_02.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        415620
+      ],
+      "has_key_file": true,
+      "size": 31906,
+      "modified": "2025-03-26T16:24:50",
+      "casiz": {
+        "from_filename": "41562023",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina Piotrowski under Creative Commons"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/maldives specimen images/mal- 0115  casiz 429836 perineris suluana/maldives00062023_03_06.jpg": {
+      "path": "iz_test_images/Christina N. Piotrowski/maldives specimen images/mal- 0115  casiz 429836 perineris suluana/maldives00062023_03_06.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        620
+      ],
+      "has_key_file": false,
+      "size": 34683,
+      "modified": "2025-03-26T16:24:51",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": null,
+        "from_directory": [
+          429836
+        ]
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {}
+    },
+    "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/HEP specimens roll 1 30 apr 11 049.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/HEP specimens roll 1 30 apr 11 049.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 27444,
+      "modified": "2025-03-26T16:24:51",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          62023
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina Piotrowski under Creative Commons BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/2011-05-07 hep may 7 2011 roll_scope/hep may 7 2011 roll 006.jpg": {
+      "path": "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/2011-05-07 hep may 7 2011 roll_scope/hep may 7 2011 roll 006.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": false,
+      "size": 25644,
+      "modified": "2025-03-26T16:24:52",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {}
+    },
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/IMG_0832.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/IMG_0832.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 27680,
+      "modified": "2025-03-26T16:24:52",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          217699
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/casiz 219416_sia-04 juv diadema to rich/vip2016_04_06_201610_17_030600.jpg": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/casiz 219416_sia-04 juv diadema to rich/vip2016_04_06_201610_17_030600.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        201610
+      ],
+      "has_key_file": false,
+      "size": 32012,
+      "modified": "2025-03-26T16:24:53",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": null,
+        "from_directory": [
+          219416
+        ]
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {}
+    },
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/CASIZ 214715_VIP2015__2015_04_14_3666.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/CASIZ 214715_VIP2015__2015_04_14_3666.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        214715
+      ],
+      "has_key_file": true,
+      "size": 35480,
+      "modified": "2025-03-26T16:24:54",
+      "casiz": {
+        "from_filename": "CASIZ 214715",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing/vip2015__2015_04_09_2240.jpg": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing/vip2015__2015_04_09_2240.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": false,
+      "size": 39312,
+      "modified": "2025-03-26T16:24:54",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": null,
+        "from_directory": [
+          214568
+        ]
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {}
+    },
+    "iz_test_images/Sriram Ramamurthy/Image021_Overlay020.tif": {
+      "path": "iz_test_images/Sriram Ramamurthy/Image021_Overlay020.tif",
+      "extension": ".tif",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 35548,
+      "modified": "2025-03-26T16:24:55",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          214715,
+          83487
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Sriram Ramamurthy"
+        ],
+        "Credit": [
+          "Sriram Ramamurthy"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Sriram Ramamurthy"
+        ]
+      }
+    },
+    "iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart \u00a9 Jessica A. Goodheart/gill_plume_5x_32_B,Radius28,Smoothing1.tif": {
+      "path": "iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart \u00a9 Jessica A. Goodheart/gill_plume_5x_32_B,Radius28,Smoothing1.tif",
+      "extension": ".tif",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 35358,
+      "modified": "2025-03-26T16:24:55.463312",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          214715,
+          83487
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Jessica A. Goodheart",
+        "from_exif": "\u00a9 Jessica A. Goodheart licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Jessica A. Goodheart licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Jessica A. Goodheart"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Jessica A. Goodheart"
+        ]
+      }
+    },
+    "iz_test_images/Christopher L. Mah/IMG_5559.JPG": {
+      "path": "iz_test_images/Christopher L. Mah/IMG_5559.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 26693,
+      "modified": "2025-03-26T16:24:55",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          214715,
+          83487
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Christopher L. Mah licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christopher L. Mah licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Christopher L. Mah"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christopher L. Mah"
+        ]
+      }
+    },
+    "iz_test_images/John L. Earle/CASIZ 097438 Goniobranchus_CAS photo slide scan.tif": {
+      "path": "iz_test_images/John L. Earle/CASIZ 097438 Goniobranchus_CAS photo slide scan.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        97438
+      ],
+      "has_key_file": true,
+      "size": 26646,
+      "modified": "2025-03-26T16:24:56",
+      "casiz": {
+        "from_filename": "CASIZ 097438",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 John L. Earle licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 John L. Earle licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "John L. Earle"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photographic slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "John L. Earle"
+        ]
+      }
+    },
+    "iz_test_images/Mary K. Wicksten/CASIZ 185403_Epizoanthus giveni_Wicksten.JPG": {
+      "path": "iz_test_images/Mary K. Wicksten/CASIZ 185403_Epizoanthus giveni_Wicksten.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        185403
+      ],
+      "has_key_file": true,
+      "size": 28297,
+      "modified": "2025-03-26T16:24:56",
+      "casiz": {
+        "from_filename": "CASIZ 185403",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Mary K. Wicksten licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Mary K. Wicksten licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Mary K. Wicksten"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Mary K. Wicksten"
+        ]
+      }
+    },
+    "iz_test_images/Hanna Baek_primary types/CASIZ 116217 Ophiozona alba Syntype LABEL_1.JPG": {
+      "path": "iz_test_images/Hanna Baek_primary types/CASIZ 116217 Ophiozona alba Syntype LABEL_1.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        116217
+      ],
+      "has_key_file": true,
+      "size": 30057,
+      "modified": "2025-03-26T16:24:57",
+      "casiz": {
+        "from_filename": "CASIZ 116217",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Mary K. Wicksten licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          "2024"
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Hanna Baek",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "\"Primary type",
+          " preserved specimen\""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Hanna Baek"
+        ]
+      }
+    },
+    "iz_test_images/Henry Reiswig/CASIZ 184714 Hexanema root spicules_Reiswig.JPG": {
+      "path": "iz_test_images/Henry Reiswig/CASIZ 184714 Hexanema root spicules_Reiswig.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        184714
+      ],
+      "has_key_file": true,
+      "size": 30109,
+      "modified": "2025-03-26T16:24:57",
+      "casiz": {
+        "from_filename": "CASIZ 184714",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Henry Reiswig, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Henry Reiswig",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Henry Reiswig"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Henry Reiswig"
+        ]
+      }
+    },
+    "iz_test_images/Rosemary Golding/CASIZ 065116 Dendropoma krypta Paratypes_202_05 (1).tif": {
+      "path": "iz_test_images/Rosemary Golding/CASIZ 065116 Dendropoma krypta Paratypes_202_05 (1).tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        65116
+      ],
+      "has_key_file": true,
+      "size": 31324,
+      "modified": "2025-03-26T16:24:58",
+      "casiz": {
+        "from_filename": "CASIZ 065116",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Rosemary Golding"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "SEM"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Rosemary Golding"
+        ]
+      }
+    },
+    "iz_test_images/Joseph Comendador/CASIZ111359_20X_1.tif": {
+      "path": "iz_test_images/Joseph Comendador/CASIZ111359_20X_1.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        111359
+      ],
+      "has_key_file": true,
+      "size": 31380,
+      "modified": "2025-03-26T16:24:58",
+      "casiz": {
+        "from_filename": "CASIZ111359",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Joseph Comendador, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Joseph Comendador",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Joseph Comendador"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Joseph Comendador"
+        ]
+      }
+    },
+    "iz_test_images/Daniel Killam UCSC/DSC03275.JPG": {
+      "path": "iz_test_images/Daniel Killam UCSC/DSC03275.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        3275
+      ],
+      "has_key_file": true,
+      "size": 31648,
+      "modified": "2025-03-26T16:24:58",
+      "casiz": {
+        "from_filename": "03275",
+        "from_exif": [
+          214715,
+          83487
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 California Academy of Sciences",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Daniel Killam"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Daniel Killam"
+        ]
+      }
+    },
+    "iz_test_images/Vanessa Guerra/CASIZ 185570 Myxicola_IMG_20110210_105637.jpg": {
+      "path": "iz_test_images/Vanessa Guerra/CASIZ 185570 Myxicola_IMG_20110210_105637.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        185570
+      ],
+      "has_key_file": true,
+      "size": 56763,
+      "modified": "2025-03-26T16:24:59",
+      "casiz": {
+        "from_filename": "CASIZ 185570",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Vanessa Guerrra licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Vanessa Guerrra licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Vanessa Guerrra"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Vanessa Guerrra"
+        ]
+      }
+    },
+    "iz_test_images/Gary C. Williams/CASIZ 185407_Tibiana tubes HEPD 026 scanWilliams.JPG": {
+      "path": "iz_test_images/Gary C. Williams/CASIZ 185407_Tibiana tubes HEPD 026 scanWilliams.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        185407
+      ],
+      "has_key_file": true,
+      "size": 23462,
+      "modified": "2025-03-26T16:24:59",
+      "casiz": {
+        "from_filename": "CASIZ 185407",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Gary C. Williams licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Gary C. Williams licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Gary C. Williams",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Gary C. Williams"
+        ]
+      }
+    },
+    "iz_test_images/John P. Hoover copyright John P. Hoover Photoslide Scans/CASIZ 105040 S2796 Ophiocoma pica \u00a9 John P. Hoover.tif": {
+      "path": "iz_test_images/John P. Hoover copyright John P. Hoover Photoslide Scans/CASIZ 105040 S2796 Ophiocoma pica \u00a9 John P. Hoover.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        105040
+      ],
+      "has_key_file": true,
+      "size": 23389,
+      "modified": "2025-03-26T16:25:00.079771",
+      "casiz": {
+        "from_filename": "CASIZ 105040",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "John P. Hoover Photoslide Scans",
+        "from_exif": "\u00a9 John P. Hoover licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 John P. Hoover licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "John P. Hoover "
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "John P. Hoover "
+        ]
+      }
+    },
+    "iz_test_images/David Scheel/CASIZ 190941 Clade II RBR male 7126 c D Scheel.jpg": {
+      "path": "iz_test_images/David Scheel/CASIZ 190941 Clade II RBR male 7126 c D Scheel.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        190941
+      ],
+      "has_key_file": true,
+      "size": 24404,
+      "modified": "2025-03-26T16:25:00",
+      "casiz": {
+        "from_filename": "CASIZ 190941",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 David Scheel licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 David Scheel licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "David Scheel"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "David Scheel"
+        ]
+      }
+    },
+    "iz_test_images/Ralph Olen Fox/CASIZ 192393 Clade II RGR IMG_9529 c R Fox.jpg": {
+      "path": "iz_test_images/Ralph Olen Fox/CASIZ 192393 Clade II RGR IMG_9529 c R Fox.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        192393
+      ],
+      "has_key_file": true,
+      "size": 31237,
+      "modified": "2025-03-26T16:25:01",
+      "casiz": {
+        "from_filename": "CASIZ 192393",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Ralph Olen Fox licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Ralph Olen Fox licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Ralph Olen Fox"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Ralph Olen Fox"
+        ]
+      }
+    },
+    "iz_test_images/Sergio Salazar-Vallejo/IMG_9719.JPG": {
+      "path": "iz_test_images/Sergio Salazar-Vallejo/IMG_9719.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 22703,
+      "modified": "2025-03-26T16:25:01",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          214715,
+          83487
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Sergio Salazar-Vallejo licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Sergio Salazar-Vallejo licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Sergio Salazar-Vallejo"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Sergio Salazar-Vallejo"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Sheila Nadimi/BW_03_Pisidium milium.tif": {
+      "path": "iz_test_images/Sheila Nadimi/BW_03_Pisidium milium.tif",
+      "extension": ".tif",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 23159,
+      "modified": "2025-03-26T16:25:01",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          9853
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "copyright Sheila Nadimi"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Sheila Nadimi"
+        ],
+        "Credit": [
+          "Sheila Nadim"
+        ],
+        "License": [
+          "Use for scholarship and research only; no Commercial use"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Sheila Nadim"
+        ]
+      }
+    },
+    "iz_test_images/Monterey Bay Aquarium Research Institute/CASIZ 190478 AND 190479 Bathydorus laniger paratypes T1142 PULSE 53__15_15_39_05.JPG": {
+      "path": "iz_test_images/Monterey Bay Aquarium Research Institute/CASIZ 190478 AND 190479 Bathydorus laniger paratypes T1142 PULSE 53__15_15_39_05.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        190478
+      ],
+      "has_key_file": true,
+      "size": 23027,
+      "modified": "2025-03-26T16:25:02",
+      "casiz": {
+        "from_filename": "CASIZ 190478",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "Monterey Bay Aquarium Research Institute"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "Monterey Bay Aquarium Research Institute"
+        ],
+        "Credit": [
+          "Monterey Bay Aquarium Research Institute"
+        ],
+        "License": [
+          "\"all rights reserved",
+          " contact MBARI for all usage\""
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "FALSE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Monterey Bay Aquarium Research Institute"
+        ]
+      }
+    },
+    "iz_test_images/Mikihito Arai/P3210001.JPG": {
+      "path": "iz_test_images/Mikihito Arai/P3210001.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        321000
+      ],
+      "has_key_file": true,
+      "size": 41313,
+      "modified": "2025-03-26T16:25:03",
+      "casiz": {
+        "from_filename": "3210001",
+        "from_exif": [
+          190478,
+          190479
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "Monterey Bay Aquarium Research Institute"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Mikihito Arai licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Mikihito Arai"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Mikihito Arai"
+        ]
+      }
+    },
+    "iz_test_images/Victor Smith copyright CAS/CASIZ171855_D.JPG": {
+      "path": "iz_test_images/Victor Smith copyright CAS/CASIZ171855_D.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        171855
+      ],
+      "has_key_file": true,
+      "size": 41327,
+      "modified": "2025-03-26T16:25:03",
+      "casiz": {
+        "from_filename": "CASIZ171855",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 California Academy of Sciences",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "\"Victor Smith",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Victor Smith"
+        ]
+      }
+    },
+    "iz_test_images/Robert Ames copyright Unknown Photoslide Scans/CASIZ 005833 S1373 Stylaster Robert Ames Photo Unknown Copyright.tif": {
+      "path": "iz_test_images/Robert Ames copyright Unknown Photoslide Scans/CASIZ 005833 S1373 Stylaster Robert Ames Photo Unknown Copyright.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        5833
+      ],
+      "has_key_file": true,
+      "size": 40178,
+      "modified": "2025-03-26T16:25:03",
+      "casiz": {
+        "from_filename": "CASIZ 005833",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Unknown Photoslide Scans",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Robert Ames"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Robert Ames"
+        ]
+      }
+    },
+    "iz_test_images/Terrence M. Gosliner_Photo slides/CASIZ 081334 S2912 Echinodiscus tenuissimus \u00a9 T.M. Gosliner.tif": {
+      "path": "iz_test_images/Terrence M. Gosliner_Photo slides/CASIZ 081334 S2912 Echinodiscus tenuissimus \u00a9 T.M. Gosliner.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        81334
+      ],
+      "has_key_file": true,
+      "size": 40245,
+      "modified": "2025-03-26T16:25:04.231009",
+      "casiz": {
+        "from_filename": "CASIZ 081334",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Terrence M. Gosliner licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Terrence M. Gosliner licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Terrence M. Gosliner",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photographic slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Terrence M. Gosliner"
+        ]
+      }
+    },
+    "iz_test_images/Rikke K.F. Jeppesen/CASIZ 22878 Malacoplax_californiensis_01.JPG": {
+      "path": "iz_test_images/Rikke K.F. Jeppesen/CASIZ 22878 Malacoplax_californiensis_01.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        22878
+      ],
+      "has_key_file": true,
+      "size": 29710,
+      "modified": "2025-03-26T16:25:04",
+      "casiz": {
+        "from_filename": "CASIZ 22878",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Rikke K.F. Jeppesen licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Rikke K.F. Jeppesen licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Rikke K.F. Jeppesen"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Rikke K.F. Jeppesen"
+        ]
+      }
+    },
+    "iz_test_images/Kelly Markello Copyright CAS/CASIZ065098_Trophon(Acanthotrophon)_sorenseni_holotype.tif": {
+      "path": "iz_test_images/Kelly Markello Copyright CAS/CASIZ065098_Trophon(Acanthotrophon)_sorenseni_holotype.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        65098
+      ],
+      "has_key_file": true,
+      "size": 31241,
+      "modified": "2025-03-26T16:25:05",
+      "casiz": {
+        "from_filename": "CASIZ065098",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Kelly Markello",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Kelly Markello"
+        ]
+      }
+    },
+    "iz_test_images/Nancy Treneman/DSCN0759.JPG": {
+      "path": "iz_test_images/Nancy Treneman/DSCN0759.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 40469,
+      "modified": "2025-03-26T16:25:05",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          65098
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Nancy Treneman licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Nancy Treneman licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Nancy Treneman"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Nancy Treneman"
+        ]
+      }
+    },
+    "iz_test_images/Michael P. Montgomery/CASIZ 118986_Photo 1.JPG": {
+      "path": "iz_test_images/Michael P. Montgomery/CASIZ 118986_Photo 1.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        118986
+      ],
+      "has_key_file": true,
+      "size": 40383,
+      "modified": "2025-03-26T16:25:05",
+      "casiz": {
+        "from_filename": "CASIZ 118986",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": null
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          ""
+        ],
+        "Credit": [
+          "Michael P. Montgomery"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Michael P. Montgomery"
+        ]
+      }
+    },
+    "iz_test_images/Beth Moore/CASIZ185402 Sep11 photo B AmphinomidaeBM010.JPG": {
+      "path": "iz_test_images/Beth Moore/CASIZ185402 Sep11 photo B AmphinomidaeBM010.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        185402
+      ],
+      "has_key_file": true,
+      "size": 41678,
+      "modified": "2025-03-26T16:25:06",
+      "casiz": {
+        "from_filename": "CASIZ185402",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Beth Moore licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Beth Moore licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Beth Moore",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Beth Moore"
+        ]
+      }
+    },
+    "iz_test_images/Karin Fletcher Credit Karin Fletcher \u00a9 Karin Fletcher/CASIZ 185202 O. muricata measurement.jpg": {
+      "path": "iz_test_images/Karin Fletcher Credit Karin Fletcher \u00a9 Karin Fletcher/CASIZ 185202 O. muricata measurement.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        185202
+      ],
+      "has_key_file": true,
+      "size": 35541,
+      "modified": "2025-03-26T16:25:06.807990",
+      "casiz": {
+        "from_filename": "CASIZ 185202",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Karin Fletcher",
+        "from_exif": "\u00a9 Karin Fletcher licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Karin Fletcher licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Karin Fletcher"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Karin Fletcher"
+        ]
+      }
+    },
+    "iz_test_images/James McLean/baetica CAS 064353 holotype of diegensis Credit James McLean.tif": {
+      "path": "iz_test_images/James McLean/baetica CAS 064353 holotype of diegensis Credit James McLean.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        64353
+      ],
+      "has_key_file": true,
+      "size": 35687,
+      "modified": "2025-03-26T16:25:07",
+      "casiz": {
+        "from_filename": "064353",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 James McLean licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 James McLean licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "James McLean"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "James McLean"
+        ]
+      }
+    },
+    "iz_test_images/Anne K. DuPont copyright CAS/CASIZ 241666 Lamellaria # 1 dorsal LWL DSC_00882  4-16-2013.jpg": {
+      "path": "iz_test_images/Anne K. DuPont copyright CAS/CASIZ 241666 Lamellaria # 1 dorsal LWL DSC_00882  4-16-2013.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        241666
+      ],
+      "has_key_file": true,
+      "size": 36650,
+      "modified": "2025-03-26T16:25:07",
+      "casiz": {
+        "from_filename": "CASIZ 241666",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Anne K. DuPont"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Anne K. DuPont"
+        ]
+      }
+    },
+    "iz_test_images/National Oceanic and Atmospheric Administration/cam1_20160824162505_CASIZ 218811.png": {
+      "path": "iz_test_images/National Oceanic and Atmospheric Administration/cam1_20160824162505_CASIZ 218811.png",
+      "extension": ".png",
+      "casiz_numbers": [
+        218811
+      ],
+      "has_key_file": true,
+      "size": 36378,
+      "modified": "2025-03-26T16:25:08",
+      "casiz": {
+        "from_filename": "CASIZ 218811",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 National Oceanic and Atmospheric Administration licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 National Oceanic and Atmospheric Administration licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "National Oceanic and Atmospheric Administration"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "National Oceanic and Atmospheric Administration staff"
+        ]
+      }
+    },
+    "iz_test_images/Antonio J. Ferreira_Photo slides/CASIZ 15602 Lepidopleurus scrippsianus Holotype  A.J. Ferreira Image 26.TIF": {
+      "path": "iz_test_images/Antonio J. Ferreira_Photo slides/CASIZ 15602 Lepidopleurus scrippsianus Holotype  A.J. Ferreira Image 26.TIF",
+      "extension": ".tif",
+      "casiz_numbers": [
+        15602
+      ],
+      "has_key_file": true,
+      "size": 36370,
+      "modified": "2025-03-26T16:25:08",
+      "casiz": {
+        "from_filename": "CASIZ 15602",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Antonio J. Ferreira",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photographic slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Antonio J. Ferreira"
+        ]
+      }
+    },
+    "iz_test_images/Thomas Turner/CASIZ 235106.jpg": {
+      "path": "iz_test_images/Thomas Turner/CASIZ 235106.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        235106
+      ],
+      "has_key_file": true,
+      "size": 36436,
+      "modified": "2025-03-26T16:25:08",
+      "casiz": {
+        "from_filename": "CASIZ 235106",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Thomas Turner licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Thomas Turner licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Thomas Turner"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Thomas Turner"
+        ]
+      }
+    },
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 016426 Callistochiton portobelensis Holotype_3.tif": {
+      "path": "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 016426 Callistochiton portobelensis Holotype_3.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        16426
+      ],
+      "has_key_file": true,
+      "size": 33076,
+      "modified": "2025-03-26T16:25:10",
+      "casiz": {
+        "from_filename": "CASIZ 016426",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ]
+      }
+    },
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 060803 Stagnicola hemphilli HOLOTYPE/CASIZ 060803 Stagnicola hemphilli HOLOTYPE dorsal1.tif": {
+      "path": "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 060803 Stagnicola hemphilli HOLOTYPE/CASIZ 060803 Stagnicola hemphilli HOLOTYPE dorsal1.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        60803
+      ],
+      "has_key_file": true,
+      "size": 36733,
+      "modified": "2025-03-26T16:25:09",
+      "casiz": {
+        "from_filename": "CASIZ 060803",
+        "from_exif": null,
+        "from_directory": [
+          60803
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina Piotrowski Copyright CAS/paratype CASIZ 60451/CAS type shells 014.jpg": {
+      "path": "iz_test_images/Christina Piotrowski Copyright CAS/paratype CASIZ 60451/CAS type shells 014.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 32944,
+      "modified": "2025-03-26T16:25:09",
+      "casiz": {
+        "from_filename": "CASIZ 60451",
+        "from_exif": null,
+        "from_directory": [
+          60451
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR/Holotype CASIZ_63814/photos SLR 2-9-09/CAS type shells 002.jpg": {
+      "path": "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR/Holotype CASIZ_63814/photos SLR 2-9-09/CAS type shells 002.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 30985,
+      "modified": "2025-03-26T16:25:10",
+      "casiz": {
+        "from_filename": "CASIZ 063814",
+        "from_exif": null,
+        "from_directory": [
+          63814
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Christina N. Piotrowski",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ],
+        "remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Alejandra Hernandez/CASIZ 242868_H194_p1.png": {
+      "path": "iz_test_images/Alejandra Hernandez/CASIZ 242868_H194_p1.png",
+      "extension": ".png",
+      "casiz_numbers": [
+        242868
+      ],
+      "has_key_file": true,
+      "size": 30871,
+      "modified": "2025-03-26T16:25:11",
+      "casiz": {
+        "from_filename": "CASIZ 242868",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Alejandra Hernandez licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Alejandra Hernandez licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Alejandra Hernandez"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Alejandra Hernandez"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 016317 Dendronotus diversicolor Holotype EJ Kools \u00a9 California Academy of Sciences IMG_1656.JPG": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 016317 Dendronotus diversicolor Holotype EJ Kools \u00a9 California Academy of Sciences IMG_1656.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        16317
+      ],
+      "has_key_file": true,
+      "size": 43728,
+      "modified": "2025-03-26T16:25:11.576485",
+      "casiz": {
+        "from_filename": "CASIZ 016317",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        64663
+      ],
+      "has_key_file": true,
+      "size": 34691,
+      "modified": "2025-03-26T16:25:12",
+      "casiz": {
+        "from_filename": "CASIZ 064663",
+        "from_exif": null,
+        "from_directory": [
+          64663
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/For Ulf Erdmann/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/For Ulf Erdmann/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        64663
+      ],
+      "has_key_file": true,
+      "size": 34691,
+      "modified": "2025-03-26T16:25:12",
+      "casiz": {
+        "from_filename": "CASIZ 064663",
+        "from_exif": null,
+        "from_directory": [
+          64663
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/CASIZ 064302 LABEL.jpg": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/CASIZ 064302 LABEL.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        64302
+      ],
+      "has_key_file": true,
+      "size": 44472,
+      "modified": "2025-03-26T16:25:13.422127",
+      "casiz": {
+        "from_filename": "CASIZ 064302",
+        "from_exif": null,
+        "from_directory": [
+          64302
+        ]
+      },
+      "copyright": {
+        "from_directory": "California Academy of Sciences",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/To Angel/CASIZ 064302 Pleurobranchus californicus Syntype10.tif": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/To Angel/CASIZ 064302 Pleurobranchus californicus Syntype10.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        64302
+      ],
+      "has_key_file": true,
+      "size": 34648,
+      "modified": "2025-03-26T16:25:13.004955",
+      "casiz": {
+        "from_filename": "CASIZ 064302",
+        "from_exif": null,
+        "from_directory": [
+          64302
+        ]
+      },
+      "copyright": {
+        "from_directory": "California Academy of Sciences",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064334 Pecten velero biolleyi Holotype/CASIZ 064334 Pecten velero biolleyi Holotype R valve ext1 EJ Kools \u00a9 California Academy of Sciences.tif": {
+      "path": "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064334 Pecten velero biolleyi Holotype/CASIZ 064334 Pecten velero biolleyi Holotype R valve ext1 EJ Kools \u00a9 California Academy of Sciences.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        64334
+      ],
+      "has_key_file": true,
+      "size": 44716,
+      "modified": "2025-03-26T16:25:13.736503",
+      "casiz": {
+        "from_filename": "CASIZ 064334",
+        "from_exif": null,
+        "from_directory": [
+          64334
+        ]
+      },
+      "copyright": {
+        "from_directory": "CAS",
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Elizabeth Kools",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elizabeth Kools"
+        ],
+        "Remove": [
+          "TRUE"
+        ]
+      }
+    },
+    "iz_test_images/Ibrahim Jilwaz/IMG_0236.jpeg": {
+      "path": "iz_test_images/Ibrahim Jilwaz/IMG_0236.jpeg",
+      "extension": ".jpeg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 44448,
+      "modified": "2025-03-26T16:25:14",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          65098
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Ibrahim Jilwaz, licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\"\u00a9 Ibrahim Jilwaz",
+          " licensed under CC BY-NC-SA\""
+        ],
+        "Credit": [
+          "Ibrahim Jilwaz"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Ibrahim Jilwaz"
+        ]
+      }
+    },
+    "iz_test_images/Sioban O'Neill Credit Siobhan O'Neill \u00a9 Sioban O'Neill/CASIZ 241488 Aeolid Sp Siobhan ONeill IMG_7745.jpeg": {
+      "path": "iz_test_images/Sioban O'Neill Credit Siobhan O'Neill \u00a9 Sioban O'Neill/CASIZ 241488 Aeolid Sp Siobhan ONeill IMG_7745.jpeg",
+      "extension": ".jpeg",
+      "casiz_numbers": [
+        241488
+      ],
+      "has_key_file": true,
+      "size": 43918,
+      "modified": "2025-03-26T16:25:14.523216",
+      "casiz": {
+        "from_filename": "CASIZ 241488",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Sioban O'Neill",
+        "from_exif": "\u00a9 Sioban O'Neill licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Sioban O'Neill licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Sioban O'Neill"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Sioban O'Neill"
+        ]
+      }
+    },
+    "iz_test_images/Robert Van Syoc_Photo slides/CASIZ 060145 Cassiopea S583 \u00a9 Robert Van Syoc.tif": {
+      "path": "iz_test_images/Robert Van Syoc_Photo slides/CASIZ 060145 Cassiopea S583 \u00a9 Robert Van Syoc.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        60145
+      ],
+      "has_key_file": true,
+      "size": 43972,
+      "modified": "2025-03-26T16:25:14.902416",
+      "casiz": {
+        "from_filename": "CASIZ 060145",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Robert Van Syoc licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Robert Van Syoc",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photographic slide"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Robert Van Syoc"
+        ]
+      }
+    },
+    "iz_test_images/Catherine S. McFadden/DSCN8448.JPG": {
+      "path": "iz_test_images/Catherine S. McFadden/DSCN8448.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 28798,
+      "modified": "2025-03-26T16:25:15",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          65098
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Catherine S. McFadden under Creative Commons"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Catherine S. McFadden licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Catherine S. McFadden"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Catherine S. McFadden"
+        ]
+      }
+    },
+    "iz_test_images/Vanessa L. Knutson \u00a9 Vanessa L. Knutson/Gymnodoris_sp._white_PR229_PCA693_CASIZ190792_0854.JPG": {
+      "path": "iz_test_images/Vanessa L. Knutson \u00a9 Vanessa L. Knutson/Gymnodoris_sp._white_PR229_PCA693_CASIZ190792_0854.JPG",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        190792
+      ],
+      "has_key_file": true,
+      "size": 28971,
+      "modified": "2025-03-26T16:25:15.843514",
+      "casiz": {
+        "from_filename": "CASIZ190792",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Vanessa L. Knutson",
+        "from_exif": "\u00a9 Vanessa L. Knutson licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Vanessa L. Knutson licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Vanessa L. Knutson"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Vanessa L. Knutson"
+        ],
+        "Remove": [
+          "FALSE"
+        ]
+      }
+    },
+    "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg": {
+      "path": "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        186310
+      ],
+      "has_key_file": true,
+      "size": 30660,
+      "modified": "2025-03-26T16:25:16",
+      "casiz": {
+        "from_filename": "CASIZ 186310",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Rich Mooi licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Rich Mooi licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Rich Mooi",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Rich Mooi"
+        ]
+      }
+    },
+    "iz_test_images/Robin Gwen Agarwal/CASIZ 234658 Tenellia adspersa P3301433 San Diego Robin Agarwal PS.jpg": {
+      "path": "iz_test_images/Robin Gwen Agarwal/CASIZ 234658 Tenellia adspersa P3301433 San Diego Robin Agarwal PS.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        234658
+      ],
+      "has_key_file": true,
+      "size": 32118,
+      "modified": "2025-03-26T16:25:16",
+      "casiz": {
+        "from_filename": "CASIZ 234658",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Robin Gwen Agarwal licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Robin Gwen Agarwal licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Robin Gwen Agarwal"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Robin Gwen Agarwal"
+        ]
+      }
+    },
+    "iz_test_images/Elena Oey Credit Elena Oey \u00a9 Elena Oey/CASIZ 241488 Aeolid Sp Elena Oey PC160218.jpg": {
+      "path": "iz_test_images/Elena Oey Credit Elena Oey \u00a9 Elena Oey/CASIZ 241488 Aeolid Sp Elena Oey PC160218.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        241488
+      ],
+      "has_key_file": true,
+      "size": 93923,
+      "modified": "2025-03-26T16:25:17.324508",
+      "casiz": {
+        "from_filename": "CASIZ 241488",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Elena Oey",
+        "from_exif": "\u00a9 Elena Oey licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Elena Oey licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Elena Oey"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Elena Oey"
+        ]
+      }
+    },
+    "iz_test_images/Credit Unknown copyright Unknown Photoslide Scans/CASIZ 035073 S898 Heteractis magnifica Credit Unknown.tif": {
+      "path": "iz_test_images/Credit Unknown copyright Unknown Photoslide Scans/CASIZ 035073 S898 Heteractis magnifica Credit Unknown.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        35073
+      ],
+      "has_key_file": true,
+      "size": 93251,
+      "modified": "2025-03-26T16:25:17",
+      "casiz": {
+        "from_filename": "CASIZ 035073",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": "Unknown Photoslide Scans",
+        "from_exif": "\u00a9 unknown"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 unknown"
+        ],
+        "Credit": [
+          "California Academy of Sciences"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "photo slide scan"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "unknown"
+        ]
+      }
+    },
+    "iz_test_images/Terrence M. Gosliner/CASIZ 024961 Turbonilla evermanni holotype a.tif": {
+      "path": "iz_test_images/Terrence M. Gosliner/CASIZ 024961 Turbonilla evermanni holotype a.tif",
+      "extension": ".tif",
+      "casiz_numbers": [
+        24961
+      ],
+      "has_key_file": true,
+      "size": 93448,
+      "modified": "2025-03-26T16:25:18",
+      "casiz": {
+        "from_filename": "CASIZ 024961",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Terrence M. Gosliner licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Terrence M. Gosliner licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "\"Terrence M. Gosliner",
+          " California Academy of Sciences\""
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Terrence M. Gosliner"
+        ]
+      }
+    },
+    "iz_test_images/Meghan Yap Chiongco/Photo on 12-19-18 at 1.29 PM #2.jpg": {
+      "path": "iz_test_images/Meghan Yap Chiongco/Photo on 12-19-18 at 1.29 PM #2.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [],
+      "has_key_file": true,
+      "size": 93270,
+      "modified": "2025-03-26T16:25:18",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          27106
+        ],
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 Meghan Yap-Chiongco licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 Meghan Yap-Chiongco licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Meghan Yap-Chiongco"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "preserved specimen"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Meghan Yap-Chiongco"
+        ]
+      }
+    },
+    "iz_test_images/Johanna Loacker/CASIZ 234193.jpg": {
+      "path": "iz_test_images/Johanna Loacker/CASIZ 234193.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        234193
+      ],
+      "has_key_file": true,
+      "size": 93488,
+      "modified": "2025-03-26T16:25:19",
+      "casiz": {
+        "from_filename": "CASIZ 234193",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Johanna Loacker"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Johanna Loacker"
+        ]
+      }
+    },
+    "iz_test_images/Specimen labels/CASIZ 064302 LABEL.jpg": {
+      "path": "iz_test_images/Specimen labels/CASIZ 064302 LABEL.jpg",
+      "extension": ".jpg",
+      "casiz_numbers": [
+        64302
+      ],
+      "has_key_file": true,
+      "size": 100315,
+      "modified": "2025-03-26T16:25:19",
+      "casiz": {
+        "from_filename": "CASIZ 064302",
+        "from_exif": null,
+        "from_directory": null
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "\u00a9 California Academy of Sciences licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "California Academy of Sciences"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          "scanned original labels"
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          "Label"
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "California Academy of Sciences"
+        ],
+        "remove": [
+          "true"
+        ]
+      }
+    }
+  },
+  "directories": [
+    "iz_test_images",
+    "iz_test_images/Ashley Kidd copyright Ashley Kidd",
+    "iz_test_images/Robert Van Syoc Copyright CAS",
+    "iz_test_images/Nathan Hollenbeck",
+    "iz_test_images/Elizabeth Kools",
+    "iz_test_images/Zyanya Mora Vallin Copyright CAS",
+    "iz_test_images/Neil Fahy",
+    "iz_test_images/Christine Garcia Copyright CAS",
+    "iz_test_images/Rachel Quock Copyright CAS",
+    "iz_test_images/FILE BASED KEY TEMPLATE",
+    "iz_test_images/Robert Van Syoc",
+    "iz_test_images/Barbara Andrews",
+    "iz_test_images/Jackie Sones",
+    "iz_test_images/Credit unknown_CAS copyright_NOT photoslide scan",
+    "iz_test_images/IZ FORMS",
+    "iz_test_images/Hanna Baek_not types",
+    "iz_test_images/William Newman",
+    "iz_test_images/Credit Unknown copyright CAS Photoslide Scans",
+    "iz_test_images/Allyn G. Smith",
+    "iz_test_images/Kelly Markello",
+    "iz_test_images/Coral Reef Research Foundation",
+    "iz_test_images/Eric Sanford",
+    "iz_test_images/Daphne Fautin Dunn_Photoslide scans",
+    "iz_test_images/Christina N. Piotrowski",
+    "iz_test_images/Christina N. Piotrowski/maldives specimen images",
+    "iz_test_images/Christina N. Piotrowski/maldives specimen images/mal- 0115  casiz 429836 perineris suluana",
+    "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no",
+    "iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/2011-05-07 hep may 7 2011 roll_scope",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/casiz 219416_sia-04 juv diadema to rich",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing",
+    "iz_test_images/Sriram Ramamurthy",
+    "iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart \u00a9 Jessica A. Goodheart",
+    "iz_test_images/Christopher L. Mah",
+    "iz_test_images/John L. Earle",
+    "iz_test_images/Mary K. Wicksten",
+    "iz_test_images/Hanna Baek_primary types",
+    "iz_test_images/Henry Reiswig",
+    "iz_test_images/Rosemary Golding",
+    "iz_test_images/Joseph Comendador",
+    "iz_test_images/Laura Simonato  \u00a9 Laura Simonato",
+    "iz_test_images/Daniel Killam UCSC",
+    "iz_test_images/Vanessa Guerra",
+    "iz_test_images/Gary C. Williams",
+    "iz_test_images/John P. Hoover copyright John P. Hoover Photoslide Scans",
+    "iz_test_images/Charles Powell",
+    "iz_test_images/David Scheel",
+    "iz_test_images/Ralph Olen Fox",
+    "iz_test_images/Sergio Salazar-Vallejo",
+    "iz_test_images/Sheila Nadimi",
+    "iz_test_images/Monterey Bay Aquarium Research Institute",
+    "iz_test_images/Mikihito Arai",
+    "iz_test_images/Victor Smith copyright CAS",
+    "iz_test_images/Robert Ames copyright Unknown Photoslide Scans",
+    "iz_test_images/Terrence M. Gosliner_Photo slides",
+    "iz_test_images/Rikke K.F. Jeppesen",
+    "iz_test_images/Kelly Markello Copyright CAS",
+    "iz_test_images/Nancy Treneman",
+    "iz_test_images/Michael P. Montgomery",
+    "iz_test_images/Beth Moore",
+    "iz_test_images/Karin Fletcher Credit Karin Fletcher \u00a9 Karin Fletcher",
+    "iz_test_images/James McLean",
+    "iz_test_images/Anne K. DuPont copyright CAS",
+    "iz_test_images/National Oceanic and Atmospheric Administration",
+    "iz_test_images/Antonio J. Ferreira_Photo slides",
+    "iz_test_images/Thomas Turner",
+    "iz_test_images/Christina Piotrowski Copyright CAS",
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 060803 Stagnicola hemphilli HOLOTYPE",
+    "iz_test_images/Christina Piotrowski Copyright CAS/paratype CASIZ 60451",
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE",
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR",
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR/Holotype CASIZ_63814",
+    "iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR/Holotype CASIZ_63814/photos SLR 2-9-09",
+    "iz_test_images/Alejandra Hernandez",
+    "iz_test_images/Elizabeth Kools Copyright CAS",
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools",
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/For Ulf Erdmann",
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences",
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/To Angel",
+    "iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064334 Pecten velero biolleyi Holotype",
+    "iz_test_images/Ibrahim Jilwaz",
+    "iz_test_images/Sioban O'Neill Credit Siobhan O'Neill \u00a9 Sioban O'Neill",
+    "iz_test_images/Robert Van Syoc_Photo slides",
+    "iz_test_images/Catherine S. McFadden",
+    "iz_test_images/Vanessa L. Knutson \u00a9 Vanessa L. Knutson",
+    "iz_test_images/Rich Mooi",
+    "iz_test_images/Robin Gwen Agarwal",
+    "iz_test_images/Elena Oey Credit Elena Oey \u00a9 Elena Oey",
+    "iz_test_images/Credit Unknown copyright Unknown Photoslide Scans",
+    "iz_test_images/Terrence M. Gosliner",
+    "iz_test_images/Meghan Yap Chiongco",
+    "iz_test_images/Johanna Loacker",
+    "iz_test_images/Specimen labels"
+  ]
+}

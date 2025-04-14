@@ -165,9 +165,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         
         # Load the expected metadata from the mock data file
-        mock_data_path = os.path.join(os.path.dirname(__file__), '../iz_test_images_mock_data.json')
-        with open(mock_data_path, 'r') as f:
-            mock_data = json.loads(f.read())
+        mock_data = self.get_mock_data()
         
         # Get the base directory for test images
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../iz_test_images/'))
