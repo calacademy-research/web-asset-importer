@@ -87,7 +87,6 @@ class TestIzImporterCopyright(TestIzImporterBase):
         
         # Load mock data
         mock_data = self.get_mock_data()
-        
         # Test each file in the mock data
         for file_path, file_info in mock_data['files'].items():
             
@@ -108,14 +107,12 @@ class TestIzImporterCopyright(TestIzImporterBase):
                     
                         # Call the method
                         result = self.importer.extract_copyright(file_path, fake_exif_metadata, file_key)
-                        
-                        # Determine expected result based on priority
-                        #expected_result = None
-                        print(f"result: {result} from {file_path}")
-                        # Assert the result
+                        self.assertEqual(result, file_info.get('copyright_source'), \
+                                         f"Expected {file_info.get('copyright_source')} for {file_path}")
                         
                         # Reset the copyright for the next test
                         self.importer.copyright = None
+
 
 if __name__ == "__main__":
     unittest.main()

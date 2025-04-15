@@ -12,7 +12,7 @@ def restructure_json(input_file, output_file):
     copyright_dir = data.get('copyright_from_directory', {})
     copyright_exif = data.get('copyright_from_exif', {})
     metadata = data.get('metadata', {})
-
+    copyright_source = data.get('copyright_source', {})
     # Update each file entry with new keys
     files_map = {}
     for file_path, file_info in data['files'].items():
@@ -53,6 +53,7 @@ def restructure_json(input_file, output_file):
                         file_metadata_entry[key] = value
                     except:
                         print(f"Error splitting metadata: {metadata_info}")
+        file_entry['copyright_source'] = copyright_source.get(path)
 
     # Remove the old mapping dictionaries
     data.pop('casiz_number_cases', None)
@@ -61,6 +62,7 @@ def restructure_json(input_file, output_file):
     data.pop('copyright_from_directory', None)
     data.pop('copyright_from_exif', None)
     data.pop('metadata', None)
+    data.pop('copyright_source', None)
     # Write the restructured JSON
     data['files'] = files_map
     with open(output_file, 'w') as f:
