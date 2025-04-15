@@ -46,11 +46,14 @@ class IzImporter(Importer):
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
 
         super().__init__(self.iz_importer_config, "Invertebrate Zoology")
-
         self.casiz_filepath_map = {}
-        self.directory_tree_core = DirectoryTree(self.iz_importer_config.IZ_SCAN_FOLDERS, pickle_for_debug=False)
-        self.directory_tree_core.process_files(self.build_filename_map)
 
+    def import_files(self, IZ_SCAN_FOLDERS=None):
+        if not IZ_SCAN_FOLDERS:
+            IZ_SCAN_FOLDERS = self.iz_importer_config.IZ_SCAN_FOLDERS
+        self.directory_tree_core = DirectoryTree(IZ_SCAN_FOLDERS, pickle_for_debug=False)
+        self.directory_tree_core.process_files(self.build_filename_map)
+        #print(f"{self.build_filename_map}")
         print("Starting to process loaded core files...")
         self.process_loaded_files()
 
@@ -59,7 +62,6 @@ class IzImporter(Importer):
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
                                                                       time_stamp=starting_time_stamp,
                                                                       image_dict=image_dict)
-
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
         logging.getLogger('Client.importer').setLevel(logging.DEBUG)
@@ -213,6 +215,8 @@ class IzImporter(Importer):
             if exact is not None:
                 self.casiz_numbers = [exact]
                 return True
+            else:
+                print(f"No exact match found for {input_string}")
 
         casiz_number = self.extract_casiz_single(input_string)
         if casiz_number is not None:
@@ -223,16 +227,32 @@ class IzImporter(Importer):
         return False
 
     def extract_copyright_from_string(self, copyright_string):
+        if not copyright_string:
+            return None
         copyright = None
 
-        if '©' in copyright_string:
-            copyright = copyright_string.split('©')[-1]
-        if 'copyright' in copyright_string:
-            copyright = copyright_string.split('copyright')[-1]
+        # Case-insensitive search for 'copyright' and literal '©'
+        lower_str = copyright_string.lower()
+        idx_c = lower_str.rfind('copyright')
+        idx_sym = copyright_string.rfind('©')
+
+        # Determine which one comes last in the string
+        if idx_c == -1 and idx_sym == -1:
+            return None
+        elif idx_c > idx_sym:
+            # Extract after 'copyright'
+            copyright = copyright_string[idx_c + len('copyright'):]
+        else:
+            # Extract after '©'
+            copyright = copyright_string[idx_sym + 1:]
+
+        # Clean it up
         if copyright is not None:
             copyright = copyright.strip()
             copyright = re.sub(r'\s*_.*$', '', copyright)
+
         return copyright
+
 
     def get_casiz_from_exif(self, exif_metadata):
         priority_tags = [
@@ -272,7 +292,8 @@ class IzImporter(Importer):
         return None
 
     def extract_copyright(self, orig_case_full_path, exif_metadata, file_key):
-        if file_key is not None and file_key['CopyrightHolder'] is not None:
+        if file_key is not None and 'CopyrightHolder' in file_key and \
+            file_key['CopyrightHolder'] is not None:
             self.copyright = file_key['CopyrightHolder']
             return 'file key'
 
@@ -327,15 +348,9 @@ class IzImporter(Importer):
                 return True
         return False
 
-    def check_already_attached(self, full_path):
-        return self.attachment_utils.get_attachmentid_from_filepath(full_path) is not None
-
     def include_by_extension(self, filepath: str) -> bool:
         pattern = re.compile(f'^.*{self.iz_importer_config.IMAGE_SUFFIX}')
         return bool(pattern.match(filepath))
-
-    def check_already_in_image_db(self, full_path):
-        return self.image_client.check_image_db_if_filename_imported(self.collection_name, full_path, exact=True)
 
     def build_filename_map(self, full_path):
         self._check_and_increment_counter()
@@ -343,7 +358,7 @@ class IzImporter(Importer):
         orig_case_full_path = full_path
         full_path = full_path.lower()
 
-        if not self._validate_path(full_path):
+        if not self.validate_path(full_path):
             return False
 
         filename = os.path.basename(full_path)
@@ -386,7 +401,7 @@ class IzImporter(Importer):
         globals()['counter'] += 1
 
 
-    def _validate_path(self, full_path):
+    def validate_path(self, full_path):
         if 'crrf' in full_path:
             print("Rejecting all CRRF for now - pending mapping")
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Skipping CRRF for now")
@@ -407,11 +422,11 @@ class IzImporter(Importer):
         return False
 
     def _is_file_already_processed(self, full_path, orig_case_full_path):
-        if self.check_already_attached(full_path):
+
+        if self.attachment_utils.get_attachmentid_from_filepath(full_path) is not None:
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Already imported")
             return True
-
-        if self.check_already_in_image_db(full_path):
+        if self.image_client.check_image_db_if_filename_imported(self.collection_name, full_path, exact=True):
             print(f"Already in image db {orig_case_full_path}")
             return True
 
@@ -553,18 +568,18 @@ class IzImporter(Importer):
                 self.casiz_filepath_map[cur_casiz_number] = [full_path]
             else:
                 self.casiz_filepath_map[cur_casiz_number].append(full_path)
+    @staticmethod
+    def find_key_file(directory):
+        while directory != os.path.dirname(directory):
+            key_file_path = os.path.join(directory, 'key.csv')
+            if os.path.isfile(key_file_path):
+                return key_file_path
+            directory = os.path.dirname(directory)
+        return None
 
     def _read_file_key(self, image_path):
-        def find_key_file(directory):
-            while directory != os.path.dirname(directory):
-                key_file_path = os.path.join(directory, 'key.csv')
-                if os.path.isfile(key_file_path):
-                    return key_file_path
-                directory = os.path.dirname(directory)
-            return None
-
         directory = os.path.dirname(image_path)
-        key_file_path = find_key_file(directory)
+        key_file_path = IzImporter.find_key_file(directory)
         if not key_file_path:
             self.log_file_status(filename=os.path.basename(image_path), path=image_path, rejected="Missing key.csv")
             return None
