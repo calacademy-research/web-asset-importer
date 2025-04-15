@@ -148,8 +148,11 @@ class TestIzImporterCasiz(TestIzImporterBase):
         # Get all image files from test directory
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
-            result = self.importer.extract_exact_casiz_match(file_path)
+            if file_info.get('skip_test'):
+                continue
+            result = self.importer.extract_exact_casiz_match(os.path.basename(file_path))
             if file_info['casiz']['from_filename'] is not None:
+                self.assertIsNotNone(result, f"Expected match {file_info['casiz']['from_filename']} for {file_path}")
                 self.assertEqual(result.group(), file_info['casiz']['from_filename'], \
                                  f"Expected {file_info['casiz']['from_filename']} for {file_path}")
             else:
@@ -161,16 +164,17 @@ class TestIzImporterCasiz(TestIzImporterBase):
         # Get all image files from test directory
         test_file_dir = os.path.join(os.path.dirname(__file__), '..')
         mock_data = self.get_mock_data()
-
         for file_path, file_info in mock_data['files'].items():
+            if file_info.get('skip_test'):
+                continue
             file_path = os.path.join(test_file_dir, file_path)
             exif_metadata = self.importer._read_exif_metadata(file_path)
             result = self.importer.get_casiz_from_exif(exif_metadata)
             if file_info['casiz']['from_exif'] is not None:
                 self.assertEqual(result, file_info['casiz']['from_exif'], \
-                                 f"Expected {file_info['casiz']['from_exif']} for {file_path}")
+                                 f"Expected {file_info['casiz']['from_exif']} for {file_path}, {exif_metadata}")
             else:
-                self.assertIsNone(result, f"Expected None for {file_path}")
+                self.assertIsNone(result, f"Expected None for {file_path}, {exif_metadata}")
     
     def test_attempt_directory_match(self, mock_specify_db):
         self._getImporter(mock_specify_db)

@@ -67,7 +67,6 @@ class TestIzImporterCopyright(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
-            print(f"file_path: {file_path}")
             result = self.importer.attempt_directory_copyright_extraction(os.path.dirname(file_path))
             self.assertEqual(self.importer.copyright, file_info['copyright']['from_directory'], \
                              f"Expected {file_info['copyright']['from_directory']} for {file_path}")

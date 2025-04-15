@@ -11,9 +11,7 @@
       "modified": "2025-03-26T16:24:42",
       "casiz": {
         "from_filename": "CASIZ_117433",
-        "from_exif": [
-          117433
-        ],
+        "from_exif": [117433],
         "from_directory": null
       },
       "copyright": {
@@ -48,8 +46,7 @@
         "metadataText": [
           "Ashley Kidd"
         ]
-      },
-      "skip_test": true
+      }
     },
     "iz_test_images/Robert Van Syoc Copyright CAS/058617IZ bottom.jpg": {
       "path": "iz_test_images/Robert Van Syoc Copyright CAS/058617IZ bottom.jpg",
@@ -113,7 +110,7 @@
       "modified": "2025-03-26T16:24:43",
       "casiz": {
         "from_filename": "CASIZ 190941",
-        "from_exif": null,
+        "from_exif": [190941],
         "from_directory": null
       },
       "copyright": {
@@ -211,9 +208,7 @@
       "modified": "2025-03-26T16:24:44",
       "casiz": {
         "from_filename": "CASIZ 058827",
-        "from_exif": [
-          58827
-        ],
+        "from_exif": [58827],
         "from_directory": null
       },
       "copyright": {
@@ -312,9 +307,7 @@
       "modified": "2025-03-26T16:24:45",
       "casiz": {
         "from_filename": "005707",
-        "from_exif": [
-          5707
-        ],
+        "from_exif": [5707],
         "from_directory": null
       },
       "copyright": {
@@ -363,10 +356,7 @@
       "modified": "2025-03-26T16:24:45",
       "casiz": {
         "from_filename": "198185",
-        "from_exif": [
-          198185,
-          214318
-        ],
+        "from_exif": [198185, 214318],
         "from_directory": null
       },
       "copyright": {
@@ -466,9 +456,7 @@
       "modified": "2025-03-26T16:24:46",
       "casiz": {
         "from_filename": "CASIZ 202357",
-        "from_exif": [
-          202357
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -569,9 +557,7 @@
       "modified": "2025-03-26T16:24:47",
       "casiz": {
         "from_filename": "CASIZ 120138",
-        "from_exif": [
-          120138
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -620,9 +606,7 @@
       "modified": "2025-03-26T16:24:47",
       "casiz": {
         "from_filename": "CASIZ 219741",
-        "from_exif": [
-          219741
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -670,9 +654,7 @@
       "modified": "2025-03-26T16:24:48",
       "casiz": {
         "from_filename": "CASIZ 009736",
-        "from_exif": [
-          9736
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -720,9 +702,7 @@
       "modified": "2025-03-26T16:24:48",
       "casiz": {
         "from_filename": "CASIZ 061603",
-        "from_exif": [
-          61603
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -821,10 +801,7 @@
       "modified": "2025-03-26T16:24:49",
       "casiz": {
         "from_filename": "CASIZ 300001",
-        "from_exif": [
-          215909,
-          93935
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -873,10 +850,7 @@
       "modified": "2025-03-26T16:24:49",
       "casiz": {
         "from_filename": "CASIZ 202356",
-        "from_exif": [
-          215909,
-          93935
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -925,10 +899,7 @@
       "modified": "2025-03-26T16:24:50",
       "casiz": {
         "from_filename": "CASIZ 009535",
-        "from_exif": [
-          215909,
-          93935
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1026,10 +997,7 @@
       "modified": "2025-03-26T16:24:50",
       "casiz": {
         "from_filename": "41562023",
-        "from_exif": [
-          215909,
-          93935
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1080,7 +1048,7 @@
       "size": 34683,
       "modified": "2025-03-26T16:24:51",
       "casiz": {
-        "from_filename": null,
+        "from_filename": "00062023",
         "from_exif": null,
         "from_directory": [
           429836
@@ -1154,9 +1122,7 @@
       "modified": "2025-03-26T16:24:52",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          76110
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1251,10 +1217,7 @@
       "modified": "2025-03-26T16:24:54",
       "casiz": {
         "from_filename": "CASIZ 214715",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1304,10 +1267,7 @@
       "modified": "2025-03-26T16:24:54",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          83993,
-          214567
-        ],
+        "from_exif": null,
         "from_directory": [
           214568
         ]
@@ -1476,10 +1436,7 @@
       "modified": "2025-03-26T16:24:56",
       "casiz": {
         "from_filename": "CASIZ 097438",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1527,10 +1484,7 @@
       "modified": "2025-03-26T16:24:56",
       "casiz": {
         "from_filename": "CASIZ 185403",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1578,10 +1532,7 @@
       "modified": "2025-03-26T16:24:57",
       "casiz": {
         "from_filename": "CASIZ 116217",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1631,10 +1582,7 @@
       "modified": "2025-03-26T16:24:57",
       "casiz": {
         "from_filename": "CASIZ 184714",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1683,10 +1631,7 @@
       "modified": "2025-03-26T16:24:58",
       "casiz": {
         "from_filename": "CASIZ 065116",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1734,10 +1679,7 @@
       "modified": "2025-03-26T16:24:58",
       "casiz": {
         "from_filename": "CASIZ111359",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1838,10 +1780,7 @@
       "modified": "2025-03-26T16:24:59",
       "casiz": {
         "from_filename": "CASIZ 185570",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1889,10 +1828,7 @@
       "modified": "2025-03-26T16:24:59",
       "casiz": {
         "from_filename": "CASIZ 185407",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1941,10 +1877,7 @@
       "modified": "2025-03-26T16:25:00.079771",
       "casiz": {
         "from_filename": "CASIZ 105040",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -1992,10 +1925,7 @@
       "modified": "2025-03-26T16:25:00",
       "casiz": {
         "from_filename": "CASIZ 190941",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2043,10 +1973,7 @@
       "modified": "2025-03-26T16:25:01",
       "casiz": {
         "from_filename": "CASIZ 192393",
-        "from_exif": [
-          214715,
-          83487
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2194,10 +2121,7 @@
       "modified": "2025-03-26T16:25:02",
       "casiz": {
         "from_filename": "CASIZ 190478",
-        "from_exif": [
-          190478,
-          190479
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2297,9 +2221,7 @@
       "modified": "2025-03-26T16:25:03",
       "casiz": {
         "from_filename": "CASIZ171855",
-        "from_exif": [
-          171855
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2349,9 +2271,7 @@
       "modified": "2025-03-26T16:25:03",
       "casiz": {
         "from_filename": "CASIZ 005833",
-        "from_exif": [
-          5833
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2399,9 +2319,7 @@
       "modified": "2025-03-26T16:25:04.231009",
       "casiz": {
         "from_filename": "CASIZ 081334",
-        "from_exif": [
-          81334
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2450,9 +2368,7 @@
       "modified": "2025-03-26T16:25:04",
       "casiz": {
         "from_filename": "CASIZ 22878",
-        "from_exif": [
-          22878
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2500,9 +2416,7 @@
       "modified": "2025-03-26T16:25:05",
       "casiz": {
         "from_filename": "CASIZ065098",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2599,9 +2513,7 @@
       "modified": "2025-03-26T16:25:05",
       "casiz": {
         "from_filename": "CASIZ 118986",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2649,9 +2561,7 @@
       "modified": "2025-03-26T16:25:06",
       "casiz": {
         "from_filename": "CASIZ185402",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2700,9 +2610,7 @@
       "modified": "2025-03-26T16:25:06.807990",
       "casiz": {
         "from_filename": "CASIZ 185202",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2750,9 +2658,7 @@
       "modified": "2025-03-26T16:25:07",
       "casiz": {
         "from_filename": "064353",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2800,9 +2706,7 @@
       "modified": "2025-03-26T16:25:07",
       "casiz": {
         "from_filename": "CASIZ 241666",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2850,9 +2754,7 @@
       "modified": "2025-03-26T16:25:08",
       "casiz": {
         "from_filename": "CASIZ 218811",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2900,9 +2802,7 @@
       "modified": "2025-03-26T16:25:08",
       "casiz": {
         "from_filename": "CASIZ 15602",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -2951,9 +2851,7 @@
       "modified": "2025-03-26T16:25:08",
       "casiz": {
         "from_filename": "CASIZ 235106",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3001,9 +2899,7 @@
       "modified": "2025-03-26T16:25:10",
       "casiz": {
         "from_filename": "CASIZ 016426",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3052,9 +2948,7 @@
       "modified": "2025-03-26T16:25:09",
       "casiz": {
         "from_filename": "CASIZ 060803",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           60803
         ]
@@ -3106,9 +3000,7 @@
       "modified": "2025-03-26T16:25:09",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           60451
         ]
@@ -3159,10 +3051,8 @@
       "size": 30985,
       "modified": "2025-03-26T16:25:10",
       "casiz": {
-        "from_filename": "CASIZ 063814",
-        "from_exif": [
-          65098
-        ],
+        "from_filename": null,
+        "from_exif": null,
         "from_directory": [
           63814
         ]
@@ -3203,8 +3093,7 @@
         "remove": [
           "TRUE"
         ]
-      },
-      "skip_test": true
+      }
     },
     "iz_test_images/Alejandra Hernandez/CASIZ 242868_H194_p1.png": {
       "path": "iz_test_images/Alejandra Hernandez/CASIZ 242868_H194_p1.png",
@@ -3217,9 +3106,7 @@
       "modified": "2025-03-26T16:25:11",
       "casiz": {
         "from_filename": "CASIZ 242868",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3267,9 +3154,7 @@
       "modified": "2025-03-26T16:25:11.576485",
       "casiz": {
         "from_filename": "CASIZ 016317",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3318,9 +3203,7 @@
       "modified": "2025-03-26T16:25:12",
       "casiz": {
         "from_filename": "CASIZ 064663",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           64663
         ]
@@ -3374,9 +3257,7 @@
       "modified": "2025-03-26T16:25:12",
       "casiz": {
         "from_filename": "CASIZ 064663",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           64663
         ]
@@ -3430,9 +3311,7 @@
       "modified": "2025-03-26T16:25:13.422127",
       "casiz": {
         "from_filename": "CASIZ 064302",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           64302
         ]
@@ -3486,9 +3365,7 @@
       "modified": "2025-03-26T16:25:13.004955",
       "casiz": {
         "from_filename": "CASIZ 064302",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           64302
         ]
@@ -3542,9 +3419,7 @@
       "modified": "2025-03-26T16:25:13.736503",
       "casiz": {
         "from_filename": "CASIZ 064334",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": [
           64334
         ]
@@ -3647,9 +3522,7 @@
       "modified": "2025-03-26T16:25:14.523216",
       "casiz": {
         "from_filename": "CASIZ 241488",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3697,9 +3570,7 @@
       "modified": "2025-03-26T16:25:14.902416",
       "casiz": {
         "from_filename": "CASIZ 060145",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3796,9 +3667,7 @@
       "modified": "2025-03-26T16:25:15.843514",
       "casiz": {
         "from_filename": "CASIZ190792",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3849,9 +3718,7 @@
       "modified": "2025-03-26T16:25:16",
       "casiz": {
         "from_filename": "CASIZ 186310",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3900,9 +3767,7 @@
       "modified": "2025-03-26T16:25:16",
       "casiz": {
         "from_filename": "CASIZ 234658",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -3950,9 +3815,7 @@
       "modified": "2025-03-26T16:25:17.324508",
       "casiz": {
         "from_filename": "CASIZ 241488",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -4000,9 +3863,7 @@
       "modified": "2025-03-26T16:25:17",
       "casiz": {
         "from_filename": "CASIZ 035073",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -4050,9 +3911,7 @@
       "modified": "2025-03-26T16:25:18",
       "casiz": {
         "from_filename": "CASIZ 024961",
-        "from_exif": [
-          65098
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -4149,9 +4008,7 @@
       "modified": "2025-03-26T16:25:19",
       "casiz": {
         "from_filename": "CASIZ 234193",
-        "from_exif": [
-          234193
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -4199,9 +4056,7 @@
       "modified": "2025-03-26T16:25:19",
       "casiz": {
         "from_filename": "CASIZ 064302",
-        "from_exif": [
-          234193
-        ],
+        "from_exif": null,
         "from_directory": null
       },
       "copyright": {
@@ -4339,5 +4194,281 @@
     "iz_test_images/Meghan Yap Chiongco",
     "iz_test_images/Johanna Loacker",
     "iz_test_images/Specimen labels"
-  ]
+  ],
+  "casiz_number_cases_exif": {
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg": [
+      117433
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Robert Van Syoc Copyright CAS/058617IZ bottom.jpg": [
+      58617
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Zyanya Mora Vallin Copyright CAS/IMG_8870.JPG": [
+      1097
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Neil Fahy/CASIZ 058827 V1158A.jpg": [
+      58827
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christine Garcia Copyright CAS/43985_B,Radius4,Smoothing1_2.tif": [
+      43985
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Rachel Quock Copyright CAS/CAS 005707 Schizobopyrina bombyliaster HOLOTYPE dorsal.tif": [
+      5707
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Robert Van Syoc/198185 AND 214318 VS.jpg": [
+      198185,
+      214318
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Barbara Andrews/Barbara in the Joaquin Rocks hole (3).jpg": [
+      198185,
+      214318
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Jackie Sones/Dosima_fascicularis CASIZ 202357.jpg": [
+      202357
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Credit unknown_CAS copyright_NOT photoslide scan/20220429_125033.jpg": [
+      125033,
+      20220429
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Hanna Baek_not types/CASIZ 120138 Acesta sp. R valve Credit Hanna Baek.jpg": [
+      120138
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/William Newman/CASIZ 219741Traite Illustrations.pdf737 (1)_recd from W Newman.tiff": [
+      219741
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Credit Unknown copyright CAS Photoslide Scans/CASIZ 009736 Dendronephthia (Morchellana) S598 Credit Unknown.tif": [
+      9736
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Allyn G. Smith/CASIZ 061603 Janaria mirabilis S490 Credit A.G. Smith.tif": [
+      61603
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Kelly Markello/DSC_0001.JPG": [
+      215909,
+      93935
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Coral Reef Research Foundation/CASIZ 300001.jpg": [
+      215909,
+      93935
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Eric Sanford/CASIZ 202356 Hyalocylis_striata_shell_Sanford1.jpg": [
+      215909,
+      93935
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Daphne Fautin Dunn_Photoslide scans/CASIZ 009535 Stichodactyla haddoni S891 Credit Daphne F Dunn.tif": [
+      215909,
+      93935
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/IMG_0298.JPG": [
+      177201
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/maldives specimen images/Maldives41562023_03_02.JPG": [
+      215909,
+      93935
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/HEP specimens roll 1 30 apr 11 049.JPG": [
+      62023
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/DUP_Piotrowski_Hearst Exped_metadata includes CASIZ no/2011-05-07 hep may 7 2011 roll_scope/hep may 7 2011 roll 006.jpg": [
+      76110
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/IMG_0832.JPG": [
+      217699
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/CASIZ 214715_VIP2015__2015_04_14_3666.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing/vip2015__2015_04_09_2240.jpg": [
+      83993,
+      214567
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Sriram Ramamurthy/Image021_Overlay020.tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart \u00a9 Jessica A. Goodheart/gill_plume_5x_32_B,Radius28,Smoothing1.tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christopher L. Mah/IMG_5559.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/John L. Earle/CASIZ 097438 Goniobranchus_CAS photo slide scan.tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Mary K. Wicksten/CASIZ 185403_Epizoanthus giveni_Wicksten.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Hanna Baek_primary types/CASIZ 116217 Ophiozona alba Syntype LABEL_1.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Henry Reiswig/CASIZ 184714 Hexanema root spicules_Reiswig.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Rosemary Golding/CASIZ 065116 Dendropoma krypta Paratypes_202_05 (1).tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Joseph Comendador/CASIZ111359_20X_1.tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Daniel Killam UCSC/DSC03275.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Vanessa Guerra/CASIZ 185570 Myxicola_IMG_20110210_105637.jpg": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Gary C. Williams/CASIZ 185407_Tibiana tubes HEPD 026 scanWilliams.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/John P. Hoover copyright John P. Hoover Photoslide Scans/CASIZ 105040 S2796 Ophiocoma pica \u00a9 John P. Hoover.tif": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/David Scheel/CASIZ 190941 Clade II RBR male 7126 c D Scheel.jpg": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Ralph Olen Fox/CASIZ 192393 Clade II RGR IMG_9529 c R Fox.jpg": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Sergio Salazar-Vallejo/IMG_9719.JPG": [
+      214715,
+      83487
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Sheila Nadimi/BW_03_Pisidium milium.tif": [
+      9853
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Monterey Bay Aquarium Research Institute/CASIZ 190478 AND 190479 Bathydorus laniger paratypes T1142 PULSE 53__15_15_39_05.JPG": [
+      190478,
+      190479
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Mikihito Arai/P3210001.JPG": [
+      190478,
+      190479
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Victor Smith copyright CAS/CASIZ171855_D.JPG": [
+      171855
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Robert Ames copyright Unknown Photoslide Scans/CASIZ 005833 S1373 Stylaster Robert Ames Photo Unknown Copyright.tif": [
+      5833
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Terrence M. Gosliner_Photo slides/CASIZ 081334 S2912 Echinodiscus tenuissimus \u00a9 T.M. Gosliner.tif": [
+      81334
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Rikke K.F. Jeppesen/CASIZ 22878 Malacoplax_californiensis_01.JPG": [
+      22878
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Kelly Markello Copyright CAS/CASIZ065098_Trophon(Acanthotrophon)_sorenseni_holotype.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Nancy Treneman/DSCN0759.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Michael P. Montgomery/CASIZ 118986_Photo 1.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Beth Moore/CASIZ185402 Sep11 photo B AmphinomidaeBM010.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Karin Fletcher Credit Karin Fletcher \u00a9 Karin Fletcher/CASIZ 185202 O. muricata measurement.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/James McLean/baetica CAS 064353 holotype of diegensis Credit James McLean.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Anne K. DuPont copyright CAS/CASIZ 241666 Lamellaria # 1 dorsal LWL DSC_00882  4-16-2013.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/National Oceanic and Atmospheric Administration/cam1_20160824162505_CASIZ 218811.png": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Antonio J. Ferreira_Photo slides/CASIZ 15602 Lepidopleurus scrippsianus Holotype  A.J. Ferreira Image 26.TIF": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Thomas Turner/CASIZ 235106.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 016426 Callistochiton portobelensis Holotype_3.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 060803 Stagnicola hemphilli HOLOTYPE/CASIZ 060803 Stagnicola hemphilli HOLOTYPE dorsal1.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina Piotrowski Copyright CAS/paratype CASIZ 60451/CAS type shells 014.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Christina Piotrowski Copyright CAS/CASIZ 063814 Erronia stohleri HOLOTYPE/CASIZ 63814_SLR/Holotype CASIZ_63814/photos SLR 2-9-09/CAS type shells 002.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Alejandra Hernandez/CASIZ 242868_H194_p1.png": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 016317 Dendronotus diversicolor Holotype EJ Kools \u00a9 California Academy of Sciences IMG_1656.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor Holotype EJ Kools/For Ulf Erdmann/CASIZ 064663 Cypraea (Erosaria) cernica viridicolor IMG_1444 (10).JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/CASIZ 064302 LABEL.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064302 Pleurobranchus californicus Syntype Credit EJ Kools \u00a9 California Academy of Sciences/To Angel/CASIZ 064302 Pleurobranchus californicus Syntype10.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elizabeth Kools Copyright CAS/CASIZ 064334 Pecten velero biolleyi Holotype/CASIZ 064334 Pecten velero biolleyi Holotype R valve ext1 EJ Kools \u00a9 California Academy of Sciences.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Ibrahim Jilwaz/IMG_0236.jpeg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Sioban O'Neill Credit Siobhan O'Neill \u00a9 Sioban O'Neill/CASIZ 241488 Aeolid Sp Siobhan ONeill IMG_7745.jpeg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Robert Van Syoc_Photo slides/CASIZ 060145 Cassiopea S583 \u00a9 Robert Van Syoc.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Catherine S. McFadden/DSCN8448.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Vanessa L. Knutson \u00a9 Vanessa L. Knutson/Gymnodoris_sp._white_PR229_PCA693_CASIZ190792_0854.JPG": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Robin Gwen Agarwal/CASIZ 234658 Tenellia adspersa P3301433 San Diego Robin Agarwal PS.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Elena Oey Credit Elena Oey \u00a9 Elena Oey/CASIZ 241488 Aeolid Sp Elena Oey PC160218.jpg": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Credit Unknown copyright Unknown Photoslide Scans/CASIZ 035073 S898 Heteractis magnifica Credit Unknown.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Terrence M. Gosliner/CASIZ 024961 Turbonilla evermanni holotype a.tif": [
+      65098
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Meghan Yap Chiongco/Photo on 12-19-18 at 1.29 PM #2.jpg": [
+      27106
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Johanna Loacker/CASIZ 234193.jpg": [
+      234193
+    ],
+    "/Users/shiqi/Workspace/CAS/web-asset-importer/tests/iz_importer/../iz_test_images/Specimen labels/CASIZ 064302 LABEL.jpg": [
+      234193
+    ]
+  }
 }

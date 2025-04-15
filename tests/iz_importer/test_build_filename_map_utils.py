@@ -171,7 +171,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../iz_test_images/'))
         
         # Test a sample of files with metadata
-        sample_files = list(mock_data['metadata'].keys())[:10]  # Test first 10 files
+        sample_files = list(mock_data['files'].keys())[:10]  # Test first 10 files
         for file_path in sample_files:
             # Construct the full path to the file
             full_path = os.path.join(base_dir, file_path)
@@ -207,7 +207,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         
         # Test a file without a key file
         # Find a file in the mock data that doesn't have a key file
-        no_key_files = [f['path'] for f in mock_data['files'] if not f.get('has_key_file', True)]
+        no_key_files = [file_path for file_path, file_info in mock_data['files'].items() if not file_info.get('has_key_file', True)]
         if no_key_files:
             no_key_file = os.path.join(base_dir, no_key_files[0])
             if os.path.exists(no_key_file):

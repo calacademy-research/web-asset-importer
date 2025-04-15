@@ -15,13 +15,13 @@ def restructure_json(input_file, output_file):
 
     # Update each file entry with new keys
     files_map = {}
-    for file in data['files']:
-        files_map[file['path']] = file.copy()
-        file_entry = files_map[file['path']]
-        path = file['path']
+    for file_path, file_info in data['files'].items():
+        files_map[file_path] = file_info.copy()
+        file_entry = files_map[file_path]
+        path = file_path
         
         # Add casiz_from_filename
-        file_entry['casiz'] = {}
+        #file_entry['casiz'] = {}
         file_casiz_entry = file_entry['casiz']
         file_casiz_entry['from_filename'] = casiz_filename.get(path)
         
@@ -36,14 +36,14 @@ def restructure_json(input_file, output_file):
         file_casiz_entry['from_directory'] = dir_value
 
         # Add copyright_from_directory
-        file_entry['copyright'] = {}
+        #file_entry['copyright'] = {}
         file_copyright_entry = file_entry['copyright']
         file_copyright_entry['from_directory'] = copyright_dir.get(path)
 
         # Add copyright_from_exif
         file_copyright_entry['from_exif'] = copyright_exif.get(path)
 
-        file_entry['metadata'] = {}
+        #file_entry['metadata'] = {}
         file_metadata_entry = file_entry['metadata']
         if metadata.get(path):
             for metadata_info in metadata.get(path).split('\n'):
