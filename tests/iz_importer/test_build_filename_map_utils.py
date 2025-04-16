@@ -267,6 +267,28 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                     for field in sample_fields:
                         assert field in exif_metadata, f"{path} does not contain {field} for {filename} in {dirpath} : {exif_metadata}"
 
+    def test__check_and_increment_counter(self, mock_specify_db):
+        self._getImporter(mock_specify_db)
+        
+        # Import the iz_importer module to access its globals
+        import iz_importer
+        iz_importer.counter = 0
+        
+        self.importer._check_and_increment_counter()
+        self.assertEqual(iz_importer.counter, 1)
+        
+        self.importer._check_and_increment_counter()
+        self.assertEqual(iz_importer.counter, 2)
+        
+        iz_importer.counter = 100
+        self.importer._check_and_increment_counter()
+        self.assertEqual(iz_importer.counter, 101)
+
+        # Reset the counter
+        del iz_importer.__dict__['counter']
+        self.importer._check_and_increment_counter()
+        self.assertEqual(iz_importer.counter, 1)
+
     def test__update_metadata_map(self, mock_specify_db):
         self._getImporter(mock_specify_db)
 
@@ -275,6 +297,26 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
 
     def test_log_file_status(self, mock_specify_db):
         self._getImporter(mock_specify_db)
+
+    def test_build_filename_map(self, mock_specify_db):
+        self._getImporter(mock_specify_db)
+        mock_data = self.get_mock_data()
+        with patch('iz_importer.IzImporter.remove_file_from_database') as mock_remove_file_from_database:
+            with patch('iz_importer.IzImporter._should_skip_file') as mock_should_skip_file:
+                with patch('iz_importer.IzImporter._is_file_already_processed') as mock_is_file_already_processed:
+                    with patch('iz_importer.IzImporter._update_metadata_map') as mock_update_metadata_map:
+                        with patch('iz_importer.IzImporter._update_casiz_filepath_map') as mock_update_casiz_filepath_map:
+                            with patch('iz_importer.IzImporter.log_file_status') as mock_log_file_status:
+                                mock_remove_file_from_database.return_value = True
+                                mock_should_skip_file.return_value = False
+                                mock_is_file_already_processed.return_value = False
+                                mock_update_metadata_map.return_value = True
+                                mock_update_casiz_filepath_map.return_value = True
+                                mock_log_file_status.return_value = True
+                                for file_path, file_info in mock_data['files'].items():
+                                    full_path = os.path.join(os.path.dirname(__file__), '..', file_path)
+                                    result = self.importer.build_filename_map(full_path)
+                                    print(f"File {file_path} processed: {result}")
 
 if __name__ == "__main__":
     unittest.main()

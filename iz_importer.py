@@ -53,7 +53,6 @@ class IzImporter(Importer):
             IZ_SCAN_FOLDERS = self.iz_importer_config.IZ_SCAN_FOLDERS
         self.directory_tree_core = DirectoryTree(IZ_SCAN_FOLDERS, pickle_for_debug=False)
         self.directory_tree_core.process_files(self.build_filename_map)
-        #print(f"{self.build_filename_map}")
         print("Starting to process loaded core files...")
         self.process_loaded_files()
 
