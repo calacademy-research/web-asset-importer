@@ -13,9 +13,8 @@ IzImporter.__init__
 │       │   └── check_already_in_image_db
 │       ├── _read_exif_metadata
     ......
-│       ├── _update_metadata_map
 │       ├── _update_casiz_filepath_map
-│       └── log_file_status
+│       └── log_file_status (skipped test for now)
     ......
 """
 
@@ -24,6 +23,8 @@ import sys
 import unittest
 from unittest.mock import MagicMock, patch
 import json
+
+from specify_constants import SpecifyConstants
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from iz_importer import IzImporter
@@ -289,14 +290,62 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         self.importer._check_and_increment_counter()
         self.assertEqual(iz_importer.counter, 1)
 
-    def test__update_metadata_map(self, mock_specify_db):
-        self._getImporter(mock_specify_db)
-
     def test__update_casiz_filepath_map(self, mock_specify_db):
         self._getImporter(mock_specify_db)
+        
+        # Test case 1: Single CASIZ number
+        self.importer.casiz_numbers = [12345]
+        self.importer._update_casiz_filepath_map("test/path/to/file1.jpg")
+        
+        # Verify the file path was added to the map
+        self.assertIn(12345, self.importer.casiz_filepath_map)
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg"])
+        
+        # Test case 2: Multiple CASIZ numbers
+        self.importer.casiz_numbers = [12345, 67890]
+        self.importer._update_casiz_filepath_map("test/path/to/file2.jpg")
+        
+        # Verify both file paths are in the map
+        self.assertIn(12345, self.importer.casiz_filepath_map)
+        self.assertIn(67890, self.importer.casiz_filepath_map)
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg", "test/path/to/file2.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[67890], ["test/path/to/file2.jpg"])
+        
+        # Test case 3: Non-numeric CASIZ numbers (should be converted to integers)
+        self.importer.casiz_numbers = ["CASIZ12345", "67890"]
+        self.importer._update_casiz_filepath_map("test/path/to/file3.jpg")
+        
+        # Verify the non-numeric CASIZ numbers were converted to integers
+        self.assertIn(12345, self.importer.casiz_filepath_map)
+        self.assertIn(67890, self.importer.casiz_filepath_map)
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg", "test/path/to/file2.jpg", "test/path/to/file3.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[67890], ["test/path/to/file2.jpg", "test/path/to/file3.jpg"])
+        
+        # Test case 4: Empty CASIZ numbers list
+        self.importer.casiz_numbers = []
+        self.importer._update_casiz_filepath_map("test/path/to/file4.jpg")
+        
+        # Verify the map is unchanged
+        self.assertEqual(len(self.importer.casiz_filepath_map), 2)  # Still only 12345 and 67890
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg", "test/path/to/file2.jpg", "test/path/to/file3.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[67890], ["test/path/to/file2.jpg", "test/path/to/file3.jpg"])
+        
+        # Test case 5: CASIZ numbers with non-digit characters
+        self.importer.casiz_numbers = ["CASIZ-12345", "67890-ABC"]
+        self.importer._update_casiz_filepath_map("test/path/to/file5.jpg")
+        
+        # Verify the CASIZ numbers were correctly extracted
+        self.assertIn(12345, self.importer.casiz_filepath_map)
+        self.assertIn(67890, self.importer.casiz_filepath_map)
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg", "test/path/to/file2.jpg", "test/path/to/file3.jpg", "test/path/to/file5.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[67890], ["test/path/to/file2.jpg", "test/path/to/file3.jpg", "test/path/to/file5.jpg"])
 
-    def test_log_file_status(self, mock_specify_db):
-        self._getImporter(mock_specify_db)
+        # Test case 6: new CASIZ number
+        self.importer.casiz_numbers = [1234567890]
+        self.importer._update_casiz_filepath_map("test/path/to/file6.jpg")
+        self.assertEqual(self.importer.casiz_filepath_map[12345], ["test/path/to/file1.jpg", "test/path/to/file2.jpg", "test/path/to/file3.jpg", "test/path/to/file5.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[67890], ["test/path/to/file2.jpg", "test/path/to/file3.jpg", "test/path/to/file5.jpg"])
+        self.assertEqual(self.importer.casiz_filepath_map[1234567890], ["test/path/to/file6.jpg"])
 
     def test_build_filename_map(self, mock_specify_db):
         self._getImporter(mock_specify_db)
@@ -316,6 +365,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                                 for file_path, file_info in mock_data['files'].items():
                                     full_path = os.path.join(os.path.dirname(__file__), '..', file_path)
                                     result = self.importer.build_filename_map(full_path)
+                                    # TODO: add assert and make it real test
                                     print(f"File {file_path} processed: {result}")
 
 if __name__ == "__main__":

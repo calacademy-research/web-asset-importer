@@ -510,7 +510,7 @@ class IzImporter(Importer):
                 SpecifyConstants.ST_METADATA_TEXT: ''
             }
 
-    def find_agent_id_from_string(self, input_string):
+    def find_agent_id_from_string(self, input_string, agents=None):
         import difflib
 
         def fuzzy_match(query, choices, cutoff=0.8):
@@ -525,12 +525,13 @@ class IzImporter(Importer):
         firstname = names[0].lower()
         lastname = names[-1].lower()
 
-        # Get a list of possible agent names from the database
-        sql = "SELECT AgentID, FirstName, LastName FROM casiz.agent"
-        cursor = self.specify_db_connection.get_cursor()
-        cursor.execute(sql)
-        agents = cursor.fetchall()
-        cursor.close()
+        if agents is None:
+            # Get a list of possible agent names from the database
+            sql = "SELECT AgentID, FirstName, LastName FROM casiz.agent"
+            cursor = self.specify_db_connection.get_cursor()
+            cursor.execute(sql)
+            agents = cursor.fetchall()
+            cursor.close()
 
         # Normalize agent names for comparison
         agent_names = [(agent[0], agent[1].lower() if agent[1] else '', agent[2].lower() if agent[2] else '') for agent

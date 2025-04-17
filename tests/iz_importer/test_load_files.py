@@ -3,13 +3,13 @@ IzImporter.__init__
     ......
 └── process_loaded_files
     └── process_casiz_number
-        ├── remove_specify_imported_and_id_linked_from_path
-        ├── import_single_file_to_image_db_and_specify
-        │   └── cleanup_incomplete_import (called on exception)
-        │       ├── image_client.get_internal_filename
-        │       ├── attachment_utils.get_attachmentid_from_filepath
-        │       ├── image_client.delete_from_image_server
-        │       └── remove_file_from_database
+        ├──X remove_specify_imported_and_id_linked_from_path (Importer function)
+        ├──X import_single_file_to_image_db_and_specify (Importer function)
+        │   └──X cleanup_incomplete_import (called on exception)
+        │       ├──X image_client.get_internal_filename
+        │       ├──X attachment_utils.get_attachmentid_from_filepath
+        │       ├──X image_client.delete_from_image_server
+        │       └──X remove_file_from_database (Importer function)
         └── _get_exif_mapping 
 """
 
