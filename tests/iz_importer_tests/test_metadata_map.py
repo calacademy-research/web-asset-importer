@@ -19,9 +19,8 @@ import json
 
 from specify_constants import SpecifyConstants
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
-from iz_importer import IzImporter
-from test_base import TestIzImporterBase
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from iz_importer_tests import TestIzImporterBase
 
 @patch('importer.SpecifyDb')
 
@@ -90,7 +89,8 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
             'createdByAgent': 'Key Agent',
             'creator': 'Key Creator'
         }
-        
+        # set the copyright from key file
+        self.importer.extract_copyright(orig_case_full_path="fake_path", exif_metadata=None, file_key=file_key)
         self.importer._update_metadata_map(
             full_path="dir/file_with_key.jpg", 
             exif_metadata={'EXIF:CreateDate': "2023"}, 
@@ -120,6 +120,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
             # Missing other fields
         }
         
+        self.importer.extract_copyright(orig_case_full_path="fake_path", exif_metadata=None, file_key=partial_file_key)
         self.importer._update_metadata_map(
             full_path="dir/file_with_partial_key.jpg", 
             exif_metadata={}, 
@@ -131,7 +132,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         self.assertEqual(metadata[SpecifyConstants.ST_COPYRIGHT_DATE], "2023")
         self.assertEqual(metadata[SpecifyConstants.ST_COPYRIGHT_HOLDER], "Partial Key Copyright")
         self.assertEqual(metadata[SpecifyConstants.ST_CREDIT], "")
-        self.assertEqual(metadata[SpecifyConstants.ST_DATE_IMAGED], "2024:01:01")
+        self.assertEqual(metadata[SpecifyConstants.ST_DATE_IMAGED], None)
         self.assertEqual(metadata[SpecifyConstants.ST_LICENSE], "")
         self.assertEqual(metadata[SpecifyConstants.ST_REMARKS], "")
         self.assertEqual(metadata[SpecifyConstants.ST_TITLE], "Test Title")

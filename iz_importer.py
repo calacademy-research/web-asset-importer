@@ -7,7 +7,7 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from metadata_tools.metadata_tools import MetadataTools
+from metadata_tools import MetadataTools
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
@@ -77,13 +77,14 @@ class IzImporter(Importer):
             self.process_casiz_number(casiz_number, filepath_list)
 
     def process_casiz_number(self, casiz_number, filepath_list):
+        attachment_properties_map = {}
         self.logger.debug(f"Processing casiz_numbers: {casiz_number}")
         sql = f"select collectionobjectid from collectionobject where catalognumber= %s"
         params = (casiz_number,)
         collection_object_id = self.specify_db_connection.get_one_record(sql, params=params)
         if collection_object_id is None:
             print(f"No record found for casiz_number {casiz_number}, skipping.")
-            return
+            return attachment_properties_map
 
         filepath_list = self.remove_specify_imported_and_id_linked_from_path(filepath_list, collection_object_id)
 
@@ -95,6 +96,7 @@ class IzImporter(Importer):
             if attachment_id is not None:
                 self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id,
                                                                          self.AGENT_ID)
+                return attachment_properties_map
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
@@ -114,12 +116,13 @@ class IzImporter(Importer):
 
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
-                    return
+                    return attachment_properties_map
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map),
                                                             self.collection_name, attach_loc)
 
                 md = MetadataTools(path=cur_filepath)
                 md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map), overwrite_blank=True)
+        return attachment_properties_map
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -151,7 +154,7 @@ class IzImporter(Importer):
         }
 
         # Remove keys with None values
-        return {k: v for k, v in exif_mapping.items()}
+        return {k: v for k, v in exif_mapping.items() if v is not None}
 
     def log_file_status(self, id=None, filename=None, path=None, casiznumber_method=None, rejected=None,
                         copyright_method=None, copyright=None, conjunction=None):
