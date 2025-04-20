@@ -89,6 +89,7 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
         mock_data = self.get_mock_data()
         # use the first 10 files from mock_data
         file_paths = list(mock_data['files'].keys())[:10]
+        file_paths = [os.path.join(os.path.dirname(__file__), file_path) for file_path in file_paths]
         file_paths.append('non-existent-file.jpg')
         # Use the existing mock_specify_db instead of creating a new one
         with patch('importer.SpecifyDb.get_one_record') as mock_get_one_record:

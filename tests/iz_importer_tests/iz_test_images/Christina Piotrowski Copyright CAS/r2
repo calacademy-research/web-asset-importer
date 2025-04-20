@@ -1,0 +1,65 @@
+[ExifTool]      ExifToolVersion                 : 12.50
+[File:System]   FileName                        : dummy.jpg
+[File:System]   Directory                       : .
+[File:System]   FileSize                        : 7.1 kB
+[File:System]   FileModifyDate                  : 2025:03:26 16:17:32-07:00
+[File:System]   FileAccessDate                  : 2025:03:26 16:17:33-07:00
+[File:System]   FileInodeChangeDate             : 2025:03:26 16:17:32-07:00
+[File:System]   FilePermissions                 : -rw-r--r--
+[File]          FileType                        : JPEG
+[File]          FileTypeExtension               : jpg
+[File]          MIMEType                        : image/jpeg
+[File]          ExifByteOrder                   : Little-endian (Intel, II)
+[File]          CurrentIPTCDigest               : 47772741957af92601f529d67035e787
+[File]          ImageWidth                      : 100
+[File]          ImageHeight                     : 100
+[File]          EncodingProcess                 : Baseline DCT, Huffman coding
+[File]          BitsPerSample                   : 8
+[File]          ColorComponents                 : 1
+[JFIF]          JFIFVersion                     : 1.01
+[JFIF]          ResolutionUnit                  : None
+[JFIF]          XResolution                     : 1
+[JFIF]          YResolution                     : 1
+[EXIF:IFD0]     ImageDescription                : casiz 016426 callistochiton portobelensis holotype_3
+[EXIF:IFD0]     Orientation                     : Horizontal (normal)
+[EXIF:IFD0]     XResolution                     : 2514.971223
+[EXIF:IFD0]     YResolution                     : 2514.969773
+[EXIF:IFD0]     ResolutionUnit                  : cm
+[EXIF:IFD0]     Artist                          : Christina N. Piotrowski
+[EXIF:IFD0]     YCbCrPositioning                : Centered
+[EXIF:IFD0]     Copyright                       : © California Academy of Sciences licensed under CC BY-NC-SA
+[EXIF:ExifIFD]  ExifVersion                     : 0231
+[EXIF:ExifIFD]  ComponentsConfiguration         : Y, Cb, Cr, -
+[EXIF:ExifIFD]  FlashpixVersion                 : 0100
+[EXIF:ExifIFD]  ColorSpace                      : Uncalibrated
+[IPTC]          EnvelopeRecordVersion           : 4
+[IPTC]          ApplicationRecordVersion        : 4
+[IPTC]          By-line                         : Christina N. Piotrowski
+[IPTC]          Credit                          : 
+[IPTC]          CopyrightNotice                 : © California Academy of Sciences licensed under CC BY-NC-SA
+[IPTC]          Caption-Abstract                : casiz 016426 callistochiton portobelensis holotype_3
+[XMP:XMP-x]     XMPToolkit                      : Image::ExifTool 12.50
+[XMP:XMP-dc]    Creator                         : Christina N. Piotrowski
+[XMP:XMP-dc]    Description                     : <LMSIOManager><ProductVersion>1,6,3909,3</ProductVersion><BitShift>UnProcessed</BitShift></LMSIOManager>
+[XMP:XMP-dc]    Format                          : image/tiff
+[XMP:XMP-dc]    Rights                          : © California Academy of Sciences licensed under CC BY-NC-SA
+[XMP:XMP-dc]    Title                           : casiz 016426 callistochiton portobelensis holotype_3
+[XMP:XMP-exif]  ColorSpace                      : Uncalibrated
+[XMP:XMP-photoshop] Credit                      : Christina N. Piotrowski, California Academy of Sciences
+[XMP:XMP-photoshop] LegacyIPTCDigest            : 6EC486B38C3491898B81AC29946B05C5
+[XMP:XMP-plus]  ImageSupplierName               : Christina N. Piotrowski, California Academy of Sciences
+[XMP:XMP-prl]   Usage                           : Creative Commons Attribution-NonCommercial-ShareAlike
+[XMP:XMP-tiff]  Orientation                     : Horizontal (normal)
+[XMP:XMP-xmp]   MetadataDate                    : 2024:08:27 16:34:32-07:00
+[XMP:XMP-xmpMM] DocumentID                      : 29C482F4E757D43990681B5D879DB69C
+[XMP:XMP-xmpMM] HistoryAction                   : saved, saved
+[XMP:XMP-xmpMM] HistoryChanged                  : /metadata, /metadata
+[XMP:XMP-xmpMM] HistoryInstanceID               : xmp.iid:f9e17ae0-45b3-b046-ae9f-208358b156d1, xmp.iid:bc26b2cb-e08a-cd40-acd0-e3d5f96aa342
+[XMP:XMP-xmpMM] HistorySoftwareAgent            : Adobe Photoshop Camera Raw 16.3, Adobe Photoshop Camera Raw 16.3.1 (Windows)
+[XMP:XMP-xmpMM] HistoryWhen                     : 2024:08:27 16:34:32-07:00, 2024:08:27 16:34:32-07:00
+[XMP:XMP-xmpMM] InstanceID                      : xmp.iid:bc26b2cb-e08a-cd40-acd0-e3d5f96aa342
+[XMP:XMP-xmpMM] OriginalDocumentID              : 29C482F4E757D43990681B5D879DB69C
+[XMP:XMP-xmpRights] Marked                      : True
+[XMP:XMP-xmpRights] UsageTerms                  : Creative Commons Attribution-NonCommercial-ShareAlike
+[Composite]     ImageSize                       : 100x100
+[Composite]     Megapixels                      : 0.010

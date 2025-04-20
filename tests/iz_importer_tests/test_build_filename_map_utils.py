@@ -168,7 +168,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         mock_data = self.get_mock_data()
         
         # Get the base directory for test images
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../iz_test_images/'))
+        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../iz_test_images/'))
         
         # Test a sample of files with metadata
         sample_files = list(mock_data['files'].keys())[:10]  # Test first 10 files
@@ -362,7 +362,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                                 mock_update_casiz_filepath_map.return_value = True
                                 mock_log_file_status.return_value = True
                                 for file_path, file_info in mock_data['files'].items():
-                                    full_path = os.path.join(os.path.dirname(__file__), '..', file_path)
+                                    full_path = os.path.join(os.path.dirname(__file__), file_path)
                                     result = self.importer.build_filename_map(full_path)
                                     # TODO: add assert and make it real test
                                     print(f"File {file_path} processed: {result}")

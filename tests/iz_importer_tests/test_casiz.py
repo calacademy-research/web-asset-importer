@@ -162,7 +162,7 @@ class TestIzImporterCasiz(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         
         # Get all image files from test directory
-        test_file_dir = os.path.join(os.path.dirname(__file__), '..')
+        test_file_dir = os.path.dirname(__file__)
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
             if file_info.get('skip_test'):
@@ -179,7 +179,7 @@ class TestIzImporterCasiz(TestIzImporterBase):
     def test_attempt_directory_match(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         # Get all image files from test directory
-        test_file_dir = os.path.join(os.path.dirname(__file__), '..')
+        test_file_dir = os.path.dirname(__file__)
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
             directory = os.path.join(test_file_dir, file_path)

@@ -24,6 +24,7 @@ class TestIzImporterBase(unittest.TestCase):
         mock_image_client.check_image_db_if_filename_imported.return_value = image_db_result
 
         self.__initialize_importer(mock_specify_db, mock_image_client)
+        
         return self.importer
 
     def __initialize_importer(self, mock_specify_db, mock_image_client):

@@ -75,7 +75,7 @@ class TestIzImporterCopyright(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
-            file_path = os.path.join(os.path.dirname(__file__), '..', file_path)
+            file_path = os.path.join(os.path.dirname(__file__), file_path)
             exif_metadata = self.importer._read_exif_metadata(file_path)
             result = self.importer.get_copyright_from_exif(exif_metadata)
             self.assertEqual(result, file_info['copyright']['from_exif'], \
