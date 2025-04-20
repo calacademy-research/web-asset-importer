@@ -23,15 +23,9 @@ jobs:
         submodules: recursive
         fetch-depth: 0
 
-    - name: Download uv binary
+    - name: install uv
       run: |
-        curl -L https://github.com/astral-sh/uv/releases/latest/download/uv-x86_64-unknown-linux-gnu.tar.gz -o uv.tar.gz
-        tar -xzf uv.tar.gz
-        cd uv-x86_64-unknown-linux-gnu
-        chmod +x uv*  # or: chmod +x uv-x86_64-unknown-linux-gnu
-        mkdir -p ~/.cargo/bin
-        mv * ~/.cargo/bin/
-        echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+        pip install uv
 
     - name: 
       run: |
