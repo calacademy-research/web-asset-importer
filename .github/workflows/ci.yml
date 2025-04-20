@@ -16,11 +16,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Install curl
-      run: apt-get update && apt-get install -y curl
-
-    - name: Install ExifTool
-      run: apt-get install -y libimage-exiftool-perl
+    - name: Install dependencies
+      run: apt-get update && apt-get install -y curl git libimage-exiftool-perl
 
     - name: Install uv
       run: |
