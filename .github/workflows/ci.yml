@@ -15,7 +15,7 @@ jobs:
 
     steps:
     - name: Install dependencies
-      run: apt-get update && apt-get install -y curl git libimage-exiftool-perl gcc
+      run: apt-get update && apt-get install -y curl git libimage-exiftool-perl gcc libffi-dev
 
     - name: Checkout and update submodules
       uses: actions/checkout@v4
