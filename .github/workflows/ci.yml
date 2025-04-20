@@ -24,8 +24,7 @@ jobs:
         fetch-depth: 0
 
     - name: install uv
-      run: |
-        pip install uv
+      run: pip install uv
 
     - name: 
       run: |
@@ -43,7 +42,7 @@ jobs:
         mv settings_template.py settings.py
         mv server_host_settings.template.py server_host_settings.py
         cd tests
-        pytest iz_importer_tests
+        pytest iz_importer_tests --junitxml=report.xml
 
     - name: Upload test results
       if: always()
