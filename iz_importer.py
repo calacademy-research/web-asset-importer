@@ -13,12 +13,20 @@ from time_utils import get_pst_time_now_string
 from get_configs import get_config
 from metadata_tools.EXIF_constants import EXIFConstants
 from specify_constants import SpecifyConstants
-
+from metadata_tools.base_constants import BaseConstants
 logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
 starting_time_stamp = datetime.now()
 
+class FILENAME_BUILD_STATUS(BaseConstants):
+    INVALID_PATH = 'invalid_path'
+    SKIPPED_FILE = 'skipped_file'
+    REMOVED_FILE = 'removed_file'
+    ALREADY_PROCESSED = 'already_processed'
+    NO_CASIZ_SOURCE = 'no_casiz_source'
+    CANNOT_LOCATE_AGENT = 'cannot_locate_agent'
+    SUCCESS = 'success'
 
 class AgentNotFoundException(Exception):
     pass
@@ -87,7 +95,8 @@ class IzImporter(Importer):
             return attachment_properties_map
 
         filepath_list = self.remove_specify_imported_and_id_linked_from_path(filepath_list, collection_object_id)
-
+        filepath_list.sort()
+        attachment_properties_maps = {}
         for cur_filepath in filepath_list:
             if not os.path.exists(cur_filepath):
                 self.logger.warning(f"File not found - possibly moved after start of ingest: {cur_filepath}, skipping.")
@@ -96,9 +105,10 @@ class IzImporter(Importer):
             if attachment_id is not None:
                 self.connect_existing_attachment_to_collection_object_id(attachment_id, collection_object_id,
                                                                          self.AGENT_ID)
-                return attachment_properties_map
+                attachment_properties_maps[cur_filepath] = {'attachment_id': attachment_id}
             else:
                 attachment_properties_map = self.filepath_metadata_map[cur_filepath]
+
                 agent = attachment_properties_map.get(SpecifyConstants.ST_CREATED_BY_AGENT_ID) or self.AGENT_ID
                 is_public = attachment_properties_map[SpecifyConstants.ST_IS_PUBLIC]
                 # see comments in import_single_file_to_image_db_and_specify;
@@ -113,16 +123,18 @@ class IzImporter(Importer):
                                                                              force_redacted=not is_public,
                                                                              id=casiz_number)
                 self.logger.debug(f"importing single file COMPLETE: {cur_filepath}")
-
+                attachment_properties_maps[cur_filepath] = attachment_properties_map.copy()
+                attachment_properties_maps[cur_filepath]['attach_loc'] = attach_loc
                 if attach_loc is None:
                     self.logger.error(f"Failed to upload image, aborting upload for {cur_filepath}")
-                    return attachment_properties_map
+                    return attachment_properties_maps
                 self.image_client.write_exif_image_metadata(self._get_exif_mapping(attachment_properties_map),
                                                             self.collection_name, attach_loc)
 
                 md = MetadataTools(path=cur_filepath)
                 md.write_exif_tags(exif_dict=self._get_exif_mapping(attachment_properties_map), overwrite_blank=True)
-        return attachment_properties_map
+
+        return attachment_properties_maps
 
     def _get_exif_mapping(self, attachment_properties_map):
 
@@ -361,39 +373,39 @@ class IzImporter(Importer):
         full_path = full_path.lower()
 
         if not self.validate_path(full_path):
-            return False
+            return FILENAME_BUILD_STATUS.INVALID_PATH, False
 
         filename = os.path.basename(full_path)
         if self._should_skip_file(filename, full_path):
-            return False
+            return FILENAME_BUILD_STATUS.SKIPPED_FILE, False
         file_key = self._read_file_key(full_path)
 
         if file_key and str(file_key.get('remove', '')).lower() == 'true':
             self.logger.info(f"Marked for removal: {full_path}")
             self.remove_file_from_database(full_path)
-            return False
+            return FILENAME_BUILD_STATUS.REMOVED_FILE, False
 
         if self._is_file_already_processed(full_path, orig_case_full_path):
-            return False
+            return FILENAME_BUILD_STATUS.ALREADY_PROCESSED, False
 
         exif_metadata = self._read_exif_metadata(full_path)
         casiz_source = self.get_casiz_ids(full_path, exif_metadata)
         if not casiz_source:
-            return False
+            return FILENAME_BUILD_STATUS.NO_CASIZ_SOURCE, False
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:
             self._update_metadata_map(full_path, exif_metadata, file_key)
         except AgentNotFoundException as e:
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Can't locate agent {e}".format(e=e))
-            return False
+            return FILENAME_BUILD_STATUS.CANNOT_LOCATE_AGENT, False
 
         self._update_casiz_filepath_map(full_path)
 
         self.log_file_status(filename=os.path.basename(orig_case_full_path), path=orig_case_full_path,
                              casiznumber_method=casiz_source, id=self.casiz_numbers, copyright_method=copyright_method,
                              copyright=self.copyright)
-        return True
+        return FILENAME_BUILD_STATUS.SUCCESS, True
 
 
     def _check_and_increment_counter(self):

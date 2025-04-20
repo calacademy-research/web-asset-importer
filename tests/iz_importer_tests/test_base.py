@@ -24,7 +24,7 @@ class TestIzImporterBase(unittest.TestCase):
         mock_image_client.check_image_db_if_filename_imported.return_value = image_db_result
 
         self.__initialize_importer(mock_specify_db, mock_image_client)
-        
+
         return self.importer
 
     def __initialize_importer(self, mock_specify_db, mock_image_client):
@@ -34,7 +34,7 @@ class TestIzImporterBase(unittest.TestCase):
         return self.importer
     
     def get_mock_data(self):
-        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data_restructured.json')
+        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
         with open(mock_data_file, 'r') as f:
             mock_data = json.load(f)
         return mock_data

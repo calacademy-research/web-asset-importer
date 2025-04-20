@@ -28,6 +28,7 @@ from specify_constants import SpecifyConstants
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from iz_importer_tests import TestIzImporterBase
+from iz_importer import FILENAME_BUILD_STATUS, AgentNotFoundException
 
 @patch('importer.SpecifyDb')
 
@@ -355,17 +356,71 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                     with patch('iz_importer.IzImporter._update_metadata_map') as mock_update_metadata_map:
                         with patch('iz_importer.IzImporter._update_casiz_filepath_map') as mock_update_casiz_filepath_map:
                             with patch('iz_importer.IzImporter.log_file_status') as mock_log_file_status:
-                                mock_remove_file_from_database.return_value = True
-                                mock_should_skip_file.return_value = False
-                                mock_is_file_already_processed.return_value = False
-                                mock_update_metadata_map.return_value = True
-                                mock_update_casiz_filepath_map.return_value = True
-                                mock_log_file_status.return_value = True
-                                for file_path, file_info in mock_data['files'].items():
-                                    full_path = os.path.join(os.path.dirname(__file__), file_path)
-                                    result = self.importer.build_filename_map(full_path)
-                                    # TODO: add assert and make it real test
-                                    print(f"File {file_path} processed: {result}")
+                                with patch('iz_importer.IzImporter.validate_path') as mock_validate_path:
+                                    with patch('iz_importer.IzImporter._read_exif_metadata') as mock_read_exif_metadata:
+                                        with patch('iz_importer.IzImporter.get_casiz_ids') as mock_get_casiz_ids:
+                                            with patch('iz_importer.IzImporter.extract_copyright') as mock_extract_copyright:
+                                                with patch('iz_importer.IzImporter.log_file_status') as mock_log_file_status:
+                                                    with patch('iz_importer.IzImporter._read_file_key') as mock_read_file_key:
+                                                        mock_read_file_key.return_value = {}
+                                                        mock_extract_copyright.return_value = 'fake_copyright'
+                                                        mock_read_exif_metadata.return_value = {'KEY': 'VALUE'}
+                                                        mock_validate_path.return_value = True
+                                                        mock_remove_file_from_database.return_value = True
+                                                        mock_should_skip_file.return_value = False
+                                                        mock_is_file_already_processed.return_value = False
+                                                        mock_get_casiz_ids.return_value = 12345
+                                                        mock_update_metadata_map.return_value = True
+                                                        mock_update_casiz_filepath_map.return_value = True
+                                                        mock_log_file_status.return_value = True
+                                                        full_path = 'fake_path'
+                                                        self.importer.copyright = 'fake_copyright'
+                                                        self.importer.casiz_numbers = [12345]
+                                                        
+                                                        # test success
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.SUCCESS)
+                                                        self.assertTrue(success)
+                                                        
+                                                        # test invalid path
+                                                        mock_validate_path.return_value = False
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.INVALID_PATH)
+                                                        self.assertFalse(success)
+                                                        mock_validate_path.return_value = True
+
+                                                        # test skipped file
+                                                        mock_should_skip_file.return_value = True
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.SKIPPED_FILE)
+                                                        self.assertFalse(success)
+                                                        mock_should_skip_file.return_value = False
+                                                        # test removed file
+                                                        mock_read_file_key.return_value = {'remove': 'true'}
+                                                        mock_remove_file_from_database.return_value = False
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.REMOVED_FILE)
+                                                        self.assertFalse(success)
+                                                        mock_remove_file_from_database.return_value = True
+                                                        mock_read_file_key.return_value = {}
+                                                        # test already processed
+                                                        mock_is_file_already_processed.return_value = True
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.ALREADY_PROCESSED)
+                                                        self.assertFalse(success)
+                                                        mock_is_file_already_processed.return_value = False
+                                                        # test no casiz source
+                                                        mock_get_casiz_ids.return_value = None
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.NO_CASIZ_SOURCE)
+                                                        self.assertFalse(success)
+                                                        mock_get_casiz_ids.return_value = 12345
+                                                        # test cannot locate agent
+                                                        mock_update_metadata_map.side_effect = AgentNotFoundException('fake_exception')
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.CANNOT_LOCATE_AGENT)
+                                                        self.assertFalse(success)
+
 
 if __name__ == "__main__":
     unittest.main()

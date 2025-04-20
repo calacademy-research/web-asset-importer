@@ -89,8 +89,9 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
         mock_data = self.get_mock_data()
         # use the first 10 files from mock_data
         file_paths = list(mock_data['files'].keys())[:10]
-        file_paths = [os.path.join(os.path.dirname(__file__), file_path) for file_path in file_paths]
-        file_paths.append('non-existent-file.jpg')
+        non_existent_file_path = 'non-existent-file.jpg'
+        full_file_paths = [os.path.join(os.path.dirname(__file__), file_path) for file_path in file_paths]
+        full_file_paths.append(non_existent_file_path)
         # Use the existing mock_specify_db instead of creating a new one
         with patch('importer.SpecifyDb.get_one_record') as mock_get_one_record:
             with patch('iz_importer.IzImporter.remove_specify_imported_and_id_linked_from_path') as \
@@ -109,29 +110,28 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
                                     # mock collection object id is not found
                                     mock_get_one_record.return_value = None
                                     # should return empty attachment properties map
-                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, file_paths), {})
+                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, full_file_paths), {})
                                     mock_get_one_record.return_value = 123
 
                                     # mock remove_specify_imported_and_id_linked_from_path returns empty list
                                     mock_remove_specify_imported_and_id_linked_from_path.return_value = []
-                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, file_paths), {})
-                                    mock_remove_specify_imported_and_id_linked_from_path.return_value = file_paths
+                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, full_file_paths), {})
+                                    mock_remove_specify_imported_and_id_linked_from_path.return_value = full_file_paths
+                                    mock_connect_existing_attachment_to_collection_object_id.return_value = True
 
                                     # mock get_attachmentid_from_filepath returns not None
-                                    mock_get_attachmentid_from_filepath.return_value = 345
-                                    mock_connect_existing_attachment_to_collection_object_id.return_value = True
-                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, file_paths), {})
-                                    mock_get_attachmentid_from_filepath.return_value = None
-                                    mock_data = {SpecifyConstants.ST_IS_PUBLIC: True, 
-                                                SpecifyConstants.ST_CREATED_BY_AGENT_ID: 'Test Agent ID'}
-                                    self.importer.filepath_metadata_map[file_paths[0]] = mock_data
-                                    mock_import_single_file_to_image_db_and_specify.return_value = None
-                                    self.assertEqual(self.importer.process_casiz_number(self.importer.casiz_numbers, file_paths), mock_data)
-
-                                    mock_import_single_file_to_image_db_and_specify.return_value = 'mock_loc'
+                                    def get_attachment_id_side_effect(filepath):
+                                        # Convert the full path back to the relative path used in mock_data
+                                        relative_path = os.path.relpath(filepath, os.path.dirname(__file__))
+                                        if relative_path in mock_data['files']:
+                                            return mock_data['files'][relative_path].get('attachment_id')
+                                        return None
+                                    mock_get_attachmentid_from_filepath.side_effect = get_attachment_id_side_effect
+                                    mock_loc = 'mock_loc'
+                                    mock_import_single_file_to_image_db_and_specify.return_value = mock_loc
                                     mock_write_exif_image_metadata.return_value = True
                                     mock_write_exif_tags.return_value = True
-                                    for file_path in file_paths:
+                                    for file_path in full_file_paths:
                                         self.importer.filepath_metadata_map[file_path] = {
                                             SpecifyConstants.ST_COPYRIGHT_DATE: '2023-01-01',
                                             SpecifyConstants.ST_COPYRIGHT_HOLDER: 'Test Copyright Holder',
@@ -148,8 +148,45 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
                                             SpecifyConstants.ST_METADATA_TEXT: 'Test Metadata Text'
                                         }
                                     casiz_number = 12345
-                                    print(self.importer.process_casiz_number(casiz_number, file_paths))
+                                    results = self.importer.process_casiz_number(casiz_number, full_file_paths)
+                                    for file_path in file_paths:
+                                        full_file_path = os.path.join(os.path.dirname(__file__), file_path)
+                                        if file_path == non_existent_file_path:
+                                            self.assertNotIn(file_path, results)
+                                        else:
+                                            attachment_id = mock_data['files'][file_path].get('attachment_id')
+                                            if attachment_id is not None:
+                                                self.assertEqual(results[full_file_path], {'attachment_id': attachment_id})
+                                            else:
+                                                self.assertEqual(results[full_file_path]['attach_loc'], mock_loc)
+                                                # remove the attach_loc key from the results for the next assertion
+                                                results[full_file_path].pop('attach_loc')
+                                                self.assertEqual(results[full_file_path], self.importer.filepath_metadata_map[full_file_path])
 
+                                    # mock get_attachmentid_from_filepath returns not None
+                                    def get_attach_loc_side_effect(cur_filepath,collection_object_id,agent_id,
+                                                                    skip_redacted_check,attachment_properties_map,
+                                                                    force_redacted,id):
+                                        # Convert the full path back to the relative path used in mock_data
+                                        relative_path = os.path.relpath(cur_filepath, os.path.dirname(__file__))
+                                        if relative_path in mock_data['files']:
+                                            if mock_data['files'][relative_path].get('no_attach_loc'):
+                                                return None
+                                        return 'mock_loc'
+                                    # override the return mocked value of import_single_file_to_image_db_and_specify
+                                    mock_import_single_file_to_image_db_and_specify.side_effect = get_attach_loc_side_effect
+                                    results = self.importer.process_casiz_number(casiz_number, full_file_paths)
+
+                                    # check if at least one file has no_attach_loc set to True otherwise it will be false positive
+                                    num_file_has_no_attach_loc_set = 0
+                                    for file_path in file_paths:
+                                        full_file_path = os.path.join(os.path.dirname(__file__), file_path)
+                                        if mock_data['files'][file_path].get('no_attach_loc'):
+                                            num_file_has_no_attach_loc_set += 1
+                                            self.assertEqual(results[full_file_path]['attach_loc'], None)
+                                    self.assertEqual(num_file_has_no_attach_loc_set, 1,
+                                                    "There should be one and only one file that has no_attach_loc set to True \
+                                                        for this test to be valid")
 
 if __name__ == "__main__":
     unittest.main()
