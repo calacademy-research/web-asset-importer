@@ -14,7 +14,11 @@ jobs:
       image: python:3.12-slim
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout and update submodules
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+        fetch-depth: 0
 
     - name: Install dependencies
       run: apt-get update && apt-get install -y curl git libimage-exiftool-perl
@@ -24,9 +28,8 @@ jobs:
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-    - name: checkout submodule
+    - name: 
       run: |
-        git submodule update --init --recursive
         cd metadata_tools
         git checkout sy-encoding
 
