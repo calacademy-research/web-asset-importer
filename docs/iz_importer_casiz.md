@@ -30,74 +30,61 @@ If all three stages fail:
 
 This is the main entry point for CASIZ extraction. It performs a **sequential attempt** to find CASIZ data from three potential sources by the following order:
 
-- First it will look into the **image filename**
-- Then it will look into the **EXIF metadata**
-- Last it will look into the **directory name**
+- First it will look into the **image filename** (see 2.1)
+- Then it will look into the **EXIF metadata** (see 2.2)
+- Last it will look into the **directory name** (see 2.3)
 
 > ⚠️ **Important:**  
 > The process stops immediately once a match is found in any step.  
-> For example, **if a CASIZ ID is found in the filename, the EXIF and directory steps are skipped.**
+> For example, **if CASIZ ID is found in the filename, the EXIF and directory steps are skipped.**
 
-For each of the step above, IZ importer will try to do a two step match to extract the casiz number
+For each of the step above, IZ importer will try the same way to extract the casiz number (see section `CASIZ Extraction Rules` below)
 
 ---
 
 ### 2.1 📁 `attempt_filename_match`
 
-This function checks whether the **filename** contains any recognizable CASIZ patterns.
+This function checks whether the **base filename** contains any recognizable CASIZ patterns.
 
 ---
 
 ### 2.2. 🧾 `get_casiz_from_exif`
 
-If the filename match fails, this function tries to extract a CASIZ ID from the image’s **EXIF metadata** (e.g., description or title fields).
+If the filename match fails, this function tries to extract a CASIZ ID from the image's **EXIF metadata** (e.g., description or title fields).
 
 It will try to extract casiz from the following fields: (see metadata repo for more details on those constant definitions)
 
-|EXIFConstants.IPTC_KEYWORDS|
-|EXIFConstants.XMP_DC_SUBJECT|
-|EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT|
-|EXIFConstants.IPTC_CAPTION_ABSTRACT|
-|EXIFConstants.XMP_DC_DESCRIPTION|
-|EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION|
-|EXIFConstants.XMP_TITLE|
+| EXIF Tag |
+|----------|
+| EXIFConstants.IPTC_KEYWORDS |
+| EXIFConstants.XMP_DC_SUBJECT |
+| EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT |
+| EXIFConstants.IPTC_CAPTION_ABSTRACT |
+| EXIFConstants.XMP_DC_DESCRIPTION |
+| EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION |
+| EXIFConstants.XMP_TITLE |
 
 ---
 
 ### 2.3 📂 `attempt_directory_match`
 
-If both filename and EXIF methods fail, the importer attempts to extract a CASIZ ID from the **directory name** containing the image.
-
-
----
-
-## 1. 🧩 FILENAME_CONJUNCTION_MATCH
-
-```python
-FILENAME_CONJUNCTION_MATCH = rf'(({CASIZ_MATCH})|([ ]*(and|or)[ ]*({CASIZ_MATCH})))+'
-```
-
-✅ Matches:
-- Multiple CASIZ numbers in a filename
-- Joined by and / or (case-sensitive)
-- Handles:
-  - casiz_12345 and cas_56789.jpg
-  - 12345 and 67890.png
-
-✅ Behavior:
-- If matched:
-  - Finds all occurrences
-  - Extracts all digit sequences (e.g., 12345, 67890)
-  - Stores unique integers in self.casiz_numbers
-  - Sets self.title to the base filename (excluding extension)
+If both filename and EXIF methods fail, the importer attempts to extract CASIZ ID from the **directory path** containing the image.
 
 ---
 
-## 2. 🔎 CASIZ_MATCH
+## 3. 🔎 CASIZ Extraction Rules
 
-```python
-CASIZ_MATCH = rf'({CASIZ_PREFIX}{CASIZ_NUMBER_SHORT})|({CASIZ_NUMBER})'
-```
+✅ Following pattern will be used to extrac CASIZ:
+
+1. if there is `cas` or `casiz` (case insensitive) in the string **before** consecutive digits
+   1. if digits are longer than 3: take up to 10 digits as CASIZ, otherwise go to next rule
+   2. there can be other characters between the digits and `cas/casiz`, but not between the digits 
+2. if consecutive digits is more than 5. take up to 10 digits as CASIZ
+3. there can be more than 1 matches
+
+---
+
+### 3.2 single casiz match
 
 ✅ Matches:
 - Prefixed forms like:
@@ -110,12 +97,6 @@ CASIZ_MATCH = rf'({CASIZ_PREFIX}{CASIZ_NUMBER_SHORT})|({CASIZ_NUMBER})'
 - Unprefixed numeric strings:
   - 12345, 6789012 (within 5 to 10 digits)
 
-✅ Behavior:
-- If matched:
-  - Calls extract_exact_casiz_match(input_string)
-  - If successful, saves as a single CASIZ number
-  - For longer sequences, truncates to maximum allowed length (e.g., "cas 123456789012test" becomes "cas 1234567890")
-
 ❌ Does not match:
 - Prefixes shorter than "cas" (e.g., "ca 125")
 - Numbers with fewer than 3 digits after prefix (e.g., "cas 1")
@@ -124,59 +105,17 @@ CASIZ_MATCH = rf'({CASIZ_PREFIX}{CASIZ_NUMBER_SHORT})|({CASIZ_NUMBER})'
 
 ---
 
-## 2.1 🔍 CASIZ_NUMBER_EXACT
+### 🧪 Example Inputs & Outcomes
 
-```python
-CASIZ_NUMBER_EXACT = rf'({CASIZ_PREFIX}[^a-zA-Z0-9]*)(\d+)'
-```
+| Input Filename                   | Directory              | EXIF                                                   | Extracted CASIZ Numbers | REASON                                  |
+|----------------------------------|------------------------|--------------------------------------------------------|--------------------------|------------------------------------------|
+| casiz_12345_and_cas_67890.jpg    | some dir               | empty                                                  | [12345, 67890]           | match in file                            |
+| 12345_or_67890.png               | some dir               | `{EXIFConstants.XMP_DC_DESCRIPTION: 22354}`            | [12345, 67890]           | match in file, ignore the rest           |
+| cas-123_image.jpg                | directory 22345        | `{}`                                                   | [123]                    | match in file (short length but has `cas` prefix) |
+| cas 1 mas test.tiff              | directory 77910        | `{EXIFConstants.XMP_DC_DESCRIPTION: 22354}`            | [22354]                  | match in EXIF, ignore directory          |
+| test.tiff                        | directory 13345        | `{EXIFConstants.XMP_DC_DESCRIPTION: test}`             | [13345]                  | match in directory                       |
+| image123 _something-4444 file999 | parent_directory/abc   | empty                                                  | None                     | no match in any resources                |
 
-✅ Matches:
-- Prefixed forms with digits immediately following:
-  - casiz12345
-  - casiz_sample_67890
-  - test casiz_image-54321
-  - casiz_image-543
-  - image casiz_54321
-  - abc_casiz_label# 88888
-  - casiz path test 99999
-  - CaSiZ_image_12345 (case insensitive)
 
-✅ Behavior:
-- If matched:
-  - Extracts only the numeric part after the prefix
-  - Returns the numeric part as a match group
 
-❌ Does not match:
-- Prefixes without digits (e.g., "casiz-only", "casiz_image")
-- Paths with backslashes (e.g., "casiz path\\_99999")
-- Paths with forward slashes (e.g., "casiz/image_dir_00001")
-- Prefixes with special characters (e.g., "casiz©-77777")
 
----
-
-## 🧠 Constants Reference
-
-| Constant | Description |
-|----------|-------------|
-| MINIMUM_ID_DIGITS | Minimum digits allowed in a CASIZ ID (typically 5) |
-| MAXIMUM_ID_DIGITS | Maximum digits allowed in a CASIZ ID (typically 10–12) |
-| CASIZ_PREFIX | Prefix like cas, casiz, with optional symbols or spaces |
-| CASIZ_MATCH | Regex for a general CASIZ match (prefixed or just digits) |
-| CASIZ_NUMBER_SHORT | Shorter version used for prefix matching (≥3 digits) |
-| FILENAME_CONJUNCTION_MATCH | Regex for matching multiple CASIZ IDs with "and"/"or" |
-
----
-
-## 🧪 Example Inputs & Outcomes
-
-| Input Filename | Extracted CASIZ Numbers | Title |
-|----------------|-------------------------|-------|
-| casiz_12345_and_cas_67890.jpg | [12345, 67890] | casiz_12345_and_cas_67890 |
-| 12345_or_67890.png | [12345, 67890] | 12345_or_67890 |
-| cas-98765_image.jpg | [98765] | cas-98765_image |
-| report_456789.pdf | [456789] | report_456789 |
-| randomfile.txt | [] → False | N/A |
-
----
-
-Would you like me to save it as a `.md` file and provide a download link?
