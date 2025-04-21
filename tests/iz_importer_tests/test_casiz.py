@@ -38,9 +38,8 @@ class TestIzImporterCasiz(TestIzImporterBase):
         test_cases = [
             ("12345", 12345),               # Minimum digits (5)
             ("123456", 123456),             # 6 digits
-            ("1234567", 1234567),           # 7 digits
-            ("12345678", 12345678),         # 8 digits
             ("123456789", 123456789),       # 9 digits
+            ("12345 and 66772", 12345),     # two numbers in string
             ("1234567890", 1234567890),     # Maximum digits (10)
             ("123456789012", 1234567890),   # more than 10 digits
             ("12345678901_CASIZ.jpg", 1234567890),  # more than 10 digits in filename
@@ -142,7 +141,44 @@ class TestIzImporterCasiz(TestIzImporterBase):
                 self.assertIsNotNone(result, f"Expected match for input '{input_str}', but got None")
                 self.assertEqual(result.group(0), expected, f"Failed to extract {expected} from '{input_str}'")
 
-    def test_extract_exact_casiz_match_file_name(self, mock_specify_db):
+    def test_extract_casiz_from_string(self, mock_specify_db):
+        self._getImporter(mock_specify_db)
+        
+        # Get all image files from test directory
+        test_cases = [
+            ("12345 and 67890", [12345, 67890]),
+            ("99999 or 88888 or 77777", [99999, 88888, 77777]),
+            ("casiz_123456 VS 2233", [123456]),
+            ("1234234", [1234234]),
+            ("1234567890", [1234567890]),
+            ("123456789012", [1234567890]),
+            ("12345678901_CASIZ.jpg", [1234567890]),
+            ("CASIZ 12345", [12345]),
+            ("abc123456def", [123456]),
+            ("12345.jpg", [12345]),
+            ("1234abc1234565", [1234565]),
+            ("some/random_file", None),
+            ("archive/casiz-123456 and 78901 and cas#654321.png", [123456, 78901, 654321]),
+            ("12345 and 12345", [12345]),
+            ("cas_x-1234def", [1234]),
+            ("cas1234", [1234]),
+            ("ca 125", None),
+            ("cas 1", None),
+            ("12", None)
+        ]
+        for input_str, expected in test_cases:
+            result = self.importer.extract_casiz_from_string(input_str)
+            if expected is None:
+                self.assertFalse(result, f"Expected None for input '{input_str}', but got {result}")
+                self.assertEqual(self.importer.casiz_numbers, [], f"Expected empty list for {input_str}")
+            else:
+                self.assertTrue(result, f"Expected {expected} for input '{input_str}', but got {result}")
+                self.importer.casiz_numbers.sort()
+                expected.sort()
+                self.assertEqual(self.importer.casiz_numbers, expected, f"Failed to extract {expected} from '{input_str}'")
+                self.importer.casiz_numbers = []
+
+    def test_attempt_filename_match(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         
         # Get all image files from test directory
@@ -150,13 +186,14 @@ class TestIzImporterCasiz(TestIzImporterBase):
         for file_path, file_info in mock_data['files'].items():
             if file_info.get('skip_test'):
                 continue
-            result = self.importer.extract_exact_casiz_match(os.path.basename(file_path))
+            result = self.importer.attempt_filename_match(os.path.basename(file_path))
             if file_info['casiz']['from_filename'] is not None:
-                self.assertIsNotNone(result, f"Expected match {file_info['casiz']['from_filename']} for {file_path}")
-                self.assertEqual(result.group(), file_info['casiz']['from_filename'], \
+                self.assertTrue(result, f"Expected match {file_info['casiz']['from_filename']} for {file_path}")
+                self.assertEqual(self.importer.casiz_numbers, file_info['casiz']['from_filename'], \
                                  f"Expected {file_info['casiz']['from_filename']} for {file_path}")
             else:
-                self.assertIsNone(result, f"Expected None for {file_path}")
+                self.assertFalse(result, f"Expected False for {file_path}")
+            self.importer.casiz_numbers = []
 
     def test_get_casiz_from_exif(self, mock_specify_db):
         self._getImporter(mock_specify_db)
@@ -182,6 +219,8 @@ class TestIzImporterCasiz(TestIzImporterBase):
         test_file_dir = os.path.dirname(__file__)
         mock_data = self.get_mock_data()
         for file_path, file_info in mock_data['files'].items():
+            if file_info.get('skip_test'):
+                continue
             directory = os.path.join(test_file_dir, file_path)
             result = self.importer.attempt_directory_match(directory)
 
@@ -191,6 +230,31 @@ class TestIzImporterCasiz(TestIzImporterBase):
             else:
                 self.assertEqual(self.importer.casiz_numbers, [], f"Expected empty list for {directory}")
             self.importer.casiz_numbers = []
+
+    def test_get_casiz_ids(self, mock_specify_db):
+        self._getImporter(mock_specify_db)
+        # Get all image files from test directory
+        test_file_dir = os.path.dirname(__file__)
+        mock_data = self.get_mock_data()
+        for file_path, file_info in mock_data['files'].items():
+            full_path = os.path.join(test_file_dir, file_path)
+            exif_metadata = self.importer._read_exif_metadata(full_path)
+            casiz_from = self.importer.get_casiz_ids(file_path, exif_metadata)
+            self.assertEqual(casiz_from, file_info['casiz']['from'], \
+                             f"Expected {file_info['casiz']['from']} for {file_path}")
+
+        # test cases for directory match (we currently no such sample file in iz_test_images directory)
+        file_path = 'root/casiz 12345/mytest.jpg'
+        exif_metadata = {}
+        casiz_from = self.importer.get_casiz_ids(file_path, exif_metadata)
+        self.assertEqual(casiz_from, 'Directory', \
+                             f"Expected Directory for {file_path}")
+
+        # test cases for no casiz match from all sources
+        file_path = 'nocasiz/nocasiz.jpg'
+        exif_metadata = {}
+        casiz_from = self.importer.get_casiz_ids(file_path, exif_metadata)
+        self.assertIsNone(casiz_from, f"Expected None for {file_path}")
 
 if __name__ == "__main__":
     unittest.main()

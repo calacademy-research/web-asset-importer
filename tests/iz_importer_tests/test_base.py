@@ -3,6 +3,7 @@ import sys
 import unittest
 from unittest.mock import patch
 import json
+from pprint import pformat
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from iz_importer import IzImporter
 @patch('importer.SpecifyDb')
@@ -11,6 +12,7 @@ class TestIzImporterBase(unittest.TestCase):
 
     def setUp(self):
         self.importer = None
+        self.mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
 
     def _getImporter(self, mock_specify_db, image_db_result=False):
         if self.importer:
@@ -34,7 +36,11 @@ class TestIzImporterBase(unittest.TestCase):
         return self.importer
     
     def get_mock_data(self):
-        mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data.json')
-        with open(mock_data_file, 'r') as f:
+        with open(self.mock_data_file, 'r') as f:
             mock_data = json.load(f)
         return mock_data
+    
+    def update_mock_data(self, mock_data):
+        new_mock_data_file = os.path.join(os.path.dirname(__file__), 'iz_test_images_mock_data_new.json')
+        with open(new_mock_data_file, 'w') as f:
+            json.dump(mock_data, f, indent=2, ensure_ascii=False)
