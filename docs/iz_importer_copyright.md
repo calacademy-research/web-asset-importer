@@ -3,7 +3,6 @@
 This document describes the step-by-step **workflow used by the IZ Importer** to extract copyright information for a given file using a prioritized strategy. It checks multiple potential sources in order of reliability and returns a string indicating the source of the copyright, if found.
 
 
-
 ## Extraction Sources
 
 - **`orig_case_full_path`** (`str`):  
