@@ -26,15 +26,9 @@ jobs:
     - name: install uv
       run: pip install uv
 
-    - name: 
-      run: |
-        cd metadata_tools
-        git checkout sy-encoding
-
     - name: Install dependencies
       run: |
         uv pip install --system -r requirements.txt
-        uv pip install --system -r metadata_tools/requirements.txt
 
     - name: Run tests
       run: |
