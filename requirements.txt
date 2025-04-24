@@ -57,3 +57,4 @@ faker~=18.11.2
 pillow~=10.3.0
 retrying~=1.3.4
 testfixtures
+cas_metadata_tools

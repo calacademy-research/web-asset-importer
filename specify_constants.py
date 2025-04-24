@@ -1,4 +1,4 @@
-from metadata_tools.base_constants import BaseConstants
+from cas_metadata_tools import BaseConstants
 
 class SpecifyConstants(BaseConstants):
     # Table Nomenclature Constants

@@ -7,13 +7,12 @@ import warnings
 from datetime import datetime
 from importer import Importer
 from directory_tree import DirectoryTree
-from metadata_tools import MetadataTools
+from cas_metadata_tools import MetadataTools, EXIFConstants, BaseConstants
 
 from time_utils import get_pst_time_now_string
 from get_configs import get_config
-from metadata_tools.EXIF_constants import EXIFConstants
 from specify_constants import SpecifyConstants
-from metadata_tools.base_constants import BaseConstants
+
 logging.basicConfig(level=logging.WARNING)
 
 CASIZ_FILE_LOG = "file_log.tsv"
