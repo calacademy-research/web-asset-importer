@@ -35,7 +35,7 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         
         # Import necessary constants
-        from metadata_tools.EXIF_constants import EXIFConstants
+        from cas_metadata_tools import EXIFConstants
         from specify_constants import SpecifyConstants
         
         # Create a sample attachment properties map with all possible keys
@@ -102,7 +102,7 @@ class TestIzImporterLoadFiles(TestIzImporterBase):
                         mock_import_single_file_to_image_db_and_specify:
                         with patch('importer.ImageClient.write_exif_image_metadata') as \
                             mock_write_exif_image_metadata:
-                            with patch('metadata_tools.MetadataTools.write_exif_tags') as \
+                            with patch('cas_metadata_tools.MetadataTools.write_exif_tags') as \
                                 mock_write_exif_tags:
                                 with patch('iz_importer.IzImporter.connect_existing_attachment_to_collection_object_id') as \
                                     mock_connect_existing_attachment_to_collection_object_id:
