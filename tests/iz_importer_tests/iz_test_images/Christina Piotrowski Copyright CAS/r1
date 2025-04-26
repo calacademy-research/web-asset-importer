@@ -1,0 +1,62 @@
+[ExifTool]      ExifToolVersion                 : 12.50
+[File:System]   FileName                        : CASIZ 016426 Callistochiton portobelensis Holotype_3.tif
+[File:System]   Directory                       : .
+[File:System]   FileSize                        : 25 MB
+[File:System]   FileModifyDate                  : 2025:03:26 13:24:50-07:00
+[File:System]   FileAccessDate                  : 2025:03:26 14:16:00-07:00
+[File:System]   FileInodeChangeDate             : 2025:03:26 13:24:50-07:00
+[File:System]   FilePermissions                 : -rwxr-xr-x
+[File]          FileType                        : TIFF
+[File]          FileTypeExtension               : tif
+[File]          MIMEType                        : image/tiff
+[File]          ExifByteOrder                   : Little-endian (Intel, II)
+[File]          CurrentIPTCDigest               : e57c647d11c922531023785b12b7c5ea
+[EXIF:IFD0]     ImageWidth                      : 3840
+[EXIF:IFD0]     ImageHeight                     : 2160
+[EXIF:IFD0]     BitsPerSample                   : 8 8 8
+[EXIF:IFD0]     Compression                     : Uncompressed
+[EXIF:IFD0]     PhotometricInterpretation       : RGB
+[EXIF:IFD0]     ImageDescription                : casiz 016426 callistochiton portobelensis holotype_3
+[EXIF:IFD0]     StripOffsets                    : (Binary data 18481 bytes, use -b option to extract)
+[EXIF:IFD0]     Orientation                     : Horizontal (normal)
+[EXIF:IFD0]     SamplesPerPixel                 : 3
+[EXIF:IFD0]     RowsPerStrip                    : 1
+[EXIF:IFD0]     StripByteCounts                 : (Binary data 12959 bytes, use -b option to extract)
+[EXIF:IFD0]     XResolution                     : 2514.971246
+[EXIF:IFD0]     YResolution                     : 2514.969773
+[EXIF:IFD0]     ResolutionUnit                  : cm
+[EXIF:IFD0]     Artist                          : Christina N. Piotrowski
+[EXIF:IFD0]     Copyright                       : © California Academy of Sciences licensed under CC BY-NC-SA
+[XMP:XMP-x]     XMPToolkit                      : Image::ExifTool 12.76
+[XMP:XMP-dc]    Creator                         : Christina N. Piotrowski
+[XMP:XMP-dc]    Description                     : <LMSIOManager><ProductVersion>1,6,3909,3</ProductVersion><BitShift>UnProcessed</BitShift></LMSIOManager>
+[XMP:XMP-dc]    Format                          : image/tiff
+[XMP:XMP-dc]    Rights                          : © California Academy of Sciences licensed under CC BY-NC-SA
+[XMP:XMP-dc]    Title                           : casiz 016426 callistochiton portobelensis holotype_3
+[XMP:XMP-exif]  ColorSpace                      : Uncalibrated
+[XMP:XMP-photoshop] Credit                      : Christina N. Piotrowski, California Academy of Sciences
+[XMP:XMP-photoshop] LegacyIPTCDigest            : 6EC486B38C3491898B81AC29946B05C5
+[XMP:XMP-plus]  ImageSupplierName               : Christina N. Piotrowski, California Academy of Sciences
+[XMP:XMP-prl]   Usage                           : Creative Commons Attribution-NonCommercial-ShareAlike
+[XMP:XMP-tiff]  Orientation                     : Horizontal (normal)
+[XMP:XMP-xmp]   MetadataDate                    : 2024:08:27 16:34:32-07:00
+[XMP:XMP-xmpMM] DocumentID                      : 29C482F4E757D43990681B5D879DB69C
+[XMP:XMP-xmpMM] HistoryAction                   : saved, saved
+[XMP:XMP-xmpMM] HistoryChanged                  : /metadata, /metadata
+[XMP:XMP-xmpMM] HistoryInstanceID               : xmp.iid:f9e17ae0-45b3-b046-ae9f-208358b156d1, xmp.iid:bc26b2cb-e08a-cd40-acd0-e3d5f96aa342
+[XMP:XMP-xmpMM] HistorySoftwareAgent            : Adobe Photoshop Camera Raw 16.3, Adobe Photoshop Camera Raw 16.3.1 (Windows)
+[XMP:XMP-xmpMM] HistoryWhen                     : 2024:08:27 16:34:32-07:00, 2024:08:27 16:34:32-07:00
+[XMP:XMP-xmpMM] InstanceID                      : xmp.iid:bc26b2cb-e08a-cd40-acd0-e3d5f96aa342
+[XMP:XMP-xmpMM] OriginalDocumentID              : 29C482F4E757D43990681B5D879DB69C
+[XMP:XMP-xmpRights] Marked                      : True
+[XMP:XMP-xmpRights] UsageTerms                  : Creative Commons Attribution-NonCommercial-ShareAlike
+[IPTC]          CodedCharacterSet               : UTF8
+[IPTC]          EnvelopeRecordVersion           : 4
+[IPTC]          ApplicationRecordVersion        : 4
+[IPTC]          Caption-Abstract                : casiz 016426 callistochiton portobelensis holotype_3
+[IPTC]          By-line                         : Christina N. Piotrowski
+[IPTC]          Credit                          : 
+[IPTC]          CopyrightNotice                 : © California Academy of Sciences licensed under CC BY-NC-SA
+[EXIF:ExifIFD]  ExifVersion                     : 0231
+[Composite]     ImageSize                       : 3840x2160
+[Composite]     Megapixels                      : 8.3
