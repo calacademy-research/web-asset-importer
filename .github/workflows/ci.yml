@@ -17,11 +17,8 @@ jobs:
     - name: Install dependencies
       run: apt-get update && apt-get install -y curl git libimage-exiftool-perl gcc libffi-dev g++
 
-    - name: Checkout and update submodules
+    - name: Checkout
       uses: actions/checkout@v4
-      with:
-        submodules: recursive
-        fetch-depth: 0
 
     - name: install uv
       run: pip install uv
