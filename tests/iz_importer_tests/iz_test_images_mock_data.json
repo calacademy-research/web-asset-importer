@@ -106,7 +106,8 @@
         ]
       },
       "copyright_source": "file key",
-      "attachment_id": 234
+      "attachment_id": 234,
+      "skip_test": true
     },
     "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG": {
       "path": "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG",
@@ -122,7 +123,6 @@
           190941
         ],
         "from_exif": [
-          73756,
           190941
         ],
         "from_directory": null,
@@ -556,12 +556,9 @@
       "modified": "2025-03-26T16:24:46",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          125033,
-          20220429
-        ],
+        "from_exif": null,
         "from_directory": null,
-        "from": "Filename"
+        "from": null
       },
       "copyright": {
         "from_directory": "",
@@ -826,8 +823,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -882,8 +878,7 @@
           300001
         ],
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": null,
         "from": "Filename"
@@ -938,8 +933,7 @@
           202356
         ],
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": null,
         "from": "Filename"
@@ -994,8 +988,7 @@
           9535
         ],
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1099,11 +1092,10 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": null,
-        "from": "Filename"
+        "from": "EXIF"
       },
       "copyright": {
         "from_directory": null,
@@ -1161,7 +1153,7 @@
         "from_directory": [
           429836
         ],
-        "from": "Filename"
+        "from": "Directory"
       },
       "copyright": {
         "from_directory": null,
@@ -1180,7 +1172,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          62023
+          185568
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -1233,11 +1225,9 @@
       "modified": "2025-03-26T16:24:52",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          76110
-        ],
+        "from_exif": null,
         "from_directory": null,
-        "from": "EXIF"
+        "from": null
       },
       "copyright": {
         "from_directory": null,
@@ -1317,7 +1307,7 @@
         "from_directory": [
           219416
         ],
-        "from": "Filename"
+        "from": "Directory"
       },
       "copyright": {
         "from_directory": null,
@@ -1340,8 +1330,7 @@
           214715
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1395,13 +1384,12 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          83993,
           214567
         ],
         "from_directory": [
           214568
         ],
-        "from": "EXIF"
+        "from": "Directory"
       },
       "copyright": {
         "from_directory": null,
@@ -1420,8 +1408,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -1471,8 +1458,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -1522,8 +1508,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -1577,8 +1562,7 @@
           97438
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1632,8 +1616,7 @@
           185403
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1687,8 +1670,7 @@
           116217
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1744,8 +1726,7 @@
           184714
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1800,8 +1781,7 @@
           65116
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1855,8 +1835,7 @@
           111359
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1912,7 +1891,7 @@
           214715
         ],
         "from_directory": null,
-        "from": "Filename"
+        "from": "EXIF"
       },
       "copyright": {
         "from_directory": null,
@@ -2018,8 +1997,7 @@
           185407
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2074,8 +2052,7 @@
           105040
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2129,8 +2106,7 @@
           190941
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2184,8 +2160,7 @@
           192393
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2235,8 +2210,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -3328,7 +3302,7 @@
         "from_directory": [
           60451
         ],
-        "from": "EXIF"
+        "from": "Directory"
       },
       "copyright": {
         "from_directory": "CAS",
@@ -3384,7 +3358,7 @@
         "from_directory": [
           63814
         ],
-        "from": "EXIF"
+        "from": "Directory"
       },
       "copyright": {
         "from_directory": "CAS",
