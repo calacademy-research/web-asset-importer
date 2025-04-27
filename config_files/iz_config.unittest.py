@@ -1,4 +1,5 @@
 from os import path
+import regex
 sla = path.sep
 # database credentials
 SPECIFY_DATABASE_HOST = '127.0.0.1'
@@ -37,3 +38,33 @@ MAILING_LIST = []
 SUMMARY_TERMS = []
 SUMMARY_IMG = []
 
+CASIZ_NUMBER_REGEX = regex.compile(
+    r'''
+    (?ix)                           # Ignore case, allow comments
+    (?<!\w)                         # No word character before
+    (                               
+      (?:
+        (?!IZACC[\s_-]?)             # Not IZACC prefix (negative lookahead)
+        (?P<prefix>CASIZ|CAS)        # CASIZ or CAS (named group 'prefix')
+        (?:[\s_-]*)                  # Spaces, underscores, dashes (zero or more)
+      )?
+      (?P<number>                    # --- Capture only the number ---
+        (?!
+          (?:DSC|P)\d{3,}            # Not digital camera serials
+        )
+        (?!
+          (?<!CASIZ[\s_-]*|CAS[\s_-]*) # unless CASIZ/CAS prefix
+          (?:19|20)\d{6}             # Dates like 20230412
+        )
+        \d{3,12}                     # 3-12 digits
+      )
+    )
+    (?(prefix)                       # If prefix matched:
+        (?=\D|$)                     # allow anything non-digit or end
+    |
+        (?=\b|[_\s-]|$)              # else must have boundary
+    )
+    ''', regex.VERBOSE
+)
+
+CASIZ_FALLBACK_REGEX = regex.compile(r'(?i)(?:CASIZ|CAS)[\s_-]*(\d{3,12})(?!\d)')
