@@ -1,5 +1,5 @@
 import os
-import re
+import regex as re
 import csv
 import logging
 import warnings
@@ -199,19 +199,122 @@ class IzImporter(Importer):
         else:
             match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
 
-        return match
+        return int(match.group(1)) if match else None
 
     def extract_casiz_single(self, candidate_string):
         return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_NUMBER)
-
+    
     def extract_casiz_from_string(self, input_string):
+        # Check if "izacc" appears in the text (case insensitive)
+        has_izacc = re.search(r'(?i)\bizacc\b', input_string) is not None
+        
+        matches = []
+        pos = 0
+        last_prefix_match_end = -1
+        
+        while pos < len(input_string):
+            match = self.iz_importer_config.CASIZ_NUMBER_REGEX.search(input_string, pos)
+            if not match:
+                break
+
+            number_str = match.group('number')
+            prefix = match.group('prefix')
+            number_start, number_end = match.span()
+
+            # Remove leading zeros for validation
+            stripped_number_str = number_str.lstrip('0') or '0'
+            valid_length = len(stripped_number_str)
+
+            if has_izacc and not prefix:
+                pos = number_end
+                continue
+
+            if prefix:
+                if not (3 <= valid_length <= 12):
+                    pos = number_end
+                    last_prefix_match_end = number_end
+                    continue
+            else:
+                if not (5 <= valid_length <= 12):
+                    pos = number_end
+                    last_prefix_match_end = number_end
+                    continue
+
+            # Check if AND/OR bridge allowed
+            if last_prefix_match_end != -1 and number_start > last_prefix_match_end:
+                bridge_text = input_string[last_prefix_match_end:number_start]
+                if not re.fullmatch(r'(?i)[\s]*(AND|OR)[\s]*', bridge_text):
+                    break
+
+            matches.append(int(stripped_number_str))
+            pos = number_end
+            last_prefix_match_end = number_end
+        
+        if not matches:
+            for match in self.iz_importer_config.CASIZ_FALLBACK_REGEX.finditer(input_string):
+                number_str = match.group(1)
+                stripped_number_str = number_str.lstrip('0') or '0'
+                valid_length = len(stripped_number_str)
+                
+                if 3 <= valid_length <= 12:
+                    matches.append(int(stripped_number_str))
+        
+        if has_izacc and not any(self.iz_importer_config.CASIZ_NUMBER_REGEX.search(input_string, pos=0, endpos=m) for m in range(len(input_string))):
+            return []
+        self.casiz_numbers = matches[:]
+        if self.casiz_numbers:
+            return True
+        return False
+
+    def __extract_casiz_from_string(self, input_string):
+        pos = 0
+        numbers = []
+
+        while pos < len(input_string):
+            casiz_match = self.iz_importer_config.casiz_pattern.search(input_string, pos)
+            no_prefix_match = self.iz_importer_config.no_prefix_pattern.search(input_string, pos)
+
+            # Find the next closest match (CASIZ first, otherwise number)
+            if casiz_match and (not no_prefix_match or casiz_match.start() <= no_prefix_match.start()):
+                # Matched CASIZ pattern
+                number = int(casiz_match.group(1))
+                numbers.append(number)
+                pos = casiz_match.end()
+
+                # After CASIZ match, check if "AND" or "OR" follows
+                conj = self.iz_importer_config.conjunction_pattern.match(input_string, pos)
+                if conj:
+                    pos = conj.end()  # Skip the conjunction and continue
+                else:
+                    break  # No conjunction: stop parsing
+
+            elif no_prefix_match:
+                # Matched number without CASIZ
+                number = int(no_prefix_match.group(1))
+                numbers.append(number)
+                pos = no_prefix_match.end()
+
+                # After number match, check if "AND" or "OR" follows
+                conj = self.iz_importer_config.conjunction_pattern.match(input_string, pos)
+                if conj:
+                    pos = conj.end()
+                else:
+                    break
+            else:
+                break
+        self.casiz_numbers = list(set(numbers))
+        if self.casiz_numbers:
+            return True
+        return False
+
+    def _extract_casiz_from_string(self, input_string):
         match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
         if match:
             integers = set()
             matches = re.finditer(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
 
             for match in matches:
-                numbers = re.findall(r'\d+', match.group())
+                numbers = re.findall(r'\d+', match.group()) if isinstance(match.group(), str) else []
                 for number in numbers:
                     integers.add(int(number))
 
@@ -222,7 +325,6 @@ class IzImporter(Importer):
                 return True
 
         match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
-
         if match:
             exact = self.extract_exact_casiz_match(input_string)
             if exact is not None:
@@ -455,11 +557,11 @@ class IzImporter(Importer):
         if self.attempt_filename_match(full_path):
             return 'Filename'
 
-        if self.get_casiz_from_exif(exif_metadata) is not None:
-            return 'EXIF'
-
         if self.attempt_directory_match(full_path):
             return 'Directory'
+
+        if self.get_casiz_from_exif(exif_metadata) is not None:
+            return 'EXIF'
 
         self.log_file_status(filename=os.path.basename(full_path), path=full_path,
                              rejected="no casiz match for exif, filename, or directory.")

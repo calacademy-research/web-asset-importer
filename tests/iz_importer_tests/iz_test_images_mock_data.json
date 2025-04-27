@@ -64,9 +64,7 @@
       "size": 43942,
       "modified": "2025-03-26T16:24:43",
       "casiz": {
-        "from_filename": [
-          58617
-        ],
+        "from_filename": null,
         "from_exif": [
           58617
         ],
@@ -121,7 +119,6 @@
       "modified": "2025-03-26T16:24:43",
       "casiz": {
         "from_filename": [
-          73756,
           190941
         ],
         "from_exif": [
@@ -558,10 +555,7 @@
       "size": 47492,
       "modified": "2025-03-26T16:24:46",
       "casiz": {
-        "from_filename": [
-          125033,
-          20220429
-        ],
+        "from_filename": null,
         "from_exif": [
           125033,
           20220429
@@ -1103,9 +1097,7 @@
       "size": 31906,
       "modified": "2025-03-26T16:24:50",
       "casiz": {
-        "from_filename": [
-          41562023
-        ],
+        "from_filename": null,
         "from_exif": [
           215909,
           93935
@@ -1162,12 +1154,9 @@
       "size": 34683,
       "modified": "2025-03-26T16:24:51",
       "casiz": {
-        "from_filename": [
-          62023
-        ],
+        "from_filename": null,
         "from_exif": [
-          215909,
-          93935
+          215909
         ],
         "from_directory": [
           429836
@@ -1321,10 +1310,7 @@
       "size": 32012,
       "modified": "2025-03-26T16:24:53",
       "casiz": {
-        "from_filename": [
-          30600,
-          201610
-        ],
+        "from_filename": null,
         "from_exif": [
           217699
         ],
@@ -1338,8 +1324,7 @@
         "from_exif": "© Christina N. Piotrowski licensed under CC BY-NC-SA"
       },
       "metadata": {},
-      "copyright_source": "exif",
-      "skip_test": true
+      "copyright_source": "exif"
     },
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/CASIZ 214715_VIP2015__2015_04_14_3666.JPG": {
       "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/CASIZ 214715_VIP2015__2015_04_14_3666.JPG",
@@ -1924,8 +1909,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -1964,8 +1948,7 @@
           "Daniel Killam"
         ]
       },
-      "copyright_source": "file key",
-      "skip_test": true
+      "copyright_source": "file key"
     },
     "iz_test_images/Vanessa Guerra/CASIZ 185570 Myxicola_IMG_20110210_105637.jpg": {
       "path": "iz_test_images/Vanessa Guerra/CASIZ 185570 Myxicola_IMG_20110210_105637.jpg",
@@ -1978,13 +1961,10 @@
       "modified": "2025-03-26T16:24:59",
       "casiz": {
         "from_filename": [
-          185570,
-          105637,
-          20110210
+          185570
         ],
         "from_exif": [
-          214715,
-          83487
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -3012,8 +2992,7 @@
       "modified": "2025-03-26T16:25:07",
       "casiz": {
         "from_filename": [
-          241666,
-          882
+          241666
         ],
         "from_exif": [
           65098
@@ -3067,7 +3046,6 @@
       "modified": "2025-03-26T16:25:08",
       "casiz": {
         "from_filename": [
-          2016082416,
           218811
         ],
         "from_exif": [
@@ -4121,7 +4099,8 @@
           "FALSE"
         ]
       },
-      "copyright_source": "file key"
+      "copyright_source": "file key",
+      "skip_test": true
     },
     "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg": {
       "path": "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg",
@@ -4189,7 +4168,6 @@
       "modified": "2025-03-26T16:25:16",
       "casiz": {
         "from_filename": [
-          3301433,
           234658
         ],
         "from_exif": [
@@ -4244,8 +4222,7 @@
       "modified": "2025-03-26T16:25:17.324508",
       "casiz": {
         "from_filename": [
-          241488,
-          160218
+          241488
         ],
         "from_exif": [
           65098
