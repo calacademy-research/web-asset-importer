@@ -104,17 +104,16 @@ This is the **main** search rule.
    - If a "CAS" or "CASIZ" prefix is present, anything can follow the number (letters, symbols, etc.).
    - If there’s **no prefix**, the number must end cleanly (with a space, dash, underscore, `#`, or end of text).
 
-
 # 🧩 CASIZ Number Extraction Flow
 
 ```mermaid
 flowchart TD
     A[Start] --> B{Is there a CASIZ or CAS before the number?}
-    B -- Yes --> C{Camera Serial Pattern (DSCxxxx or Pxxxx)?}
-    B -- No --> F{Camera Serial Pattern (DSCxxxx or Pxxxx)?}
+    B -- Yes --> C{Camera Serial Pattern \(DSCxxxx or Pxxxx\)?}
+    B -- No --> F{Camera Serial Pattern \(DSCxxxx or Pxxxx\)?}
     
     C -- Yes --> D[Ignore match (stop)]
-    C -- No --> E{Date Pattern (e.g., 20230412)?}
+    C -- No --> E{Date Pattern \(e.g., 20230412\)?}
 
     F -- Yes --> D
     F -- No --> E
@@ -124,6 +123,7 @@ flowchart TD
 
     H -- Yes --> G
     H -- No --> D
+```
 
 ---
 
