@@ -109,20 +109,24 @@ This is the **main** search rule.
 ```mermaid
 flowchart TD
     A[Start] --> B{Is there a CASIZ or CAS before the number?}
-    B -- Yes --> C{Camera Serial Pattern \(DSCxxxx or Pxxxx\)?}
-    B -- No --> F{Camera Serial Pattern \(DSCxxxx or Pxxxx\)?}
+    B -- Yes --> C{Camera Serial Pattern: DSCxxxx or Pxxxx?}
+    B -- No --> F{Camera Serial Pattern: DSCxxxx or Pxxxx?}
     
-    C -- Yes --> D[Ignore match (stop)]
-    C -- No --> E{Date Pattern \(e.g., 20230412\)?}
+    C -- Yes --> D[[Ignore match (stop)]]
+    C -- No --> E{Date Pattern: e.g. 20230412?}
 
     F -- Yes --> D
     F -- No --> E
 
-    E -- No --> G[Accept match]
+    E -- No --> G[[Accept match]]
     E -- Yes --> H{Is there a CASIZ/CAS prefix?}
 
     H -- Yes --> G
     H -- No --> D
+
+    style D fill:#ffdddd,stroke:#ff0000,stroke-width:2px
+    style G fill:#ddffdd,stroke:#00aa00,stroke-width:2px
+
 ```
 
 ---
