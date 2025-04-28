@@ -112,7 +112,7 @@ flowchart TD
     B -- Yes --> C{Camera Serial Pattern: DSCxxxx or Pxxxx?}
     B -- No --> F{Camera Serial Pattern: DSCxxxx or Pxxxx?}
     
-    C -- Yes --> D[[Ignore match (stop)]]
+    C -- Yes --> D[[Ignore match]]
     C -- No --> E{Date Pattern: e.g. 20230412?}
 
     F -- Yes --> D
