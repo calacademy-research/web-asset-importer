@@ -80,7 +80,6 @@ class TestIzImporterCasiz(TestIzImporterBase):
             result = self.importer.attempt_filename_match(os.path.basename(file_path))
             if file_info['casiz']['from_filename'] is not None:
                 self.assertTrue(result, f"Expected match {file_info['casiz']['from_filename']} for {file_path}")
-                #breakpoint()
                 self.assertEqual(self.importer.casiz_numbers, file_info['casiz']['from_filename'], \
                                  f"Expected {file_info['casiz']['from_filename']} for {file_path}")
             else:
