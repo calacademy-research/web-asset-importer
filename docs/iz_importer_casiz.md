@@ -68,7 +68,7 @@ It will try to extract casiz from the following fields: (see metadata repo for m
 | EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT |
 | EXIFConstants.IPTC_CAPTION_ABSTRACT |
 | EXIFConstants.XMP_DC_DESCRIPTION |
-| XMP:Description |
+| EXIFConstants.XMP:Description |
 | EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION |
 | EXIFConstants.XMP_TITLE |
 
