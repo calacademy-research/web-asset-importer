@@ -1,4 +1,5 @@
 from os import path
+import regex
 sla = path.sep
 # database credentials
 SPECIFY_DATABASE_HOST = '127.0.0.1'

@@ -280,8 +280,7 @@ class IzImporter(Importer):
             EXIFConstants.XMP_DC_SUBJECT,
             EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT,
             EXIFConstants.IPTC_CAPTION_ABSTRACT,
-            "XMP:Description",
-            # cas_metadata_tools 1.0.0 has this key as "XMP-dc:Description" for some reason
+            EXIFConstants.XMP_DESCRIPTION
             EXIFConstants.XMP_DC_DESCRIPTION,
             EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION,
             EXIFConstants.XMP_TITLE,
