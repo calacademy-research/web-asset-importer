@@ -904,8 +904,12 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-        primary_bool = [True, False, False, False, False]
+
         for index, agent_dict in enumerate(self.full_collector_list):
+
+            is_primary = True if index == 0 else False
+            order_number = index  # auto-increment by index
+
             table = 'collector'
 
             agent_id = agent_dict['agent_id']
@@ -933,8 +937,8 @@ class PicturaeImporter(Importer):
             value_list = [f"{time_utils.get_pst_time_now_string()}",
                           f"{time_utils.get_pst_time_now_string()}",
                           1,
-                          primary_bool[index],
-                          1,
+                          is_primary,
+                          order_number,
                           f"{self.created_by_agent}",
                           f"{self.created_by_agent}",
                           f"{self.collecting_event_id}",
