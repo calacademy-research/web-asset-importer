@@ -111,14 +111,12 @@ def main(args):
             else:
                 # importing highest csv date
                 PicturaeImporter(config=pic_config)
-
-
-
         elif args.collection == "Ichthyology":
             full_import = args.full_import
             IchthyologyImporter(full_import=full_import)
         elif args.collection == "IZ":
-            IzImporter()
+            izimporter = IzImporter()
+            izimporter.import_files()
     elif args.subcommand == 'purge':
         logger.debug("Purge!")
 
@@ -139,7 +137,6 @@ def main(args):
             date_override = args.date
             force_update = args.force_update
             UpdateBotDbFields(config=bot_config, date=date_override, force_update=force_update)
-
     else:
         print(f"Unknown command: {args.subcommand}")
 
