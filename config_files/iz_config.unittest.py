@@ -24,6 +24,10 @@ MAILING_LIST = []
 SUMMARY_TERMS = []
 SUMMARY_IMG = []
 
+MINIMUM_ID_DIGITS_WITH_PREFIX = 3
+MAXIMUM_ID_DIGITS = 12
+MINIMUM_ID_DIGITS = 5
+
 CASIZ_NUMBER_REGEX = regex.compile(
     r'''
     (?ix)                           # Ignore case, allow comments
@@ -36,21 +40,31 @@ CASIZ_NUMBER_REGEX = regex.compile(
       )?
       (?P<number>                    # --- Capture only the number ---
         (?!
-          (?:DSC|P)\d{3,}            # Not digital camera serials
+          (?:DSC|P)\d{{{min_digits_with_prefix},}}     # Not camera serials
         )
         (?!
-          (?<!CASIZ[\s_#-]*|CAS[\s_#-]*) # unless CASIZ/CAS prefix
-          (?:(1[6-9]\d{2}|20\d{2})(0[1-9]|1[0-2])(0[1-9]|[12]\d|3[01]))             # Dates like 20230412
+          (?<!CASIZ[\s_#-]*|CAS[\s_#-]*)
+          (?:(?:19|20)\d{{2}}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))
         )
-        \d{3,12}                     # 3-12 digits
+        \d{{{min_digits_with_prefix},{max_digits}}}
       )
     )
-    (?(prefix)                       # If prefix matched:
-        (?=\D|$)                     # allow anything non-digit or end
+    (?(prefix)
+        (?=\D|$)
     |
-        (?=\b|[_\s#-]|$)              # else must have boundary
+        (?=\b|[_\s#-]|$)
     )
-    ''', regex.VERBOSE
+    '''.format(
+        min_digits_with_prefix=MINIMUM_ID_DIGITS_WITH_PREFIX,
+        max_digits=MAXIMUM_ID_DIGITS
+    ),
+    regex.VERBOSE
 )
 
-CASIZ_FALLBACK_REGEX = regex.compile(r'(?i)(?:CASIZ|CAS)[\s_#-]*(\d{3,12})(?!\d)')
+
+CASIZ_FALLBACK_REGEX = regex.compile(
+    r'(?i)(?:CASIZ|CAS)[\s_#-]*(\d{{{min_digits},{max_digits}}})(?!\d)'.format(
+        min_digits=MINIMUM_ID_DIGITS_WITH_PREFIX,
+        max_digits=MAXIMUM_ID_DIGITS
+    )
+)

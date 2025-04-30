@@ -210,12 +210,14 @@ class IzImporter(Importer):
                 continue
 
             if prefix:
-                if not (3 <= valid_length <= 12):
+                if not (self.iz_importer_config.MINIMUM_ID_DIGITS_WITH_PREFIX <=
+                        valid_length <= self.iz_importer_config.MAXIMUM_ID_DIGITS):
                     pos = number_end
                     last_prefix_match_end = number_end
                     continue
             else:
-                if not (5 <= valid_length <= 12):
+                if not (self.iz_importer_config.MINIMUM_ID_DIGITS <=
+                        valid_length <= self.iz_importer_config.MAXIMUM_ID_DIGITS):
                     pos = number_end
                     last_prefix_match_end = number_end
                     continue
