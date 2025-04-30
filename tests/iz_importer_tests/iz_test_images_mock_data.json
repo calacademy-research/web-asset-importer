@@ -59,11 +59,9 @@
       "modified": "2025-03-26T16:24:43",
       "casiz": {
         "from_filename": null,
-        "from_exif": [
-          58617
-        ],
+        "from_exif": null,
         "from_directory": null,
-        "from": "Filename"
+        "from": null
       },
       "copyright": {
         "from_directory": "CAS",
@@ -100,8 +98,7 @@
         ]
       },
       "copyright_source": "file key",
-      "attachment_id": 234,
-      "skip_test": true
+      "attachment_id": 234
     },
     "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG": {
       "path": "iz_test_images/Nathan Hollenbeck/CASIZ 190941 Clade II RBRF12 male PB073756 c N Hollenbeck.JPG",
@@ -2260,7 +2257,7 @@
           190479
         ],
         "from_directory": null,
-        "from": "Filename"
+        "from": "EXIF"
       },
       "copyright": {
         "from_directory": null,
@@ -2295,8 +2292,7 @@
           "Mikihito Arai"
         ]
       },
-      "copyright_source": "file key",
-      "skip_test": true
+      "copyright_source": "file key"
     },
     "iz_test_images/Victor Smith copyright CAS/CASIZ171855_D.JPG": {
       "path": "iz_test_images/Victor Smith copyright CAS/CASIZ171855_D.JPG",
@@ -3877,8 +3873,7 @@
           "FALSE"
         ]
       },
-      "copyright_source": "file key",
-      "skip_test": true
+      "copyright_source": "file key"
     },
     "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg": {
       "path": "iz_test_images/Rich Mooi/CASIZ 186310 Caymanostellid composite.jpg",
