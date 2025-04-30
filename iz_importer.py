@@ -1,5 +1,5 @@
 import os
-import re
+import regex as re
 import csv
 import logging
 import warnings
@@ -183,60 +183,69 @@ class IzImporter(Importer):
             f"Logged: {id} copyright method: {copyright_method} copyright: '{copyright}' rejected:{rejected} filename: {filename} Path: {path}")
         self.log_file.write(
             f"{id}\t{filename}\t{casiznumber_method}\t{copyright_method}\t{copyright}\t{rejected}\t{path}\n")
-
-    def extract_casiz_number(self, candidate_string, pattern):
-        match = re.search(pattern, candidate_string)
-        if match:
-            casiz_number = re.search(r'\d+', match.group())
-            if casiz_number:
-                return int(casiz_number.group())
-        return None
-
-    def extract_exact_casiz_match(self, candidate_string):
-        match = None
-        if re.search(r'casiz', candidate_string, re.IGNORECASE):
-            match = re.search(self.iz_importer_config.CASIZ_NUMBER_EXACT, candidate_string, re.IGNORECASE)
-        else:
-            match = re.search(self.iz_importer_config.CASIZ_MATCH, candidate_string)
-
-        return match
-
-    def extract_casiz_single(self, candidate_string):
-        return self.extract_casiz_number(candidate_string, self.iz_importer_config.CASIZ_NUMBER)
-
+    
     def extract_casiz_from_string(self, input_string):
-        match = re.search(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
-        if match:
-            integers = set()
-            matches = re.finditer(self.iz_importer_config.FILENAME_CONJUNCTION_MATCH, input_string)
+        # Check if "izacc" appears in the text (case insensitive)
+        has_izacc = re.search(r'(?i)\bizacc\b', input_string) is not None
+        
+        matches = []
+        pos = 0
+        last_prefix_match_end = -1
+        
+        while pos < len(input_string):
+            match = self.iz_importer_config.CASIZ_NUMBER_REGEX.search(input_string, pos)
+            if not match:
+                break
 
-            for match in matches:
-                numbers = re.findall(r'\d+', match.group())
-                for number in numbers:
-                    integers.add(int(number))
+            number_str = match.group('number')
+            prefix = match.group('prefix')
+            number_start, number_end = match.span()
 
-            self.casiz_numbers=list(integers)
+            # Remove leading zeros for validation
+            stripped_number_str = number_str.lstrip('0') or '0'
+            valid_length = len(stripped_number_str)
 
-            self.title = os.path.splitext(input_string)[0]
-            if len(self.casiz_numbers) > 0:
-                return True
+            if has_izacc and not prefix:
+                pos = number_end
+                continue
 
-        match = re.search(self.iz_importer_config.CASIZ_MATCH, input_string)
-
-        if match:
-            exact = self.extract_exact_casiz_match(input_string)
-            if exact is not None:
-                self.casiz_numbers = [exact]
-                return True
+            if prefix:
+                if not (self.iz_importer_config.MINIMUM_ID_DIGITS_WITH_PREFIX <=
+                        valid_length <= self.iz_importer_config.MAXIMUM_ID_DIGITS):
+                    pos = number_end
+                    last_prefix_match_end = number_end
+                    continue
             else:
-                print(f"No exact match found for {input_string}")
+                if not (self.iz_importer_config.MINIMUM_ID_DIGITS <=
+                        valid_length <= self.iz_importer_config.MAXIMUM_ID_DIGITS):
+                    pos = number_end
+                    last_prefix_match_end = number_end
+                    continue
 
-        casiz_number = self.extract_casiz_single(input_string)
-        if casiz_number is not None:
-            self.casiz_numbers = [casiz_number]
-            self.title = os.path.splitext(input_string)[0]
+            # Check if AND/OR bridge allowed
+            if last_prefix_match_end != -1 and number_start > last_prefix_match_end:
+                bridge_text = input_string[last_prefix_match_end:number_start]
+                if not re.fullmatch(r'(?i)[\s]*(AND|OR)[\s]*', bridge_text):
+                    break
+
+            matches.append(int(stripped_number_str))
+            pos = number_end
+            last_prefix_match_end = number_end
+        
+        if not matches:
+            for match in self.iz_importer_config.CASIZ_FALLBACK_REGEX.finditer(input_string):
+                number_str = match.group(1)
+                stripped_number_str = number_str.lstrip('0') or '0'
+                valid_length = len(stripped_number_str)
+                
+                if 3 <= valid_length <= 12:
+                    matches.append(int(stripped_number_str))
+        
+        if has_izacc and not any(self.iz_importer_config.CASIZ_NUMBER_REGEX.search(input_string, pos=0, endpos=m) for m in range(len(input_string))):
+            return []
+        self.casiz_numbers = list(set(matches))
+        if self.casiz_numbers:
             return True
-
         return False
 
     def extract_copyright_from_string(self, copyright_string):
@@ -273,9 +282,11 @@ class IzImporter(Importer):
             EXIFConstants.XMP_DC_SUBJECT,
             EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT,
             EXIFConstants.IPTC_CAPTION_ABSTRACT,
+            EXIFConstants.XMP_DESCRIPTION,
             EXIFConstants.XMP_DC_DESCRIPTION,
             EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION,
-            EXIFConstants.XMP_TITLE
+            EXIFConstants.XMP_TITLE,
+            EXIFConstants.XMP_CREATOR_WORK_URL
         ]
 
         if exif_metadata is None:
@@ -332,21 +343,18 @@ class IzImporter(Importer):
     def attempt_directory_match(self, full_path):
         directory = os.path.dirname(full_path)
         directories = directory.split('/')
+        casiz_numbers = []
         for cur_directory in reversed(directories):
-            for pattern in [self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH,
-                            self.iz_importer_config.DIRECTORY_MATCH]:
-                result = re.search(pattern, cur_directory)
-                if result:
-                    found_substring = result.groups()[0]
-                    self.title = cur_directory
-                    if pattern == self.iz_importer_config.DIRECTORY_CONJUNCTION_MATCH:
-                        self.casiz_numbers = list(set(map(int, re.findall(rf'\b\d{{{self.iz_importer_config.SHORT_MINIMUM_ID_DIGITS},{self.iz_importer_config.MAXIMUM_ID_DIGITS}}}\b', found_substring))))
-                    else:
-                        casiz_number = self.extract_casiz_single(cur_directory)
-                        if casiz_number is not None:
-                            self.casiz_numbers = [casiz_number]
-                    return True
-        return False
+            match = self.extract_casiz_from_string(cur_directory)
+            if match:
+                casiz_numbers.extend(self.casiz_numbers)
+        if casiz_numbers:
+            self.casiz_numbers = list(set(casiz_numbers))
+            return True
+        else:
+            self.casiz_numbers = []
+            return False
+
 
     def attempt_filename_match(self, full_path):
         filename = os.path.basename(full_path)
@@ -455,11 +463,11 @@ class IzImporter(Importer):
         if self.attempt_filename_match(full_path):
             return 'Filename'
 
-        if self.get_casiz_from_exif(exif_metadata) is not None:
-            return 'EXIF'
-
         if self.attempt_directory_match(full_path):
             return 'Directory'
+
+        if self.get_casiz_from_exif(exif_metadata) is not None:
+            return 'EXIF'
 
         self.log_file_status(filename=os.path.basename(full_path), path=full_path,
                              rejected="no casiz match for exif, filename, or directory.")

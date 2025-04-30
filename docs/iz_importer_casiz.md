@@ -31,8 +31,9 @@ If all three stages fail:
 This is the main entry point for CASIZ extraction. It performs a **sequential attempt** to find CASIZ data from three potential sources by the following order:
 
 - First it will look into the **image filename** (see 2.1)
-- Then it will look into the **EXIF metadata** (see 2.2)
-- Last it will look into the **directory name** (see 2.3)
+- Then it will look into the **directory name** (see 2.2)
+- Last it will look into the **EXIF metadata** (see 2.3)
+
 
 > ⚠️ **Important:**  
 > The process stops immediately once a match is found in any step.  
@@ -48,9 +49,15 @@ This function checks whether the **base filename** contains any recognizable CAS
 
 ---
 
-### 2.2. 🧾 `get_casiz_from_exif`
+### 2.2 📂 `attempt_directory_match`
 
-If the filename match fails, this function tries to extract a CASIZ ID from the image's **EXIF metadata** (e.g., description or title fields).
+If filename match fails, the importer attempts to extract CASIZ ID from the **directory path** containing the image.
+
+---
+
+### 2.3 🧾 `get_casiz_from_exif`
+
+If both the filename and directory match fail, this function tries to extract a CASIZ ID from the image's **EXIF metadata** (e.g., description or title fields).
 
 It will try to extract casiz from the following fields: (see metadata repo for more details on those constant definitions)
 
@@ -61,14 +68,9 @@ It will try to extract casiz from the following fields: (see metadata repo for m
 | EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT |
 | EXIFConstants.IPTC_CAPTION_ABSTRACT |
 | EXIFConstants.XMP_DC_DESCRIPTION |
+| EXIFConstants.XMP:Description |
 | EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION |
 | EXIFConstants.XMP_TITLE |
-
----
-
-### 2.3 📂 `attempt_directory_match`
-
-If both filename and EXIF methods fail, the importer attempts to extract CASIZ ID from the **directory path** containing the image.
 
 ---
 
@@ -76,11 +78,60 @@ If both filename and EXIF methods fail, the importer attempts to extract CASIZ I
 
 ✅ Following pattern will be used to extrac CASIZ:
 
-1. if there is `cas` or `casiz` (case insensitive) in the string **before** consecutive digits
-   1. if digits are longer than 3: take up to 10 digits as CASIZ, otherwise go to next rule
-   2. there can be other characters between the digits and `cas/casiz`, but not between the digits 
-2. if consecutive digits is more than 5. take up to 10 digits as CASIZ
-3. there can be more than 1 matches
+This is the **main** search rule.
+
+### Step-by-Step:
+
+1. **Not inside a word**  
+   - The match must not be inside another word (e.g., `mycas123` won't match).
+
+2. **Look for CASIZ or CAS (optional)**  
+   - Searches for "CASIZ" or "CAS" (case-insensitive: "casiz", "Cas" are fine).
+   - Allows spaces, underscores `_`, dashes `-`, or `#` between the word and the number.
+     - Example matches: `CAS_1234`, `cas-1234`, `casiz#1234`.
+
+3. **Skip fake matches (IZACC)**  
+   - If `IZACC` comes before the number, it is **ignored**.
+
+4. **Check the number itself**  
+   - Must be a **3 to 12 digit** number.
+   - Must **not** match camera serial number patterns:
+     - Nikon: `DSC1234`
+     - Olympus: `P1234`
+   - Must **not** look like a date (e.g., `20230412`), **unless** it has a CAS or CASIZ prefix.
+
+5. **Finish carefully**
+   - If a "CAS" or "CASIZ" prefix is present, anything can follow the number (letters, symbols, etc.).
+   - If there’s **no prefix**, the number must end cleanly (with a space, dash, underscore, `#`, or end of text).
+
+# 🧩 CASIZ Number Extraction Flow (Corrected)
+
+```mermaid
+flowchart TD
+    A[Start] --> B{Is there an IZACC prefix?}
+    B -- Yes --> D[[Ignore match]]
+    B -- No --> C{Is there a CASIZ or CAS before the number?}
+    
+    C -- Yes --> E{Camera Serial Pattern: DSCxxxx or Pxxxx?}
+    C -- No --> F{Camera Serial Pattern: DSCxxxx or Pxxxx?}
+    
+    E -- Yes --> D
+    E -- No --> G{Date Pattern: e.g. 20230412?}
+
+    F -- Yes --> D
+    F -- No --> G
+
+    G -- No --> H[[Accept match]]
+    G -- Yes --> I{Is there a CASIZ/CAS prefix?}
+
+    I -- Yes --> H
+    I -- No --> D
+
+    style D fill:#ffdddd,stroke:#ff0000,stroke-width:2px
+    style H fill:#ddffdd,stroke:#00aa00,stroke-width:2px
+
+
+```
 
 ---
 
