@@ -99,8 +99,8 @@ class MonitoringTools:
             for index, term in enumerate(self.config.SUMMARY_TERMS):
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
-
-    def append_monitoring_dict(self, monitoring_dict, unique_id, original_path, success):
+    @staticmethod
+    def append_monitoring_dict(monitoring_dict, unique_id, original_path, success, logger=None):
         """append_monitoring_dict: adds paths to monitoring dictionary,
            allows for multiple original paths to be added per ID without replacement.
         """
@@ -110,13 +110,11 @@ class MonitoringTools:
             if not path_exists:
                 # If original_path is not in the list of lists, append the new list
                 monitoring_dict[unique_id].append([original_path, success])
-            else:
-                self.logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
+            if logger:
+                logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
         else:
             # If id does not exist, create a new list of lists
             monitoring_dict[unique_id] = [[original_path, success]]
-
-        return monitoring_dict
 
     def create_monitoring_report(self):
         """add_format_batch_report:
