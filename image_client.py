@@ -50,6 +50,7 @@ class ImageClient:
 
             # dict to create report of image import
             self.monitoring_dict = {}
+            self.removed_files = {}
 
             self.monitoring_tools = MonitoringTools(config=config, report_path=report_path, active=active)
 
@@ -378,3 +379,9 @@ class ImageClient:
             assert False
 
         assert False
+
+    def send_report(self, subject_prefix, time_stamp):
+        subject = f"{subject_prefix}: SUCCESS REPORT"
+        self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.monitoring_dict)
+        subject = f"{subject_prefix}: REMOVED FILES REPORT"
+        self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.removed_files)

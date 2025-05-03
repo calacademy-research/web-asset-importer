@@ -64,10 +64,9 @@ class IzImporter(Importer):
         self.process_loaded_files()
 
         if self.iz_importer_config.MAILING_LIST:
-            image_dict = self.image_client.monitoring_dict
-            self.image_client.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                                                                      time_stamp=starting_time_stamp,
-                                                                      image_dict=image_dict)
+            self.image_client.send_report(subject_prefix=f"IZ_BATCH",
+                                          time_stamp=get_pst_time_now_string())
+
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
         logging.getLogger('Client.importer').setLevel(logging.DEBUG)
@@ -396,8 +395,8 @@ class IzImporter(Importer):
             self.remove_file_from_database(full_path)
             for casiz_number in self.casiz_numbers:
                 self.image_client.monitoring_tools.append_monitoring_dict(
-                    self.image_client.monitoring_dict, 
-                    casiz_number, full_path+' -- (!!!REMOVED!!!)', True)
+                    self.image_client.removed_files, 
+                    casiz_number, full_path, True)
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Marked for removal")
             return FILENAME_BUILD_STATUS.REMOVED_FILE, False
 
