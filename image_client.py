@@ -289,8 +289,8 @@ class ImageClient:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
             if self.config.MAILING_LIST:
-                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
-                                                                                    original_path, False)
+                self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
+                                                            original_path, False, self.monitoring_tools.logger)
 
             raise UploadFailureException
         else:
@@ -308,8 +308,8 @@ class ImageClient:
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             logging.info("adding to image")
             if self.config.MAILING_LIST:
-                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
-                                                                                    original_path, True)
+                self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
+                                                            original_path, True, self.monitoring_tools.logger)
 
         self.logger.debug("Upload to file server complete")
 
