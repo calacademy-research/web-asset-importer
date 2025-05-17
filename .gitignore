@@ -62,3 +62,5 @@ settings.development.py
 *.xlsx
 file_log.tsv
 *.txt*
+!tests/iz_importer_tests/iz_test_images/**/*.JPG
+!tests/iz_importer_tests/iz_test_images/**/*.TIF
