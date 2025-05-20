@@ -4285,6 +4285,61 @@
         ]
       },
       "copyright_source": "file key"
+    },
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/cp-0461 syllidae orange proventriculus/VIP2015__2015_04_16_4121.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/cp-0461 syllidae orange proventriculus/VIP2015__2015_04_16_4121.JPG",
+      "extension": ".jpg",
+      "has_key_file": true,
+      "size": 22395,
+      "modified": "2025-05-17T08:38:11",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [
+          214775
+        ],
+        "from_directory": null,
+        "from": "EXIF"
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "© Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          ""
+        ],
+        "Credit": [
+          "Christina N. Piotrowski, California Academy of Sciences"
+        ],
+        "License": [
+          ""
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          true
+        ],
+        "subType": [
+          [
+            "CASIZ 214775",
+            "GAL-90; IZACC 83513"
+          ]
+        ],
+        "createdByAgent": [
+          "Christina N. Piotrowski"
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski, California Academy of Sciences"
+        ],
+        "remove": [
+          "true"
+        ]
+      },
+      "copyright_source": "file key"
     }
   },
   "directories": [
