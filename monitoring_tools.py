@@ -116,7 +116,7 @@ class MonitoringTools:
             # If id does not exist, create a new list of lists
             monitoring_dict[unique_id] = [[original_path, success]]
 
-    def create_monitoring_report(self):
+    def create_monitoring_report(self, report_type: str = "Upload"):
         """add_format_batch_report:
             creates template of upload batch report. Takes standard summary terms and args,
            and allows for custom terms to be added with custom_terms.
@@ -132,7 +132,7 @@ class MonitoringTools:
 
         report = """<html>
                     <head>
-                    <title>Upload Batch Report</title>
+                    <title> {report_type} Batch Report</title>
                     <style>
                     img {
                         max-width: 300px; /* Maximum width of 300 pixels */
@@ -157,12 +157,13 @@ class MonitoringTools:
                 </style>
                 </head>
                 """ + f"""<body>
-                          <h1>Upload Batch Report</h1>
+                          <h1>{report_type} Batch Report</h1>
                           <hr>
                           <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.AGENT_ID}</p>
+                          <p>{report_type} By: {self.AGENT_ID}</p>
 
-                          <h2>Images Uploaded:</h2>
+                          <h2>{report_type} Images\
+                            :</h2>
                           <table>
                               <tr>
                                   <th style="width: 50%">File Path</th>
@@ -184,7 +185,7 @@ class MonitoringTools:
 
         list_section = next((i for i, s in enumerate(html_content) if "<ul>" in s), None)
 
-        image_html = f"""    <li>Number of Images Added: {batch_size} </li>"""
+        image_html = f"""    <li>Number of Images Processed: {batch_size} </li>"""
 
         html_content.insert(list_section + 1, image_html + '\n')
 
@@ -298,13 +299,24 @@ class MonitoringTools:
             batch_size = 0
         if batch_size > 0:
             self.add_batch_size(batch_size=batch_size)
-            msg = self.attach_html_images()
-            msg['From'] = "ibss-central@calacademy.org"
-            msg['Subject'] = subject
-            recipient_list = []
-            for email in self.config.MAILING_LIST:
-                recipient_list.append(email)
-            msg['To'] = recipient_list
+            self.just_send_message(subject=subject)
 
-            with smtplib.SMTP('localhost') as server:
-                server.send_message(msg)
+    def send_removed_files_report(self, subject, time_stamp, image_dict: dict, value_list=None):
+        self.create_monitoring_report(report_type="Remove")
+        self.add_imagepaths_to_html(image_dict)
+
+        self.add_summary_statistics(value_list)
+
+        if image_dict is None:
+            self.logger.warning("Nothing is removed. If not true, check configured AgentID")
+        else:
+            self.add_batch_size(batch_size=len(image_dict))
+            self.just_send_message(subject=subject, message=self.path)
+
+    def just_send_message(self, subject):
+        msg = self.attach_html_images()
+        msg['From'] = "ibss-central@calacademy.org"
+        msg['Subject'] = subject
+        msg['To'] = [email for email in self.config.MAILING_LIST]
+        with smtplib.SMTP('localhost') as server:
+            server.send_message(msg)

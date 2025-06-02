@@ -384,4 +384,5 @@ class ImageClient:
         subject = f"{subject_prefix}: SUCCESS REPORT"
         self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.monitoring_dict)
         subject = f"{subject_prefix}: REMOVED FILES REPORT"
-        self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.removed_files)
+        self.monitoring_tools.send_removed_files_report(subject, time_stamp, image_dict=self.removed_files)
+
