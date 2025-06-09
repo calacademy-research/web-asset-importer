@@ -44,7 +44,7 @@ class BotanyImporter(Importer):
         self.process_loaded_files()
 
         if not self.full_import and self.botany_importer_config.MAILING_LIST:
-            image_dict = self.image_client.monitoring_dict
+            image_dict = self.image_client.imported_files
             # can add custom stats with param "value_list" if needed
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
                                                                       time_stamp=starting_time_stamp,

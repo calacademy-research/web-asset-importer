@@ -43,7 +43,7 @@ class IchthyologyImporter(Importer):
         self.process_loaded_files()
 
         if not self.full_import and ich_importer_config.MAILING_LIST:
-            image_dict = self.image_client.monitoring_dict
+            image_dict = self.image_client.imported_files
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"ICH_Batch:{get_pst_time_now_string()}",
                                                                       time_stamp=starting_time_stamp,
                                                                       image_dict=image_dict)

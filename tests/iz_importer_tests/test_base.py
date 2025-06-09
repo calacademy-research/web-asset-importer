@@ -23,15 +23,15 @@ class TestIzImporterBase(unittest.TestCase):
         mock_image_client_class = patcher.start()
         self.addCleanup(patcher.stop)
         
-        # Create a real dictionary for monitoring_dict
-        real_monitoring_dict = {}
+        # Create a real dictionary for imported_files
+        real_imported_files = {}
         real_removed_files = {}
         
         # Configure the mock to use the real dictionary
-        mock_image_client_class.monitoring_dict = real_monitoring_dict
+        mock_image_client_class.imported_files = real_imported_files
         mock_image_client = mock_image_client_class.return_value
         mock_image_client.check_image_db_if_filename_imported.return_value = image_db_result
-        mock_image_client.monitoring_dict = real_monitoring_dict  # Also set on instance
+        mock_image_client.imported_files = real_imported_files # Also set on instance
         mock_image_client.removed_files = real_removed_files
         # Create a real MonitoringTools instance with the real append_monitoring_dict
         from monitoring_tools import MonitoringTools
