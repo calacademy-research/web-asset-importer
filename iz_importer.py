@@ -64,10 +64,9 @@ class IzImporter(Importer):
         self.process_loaded_files()
 
         if self.iz_importer_config.MAILING_LIST:
-            image_dict = self.image_client.monitoring_dict
-            self.image_client.monitoring_tools.send_monitoring_report(subject=f"IZ_BATCH:{get_pst_time_now_string()}",
-                                                                      time_stamp=starting_time_stamp,
-                                                                      image_dict=image_dict)
+            self.image_client.send_report(subject_prefix=f"IZ_BATCH",
+                                          time_stamp=get_pst_time_now_string())
+
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)
         logging.getLogger('Client.importer').setLevel(logging.DEBUG)
@@ -386,10 +385,19 @@ class IzImporter(Importer):
         if self._should_skip_file(filename, full_path):
             return FILENAME_BUILD_STATUS.SKIPPED_FILE, False
         file_key = self._read_file_key(full_path)
+        exif_metadata = self._read_exif_metadata(full_path)
+        casiz_source = self.get_casiz_ids(full_path, exif_metadata)
+        if not casiz_source:
+            return FILENAME_BUILD_STATUS.NO_CASIZ_SOURCE, False
 
         if file_key and str(file_key.get('remove', '')).lower() == 'true':
             self.logger.info(f"Marked for removal: {full_path}")
             self.remove_file_from_database(full_path)
+            for casiz_number in self.casiz_numbers:
+                self.image_client.monitoring_tools.append_monitoring_dict(
+                    self.image_client.removed_files, 
+                    casiz_number, full_path, True)
+            self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Marked for removal")
             return FILENAME_BUILD_STATUS.REMOVED_FILE, False
 
         if file_key and str(file_key.get('erase_exif_fields', '')).lower() == 'true':
@@ -398,11 +406,6 @@ class IzImporter(Importer):
 
         if self._is_file_already_processed(full_path, orig_case_full_path):
             return FILENAME_BUILD_STATUS.ALREADY_PROCESSED, False
-
-        exif_metadata = self._read_exif_metadata(full_path)
-        casiz_source = self.get_casiz_ids(full_path, exif_metadata)
-        if not casiz_source:
-            return FILENAME_BUILD_STATUS.NO_CASIZ_SOURCE, False
 
         copyright_method = self.extract_copyright(orig_case_full_path, exif_metadata, file_key)
         try:

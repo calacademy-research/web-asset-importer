@@ -1105,7 +1105,7 @@ class PicturaeImporter(Importer):
         os.remove(self.file_path)
 
         if self.picturae_config.MAILING_LIST:
-            image_dict = self.botany_importer.image_client.monitoring_dict
+            image_dict = self.botany_importer.image_client.imported_files
             value_list = [len(self.new_taxa)]
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
                                                      time_stamp=starting_time_stamp, image_dict=image_dict,
