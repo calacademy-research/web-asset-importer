@@ -16,6 +16,7 @@ AGENT_ID = 123456
 # path variables
 IMAGE_EXTENSION = r'(\.(jpg|jpeg|tiff|tif|png|dng))$'
 IMAGE_SUFFIX = rf'[a-z\-\(\)0-9 ©_,.]*{IMAGE_EXTENSION}'
+CLEAR_EXIF_FIELDS = ["XMP:Title", "IPTC:Caption-Abstract", "EXIF:ImageDescription"]
 
 REPORT_PATH = f"html_reports{sla}iz_import_monitoring.html"
 # summary statistics, figures to configure html report
