@@ -18,6 +18,9 @@ import os
 import sys
 import unittest
 from unittest.mock import patch
+
+from cas_metadata_tools.metadata_tools_main import MetadataTools
+
 import json
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -86,6 +89,8 @@ class TestIzImporterCasiz(TestIzImporterBase):
                 self.assertFalse(result, f"Expected False for {file_path}")
             self.importer.casiz_numbers = []
 
+
+
     def test_get_casiz_from_exif(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         
@@ -103,7 +108,47 @@ class TestIzImporterCasiz(TestIzImporterBase):
                                  f"Expected {file_info['casiz']['from_exif']} for {file_path}, {exif_metadata}")
             else:
                 self.assertIsNone(result, f"Expected None for {file_path}, {exif_metadata}")
-    
+
+    def test_clear_exif_fields(self, mock_specify_db):
+        import shutil, tempfile, pathlib
+        self._getImporter(mock_specify_db)
+
+        test_file_dir = os.path.dirname(__file__)
+        mock_data = self.get_mock_data()
+        sample_rel_path = next(iter(mock_data['files'].keys()))
+        src_path = os.path.join(test_file_dir, sample_rel_path)
+
+        # work on a temporary copy, remove afterwards
+        tmp_fd, tmp_path = tempfile.mkstemp(
+            suffix=pathlib.Path(sample_rel_path).suffix
+        )
+        os.close(tmp_fd)
+        shutil.copy2(src_path, tmp_path)
+
+
+        # full_path = os.path.join(test_file_dir, sample_rel_path)
+
+        exif_tool = MetadataTools(tmp_path)
+
+        original_tags = exif_tool.read_exif_tags()
+        original_values = {
+            f: original_tags.get(f)
+            for f in self.importer.iz_importer_config.CLEAR_EXIF_FIELDS
+        }
+
+        self.addCleanup(
+            lambda: exif_tool.write_exif_tags(original_values, overwrite_blank=True)
+        )
+
+        try:
+            self.importer._clear_exif_fields(tmp_path)
+            cleared_tags = exif_tool.read_exif_tags()
+            for field in self.importer.iz_importer_config.CLEAR_EXIF_FIELDS:
+                self.assertFalse(cleared_tags.get(field), f"{field} was not cleared")
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
     def test_attempt_directory_match(self, mock_specify_db):
         self._getImporter(mock_specify_db)
         # Get all image files from test directory
