@@ -24,9 +24,7 @@ IZ_SCAN_FOLDERS = [
     f'/Volumes/images/izg/iz',  # core images - pegasus
     f'/Volumes/data/izg/IZ Images/CASIZ Label Images' # label data
 ]
-# IZ_SCAN_FOLDERS = [
-#     f'/Users/joe/web-asset-importer/test_images'
-# ]
+
 
 
 
