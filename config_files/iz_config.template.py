@@ -10,6 +10,7 @@ PASSWORD = '123pass'
 
 REPORT_PATH = f"html_reports{sla}iz_import_monitoring.html"
 COLLECTION_NAME = "IZ"
+CLEAR_EXIF_FIELDS = ["XMP:Title", "IPTC:Caption-Abstract", "EXIF:ImageDescription"]
 
 AGENT_ID = 123456
 
@@ -23,9 +24,7 @@ IZ_SCAN_FOLDERS = [
     f'/Volumes/images/izg/iz',  # core images - pegasus
     f'/Volumes/data/izg/IZ Images/CASIZ Label Images' # label data
 ]
-# IZ_SCAN_FOLDERS = [
-#     f'/Users/joe/web-asset-importer/test_images'
-# ]
+
 
 
 

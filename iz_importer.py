@@ -400,6 +400,10 @@ class IzImporter(Importer):
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Marked for removal")
             return FILENAME_BUILD_STATUS.REMOVED_FILE, False
 
+        if file_key and str(file_key.get('erase_exif_fields', '')).lower() == 'true':
+            self.logger.info(f"Clearing exif fields in: {full_path} and continuing...")
+            self._clear_exif_fields(full_path)
+
         if self._is_file_already_processed(full_path, orig_case_full_path):
             return FILENAME_BUILD_STATUS.ALREADY_PROCESSED, False
 
@@ -417,6 +421,43 @@ class IzImporter(Importer):
                              copyright=self.copyright)
         return FILENAME_BUILD_STATUS.SUCCESS, True
 
+    # ---------------------------------------------------------------------------
+    # _clear_exif_fields
+    #
+    # Purpose:
+    #     Blank the metadata values configured in iz_config.CLEAR_EXIF_FIELDS
+    #     (rather than hard‑coding them in the method) to remove sensitive or
+    #     user‑visible information from an image.
+    #
+    # Steps:
+    #     1. Instantiate MetadataTools for the supplied path.
+    #     2. Read existing EXIF/IPTC/XMP tags.
+    #     3. For each configured tag, log its current value for debugging.
+    #     4. Set each configured tag to None (blank) in the tag dictionary.
+    #     5. Write the updated tags back to the file, forcing blank overwrite.
+    #
+    # Args:
+    #     full_path (str): Absolute path to the image whose metadata is cleared.
+    #
+    # Returns:
+    #     None
+    # ---------------------------------------------------------------------------
+    def _clear_exif_fields(self, full_path):
+        self.logger.debug(f"Clearing EXIF fields in: {full_path}")
+        target_fields = self.iz_importer_config.CLEAR_EXIF_FIELDS
+
+        exif_tools = MetadataTools(full_path)
+        if not exif_tools:
+            return
+
+
+        if self.logger.isEnabledFor(logging.DEBUG):
+            current = exif_tools.read_exif_tags()
+            for f in target_fields:
+                self.logger.debug(f"Old value for {f}: {current.get(f)}")
+
+        blank_tags = {field: None for field in target_fields}
+        exif_tools.write_exif_tags(blank_tags, overwrite_blank=True)
 
     def _check_and_increment_counter(self):
         if 'counter' not in globals():
@@ -620,8 +661,8 @@ class IzImporter(Importer):
             'subtype': 'subType',
             'createdbyagent': 'createdByAgent',
             'metadatatext': 'creator',
-            'remove': 'remove'
-
+            'remove': 'remove',
+            'erase_exif_fields':'erase_exif_fields'
         }
 
         result_dict = {mapped_key: None for mapped_key in column_mappings.values()}
