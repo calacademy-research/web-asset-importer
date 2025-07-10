@@ -1,5 +1,35 @@
 {
   "files": {
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/CP-0001/VIP2015__2015_03_28_0015.JPG": {
+      "path": "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/CP-0001/VIP2015__2015_03_28_0015.JPG",
+      "extension": ".jpg",
+      "has_key_file": false,
+      "size": 27648,
+      "modified": "2025-06-23T16:06:00",
+      "casiz": {
+        "from_filename": null,
+        "from_exif": [214277],
+        "from_directory": null,
+        "from": "EXIF"
+      },
+      "copyright": {
+        "from_directory": null,
+        "from_exif": "© Christina N. Piotrowski licensed under CC BY-NC-SA"
+      },
+      "metadata": {
+        "CopyrightDate": [""],
+        "CopyrightHolder": ["© Christina N. Piotrowski licensed under CC BY-NC-SA"],
+        "Credit": ["Christina N. Piotrowski"],
+        "License": ["Creative Commons Attribution-NonCommercial-ShareAlike"],
+        "Remarks": [""],
+        "IsPublic": ["TRUE"],
+        "subType": [""],
+        "createdByAgent": [""],
+        "metadataText": ["Christina N. Piotrowski"]
+      },
+      "copyright_source": "file key"
+    },
+
     "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg": {
       "path": "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg",
       "extension": ".jpeg",
@@ -4376,6 +4406,8 @@
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2016/Piotrowski VIP 2016 SPECIMEN IMAGES/casiz 219416_sia-04 juv diadema to rich",
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015",
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata",
+    "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/CP-0001",
+
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing",
     "iz_test_images/Sriram Ramamurthy",
     "iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart © Jessica A. Goodheart",
