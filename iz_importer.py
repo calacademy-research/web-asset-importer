@@ -48,6 +48,7 @@ class IzImporter(Importer):
         self._initialize_log_file()
         self.casiz_numbers = []
         self.title = ""
+        self.copyright = None
 
         self.filepath_metadata_map = {}
         self.collection_name = self.iz_importer_config.COLLECTION_NAME
