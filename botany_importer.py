@@ -40,7 +40,6 @@ class BotanyImporter(Importer):
 
         for cur_dir in self.paths:
             self.dir_tools.process_files_or_directories_recursive(cur_dir)
-
         self.process_loaded_files()
 
         if not self.full_import and self.botany_importer_config.MAILING_LIST:
@@ -50,9 +49,6 @@ class BotanyImporter(Importer):
                                                                       time_stamp=starting_time_stamp,
                                                                       image_dict=image_dict)
 
-
-        # FILENAME = "bio_importer.bin"
-        # if not os.path.exists(FILENAME):
 
 
     def process_loaded_files(self):
@@ -80,9 +76,11 @@ class BotanyImporter(Importer):
         #  we can have multiple filepaths per barcode in the case of barcode-a, barcode-b etc.
         # not done for modern samples, but historically this exists.
         # when removed the unittest
+
         filepath_list = self.clean_duplicate_basenames(filepath_list)
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
+
 
         if self.full_import and not self.existing_barcodes:
             agent_id = self.botany_importer_config.IMPORTER_AGENT_ID
