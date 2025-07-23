@@ -45,9 +45,7 @@ class Importer:
         self.image_client = ImageClient(config=db_config_class)
         self.attachment_utils = AttachmentUtils(self.specify_db_connection)
         self.duplicates_file = open(f'duplicates-{self.collection_name}.txt', 'w')
-        self.TMP_JPG = f"./tmp_jpg_{self.image_client.generate_token(filename=str(uuid4()))}"
-        # for compatibility between ubuntu/debian/unix command line
-        self.TMP_JPG = self.TMP_JPG.replace(":", "_")
+        self.TMP_JPG = f"./tmp_jpg_{str(uuid4())}"
         self.execute_at_exit()
 
     def split_filepath(self, filepath):
