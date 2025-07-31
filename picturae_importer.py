@@ -82,7 +82,11 @@ class PicturaeImporter(Importer):
         if len(valid_paths) > 0:
             paths = list(valid_paths.apply(os.path.dirname).unique())
 
-            updated_paths = [os.path.join(self.picturae_config.PREFIX, path) for path in paths]
+            updated_paths = [
+                path if path.startswith(self.picturae_config.PREFIX)
+                else os.path.join(self.picturae_config.PREFIX, path)
+                for path in paths
+            ]
 
             self.paths = updated_paths
         else:
@@ -195,9 +199,15 @@ class PicturaeImporter(Importer):
                 # constructing paths of new duplicate image
                 new_image_path = os.path.dirname(row.image_path) + f"{os.path.sep}{new_bar}.tif"
 
-                old_path = self.picturae_config.PREFIX + row.image_path
+                if self.picturae_config.PREFIX not in row.image_path:
 
-                new_path = self.picturae_config.PREFIX + new_image_path
+                    old_path = self.picturae_config.PREFIX + row.image_path
+
+                    new_path = self.picturae_config.PREFIX + new_image_path
+                else:
+                    old_path = row.image_path
+
+                    new_path = new_image_path
 
                 try:
                     if os.path.exists(new_path) is False and not row.image_present_db:
@@ -222,7 +232,11 @@ class PicturaeImporter(Importer):
                                 overwriting data functions
         """
         for row in self.record_full.itertuples(index=False):
-            image_path = self.picturae_config.PREFIX + str(row.image_path)
+            if self.picturae_config.PREFIX not in row.image_path:
+                image_path = self.picturae_config.PREFIX + str(row.image_path)
+            else:
+                image_path = row.image_path
+
             if not row.image_valid:
                 raise ValueError(f"image {row.image_path} is not valid ")
 
