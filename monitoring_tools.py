@@ -179,13 +179,16 @@ class MonitoringTools:
     def create_remove_report(self):
         self.create_html_report("Remove", "Images Removed")
 
-    def add_batch_size(self, batch_size):
+    def add_batch_size(self, batch_size, remove=False):
         with open(self.path, "r") as file:
             html_content = file.readlines()
 
         list_section = next((i for i, s in enumerate(html_content) if "<ul>" in s), None)
-
-        image_html = f"""    <li>Number of Images Added: {batch_size} </li>"""
+        if not remove:
+            change_type = "Added"
+        else:
+            change_type = "Removed"
+        image_html = f"""    <li>Number of Images {change_type}: {batch_size} </li>"""
 
         html_content.insert(list_section + 1, image_html + '\n')
 
@@ -304,7 +307,7 @@ class MonitoringTools:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
             batch_size = 0
         if batch_size > 0:
-            self.add_batch_size(batch_size=batch_size)
+            self.add_batch_size(batch_size=batch_size, remove)
             msg = self.attach_html_images()
             msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
