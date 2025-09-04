@@ -10,7 +10,6 @@ import smtplib
 
 class MonitoringTools:
     def __init__(self, config, report_path, active=False):
-
         self.path = report_path
         self.config = config
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
@@ -23,6 +22,9 @@ class MonitoringTools:
         if not pd.isna(config) and config != {}:
             self.check_config_present()
             self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
+
+        self.initial_count = self.count_attachments(time_stamp=time_utils.get_pst_time_now_string())
+
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
@@ -275,12 +277,60 @@ class MonitoringTools:
 
         return msg
 
+
+    def count_attachments(self, time_stamp):
+        """function to count # of attachments at init, to get a simple metric of the database state
+        args:
+            time_stamp: used to count attachments added only before this timestamp.
+            """
+        sql = """SELECT COUNT(AttachmentID) 
+                            FROM attachment
+                            WHERE TimestampCreated <= %s ;
+               """
+
+        params = (str(time_stamp),)
+
+        count = self.sql_csv_tools.get_record(sql=sql, params=params)
+
+        return count
+
+
+    def verify_image_db_changes(self, time_stamp, initial_count=None, remove=False):
+        """verify_image_db_changes: final sql check to verify the actual image database state change.
+            args:
+                time_stamp: used to count attachments added only before/after this timestamp upper/lower bound.
+                initial_count: used with removals, the pre-change count of images to compare the difference.
+                remove: True if counting removals.
+            """
+
+        if remove:
+
+            final_count = self.count_attachments(time_stamp=time_stamp)
+
+            batch_size = int(final_count) - int(initial_count)
+        else:
+            sql = """SELECT COUNT(AttachmentID)
+                            FROM attachment
+                            WHERE TimestampCreated >= %s 
+                            AND CreatedByAgentID = %s ;"""
+
+            params = (f'{str(time_stamp)}', f'{self.AGENT_ID}')
+
+            batch_size = self.sql_csv_tools.get_record(sql=sql, params=params)
+
+        return batch_size
+
+
     def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None, remove=False):
         """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
                 time_stamp: the starting timestamp for upload
+                image_dict: the dictionary of paths added/removed.
+                value_list: list of values for summary stats table. optional
+                remove: boolean. whether to report removals.
+                initial count: the count of images before process start. use only with removals.
         """
         if not remove:
             self.create_monitoring_report()
@@ -290,18 +340,8 @@ class MonitoringTools:
 
         self.add_summary_statistics(value_list)
 
-        if not remove:
-            sql = f"""SELECT COUNT(*)
-                              FROM attachment
-                              WHERE TimestampCreated >= %s 
-                              AND CreatedByAgentID = %s ;"""
-
-            params = (f'{str(time_stamp)}', f'{self.AGENT_ID}')
-
-            self.sql_csv_tools.ensure_db_connection()
-            batch_size = self.sql_csv_tools.get_record(sql=sql, params=params)
-        else:
-            batch_size = len(image_dict)
+        batch_size = self.verify_image_db_changes(time_stamp=time_stamp, remove=remove,
+                                                  initial_count=self.initial_count)
 
         if batch_size is None:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
