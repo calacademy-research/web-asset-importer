@@ -291,7 +291,7 @@ class ImageClient:
 
             if self.config.MAILING_LIST:
                 self.monitoring_tools.append_monitoring_dict(self.imported_files, id,
-                                                            original_path, False, self.monitoring_tools.logger)
+                                                             original_path, self.monitoring_tools.logger)
 
             raise UploadFailureException
         else:
@@ -310,7 +310,7 @@ class ImageClient:
             logging.info("adding to image")
             if self.config.MAILING_LIST:
                 self.monitoring_tools.append_monitoring_dict(self.imported_files, id,
-                                                            original_path, True, self.monitoring_tools.logger)
+                                                             original_path, self.monitoring_tools.logger)
 
         self.logger.debug("Upload to file server complete")
 
@@ -380,8 +380,8 @@ class ImageClient:
 
         assert False
 
-    def send_report(self, subject_prefix, time_stamp):
+    def send_report(self, subject_prefix):
         subject = f"{subject_prefix}: SUCCESS REPORT"
-        self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.imported_files)
+        self.monitoring_tools.send_monitoring_report(subject, image_dict=self.imported_files)
         subject = f"{subject_prefix}: REMOVED FILES REPORT"
-        self.monitoring_tools.send_monitoring_report(subject, time_stamp, image_dict=self.removed_files, remove=True)
+        self.monitoring_tools.send_monitoring_report(subject, image_dict=self.removed_files, remove=True)
