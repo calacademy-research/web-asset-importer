@@ -116,67 +116,68 @@ class MonitoringTools:
             # If id does not exist, create a new list of lists
             monitoring_dict[unique_id] = [[original_path, success]]
 
-    def create_monitoring_report(self):
-        """add_format_batch_report:
-            creates template of upload batch report. Takes standard summary terms and args,
-           and allows for custom terms to be added with custom_terms.
-           args:
-                custom_terms: the list of custom values to add as summary terms, myst correspond with order of
-                              SUMMARY_TERMS variable in config."""
-        if not os.path.exists(path=self.path):
+    def create_html_report(self, report_type: str, section_label: str):
+        """
+        Creates an HTML batch report (upload/remove) with standard structure.
+        Args:
+            report_type: The report type string, e.g. "Upload" or "Remove".
+            section_label: Section heading inside the report, e.g. "Images Uploaded" or "Images Removed".
+        """
+        if not os.path.exists(self.path):
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
-
             open(self.path, 'w').close()
         else:
             self.clear_txt()
 
-        report = """<html>
-                    <head>
-                    <title>Upload Batch Report</title>
-                    <style>
-                    img {
-                        max-width: 300px; /* Maximum width of 300 pixels */
-                        max-height: 300px; /* Maximum height of 200 pixels */
-                    }
-                            table {
-                        table-layout: fixed;
-                        border-collapse: collapse;
-                        width: 100%;
-                    }
+        report = f"""<html>
+        <head>
+        <title>{report_type} Batch Report</title>
+        <style>
+            img {{
+                max-width: 300px;
+                max-height: 300px;
+            }}
+            table {{
+                table-layout: fixed;
+                border-collapse: collapse;
+                width: 100%;
+            }}
+            table, th, td {{
+                border: 1px solid black;
+            }}
+            th, td {{
+                padding: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-align: left;
+            }}
+        </style>
+        </head>
+        <body>
+          <h1>{report_type} Batch Report</h1>
+          <hr>
+          <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
+          <p>Uploader: {self.AGENT_ID}</p>
 
-                    table, th, td {
-                        border: 1px solid black;
-                    }
-
-                    th, td {
-                        padding: 8px;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-align: left;
-                    }
-                </style>
-                </head>
-                """ + f"""<body>
-                          <h1>Upload Batch Report</h1>
-                          <hr>
-                          <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.AGENT_ID}</p>
-
-                          <h2>Images Uploaded:</h2>
-                          <table>
-                              <tr>
-                                  <th style="width: 50%">File Path</th>
-                                  <th>ID</th>
-                                  <th>Success</th>
-                              </tr>
-
-                          </table>
-
-                          </body>
-                          </html>
+          <h2>{section_label}:</h2>
+          <table>
+              <tr>
+                  <th style="width: 50%">File Path</th>
+                  <th>ID</th>
+                  <th>Success</th>
+              </tr>
+          </table>
+        </body>
+        </html>
         """
 
         self.add_line_between(line_num=0, string=report)
+
+    def create_monitoring_report(self):
+        self.create_html_report("Upload", "Images Uploaded")
+
+    def create_remove_report(self):
+        self.create_html_report("Remove", "Images Removed")
 
     def add_batch_size(self, batch_size):
         with open(self.path, "r") as file:
@@ -271,27 +272,33 @@ class MonitoringTools:
 
         return msg
 
-    def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None):
+    def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None, remove=False):
         """send_monitoring_report: completes the final steps after adding batch failure/success rates.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
                 time_stamp: the starting timestamp for upload
         """
-        self.create_monitoring_report()
+        if not remove:
+            self.create_monitoring_report()
+        else:
+            self.create_remove_report()
         self.add_imagepaths_to_html(image_dict)
 
         self.add_summary_statistics(value_list)
 
-        sql = f"""SELECT COUNT(*)
-                          FROM attachment
-                          WHERE TimestampCreated >= %s 
-                          AND CreatedByAgentID = %s ;"""
+        if not remove:
+            sql = f"""SELECT COUNT(*)
+                              FROM attachment
+                              WHERE TimestampCreated >= %s 
+                              AND CreatedByAgentID = %s ;"""
 
-        params = (f'{str(time_stamp)}', f'{self.AGENT_ID}')
+            params = (f'{str(time_stamp)}', f'{self.AGENT_ID}')
 
-        self.sql_csv_tools.ensure_db_connection()
-        batch_size = self.sql_csv_tools.get_record(sql=sql, params=params)
+            self.sql_csv_tools.ensure_db_connection()
+            batch_size = self.sql_csv_tools.get_record(sql=sql, params=params)
+        else:
+            batch_size = len(image_dict)
 
         if batch_size is None:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
