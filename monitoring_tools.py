@@ -188,7 +188,7 @@ class MonitoringTools:
             change_type = "Added"
         else:
             change_type = "Removed"
-        image_html = f"""    <li>Number of Images {change_type}: {batch_size} </li>"""
+        image_html = f"""    <li>Number of Image records {change_type}: {batch_size} </li>"""
 
         html_content.insert(list_section + 1, image_html + '\n')
 
@@ -307,7 +307,7 @@ class MonitoringTools:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
             batch_size = 0
         if batch_size > 0:
-            self.add_batch_size(batch_size=batch_size, remove)
+            self.add_batch_size(batch_size=batch_size, remove=remove)
             msg = self.attach_html_images()
             msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject
