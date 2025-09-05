@@ -1,7 +1,6 @@
 
 from importer import Importer
 import time_utils
-from datetime import datetime
 import os
 import re
 import logging
@@ -18,7 +17,6 @@ from time_utils import get_pst_time_now_string
 # I:\botany\TYPE IMAGES\CAS_Batch13
 # CAS0410512
 # CAS0410512_a
-starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
@@ -46,7 +44,6 @@ class BotanyImporter(Importer):
             image_dict = self.image_client.imported_files
             # can add custom stats with param "value_list" if needed
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
-                                                                      time_stamp=starting_time_stamp,
                                                                       image_dict=image_dict)
 
 

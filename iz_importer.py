@@ -9,7 +9,6 @@ from importer import Importer
 from directory_tree import DirectoryTree
 from cas_metadata_tools import MetadataTools, EXIFConstants, BaseConstants
 
-from time_utils import get_pst_time_now_string
 from get_configs import get_config
 from specify_constants import SpecifyConstants
 
@@ -62,12 +61,10 @@ class IzImporter(Importer):
         self.directory_tree_core = DirectoryTree(IZ_SCAN_FOLDERS, pickle_for_debug=False)
         self.directory_tree_core.process_files(self.build_filename_map)
         print("Starting to process loaded core files...")
-        time_stamp = get_pst_time_now_string()
         self.process_loaded_files()
 
         if self.iz_importer_config.MAILING_LIST:
-            self.image_client.send_report(subject_prefix=f"IZ_BATCH",
-                                          time_stamp=time_stamp)
+            self.image_client.send_report(subject_prefix=f"IZ_BATCH")
 
     def _configure_logging(self):
         logging.getLogger('Client.dbutils').setLevel(logging.WARNING)

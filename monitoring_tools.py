@@ -5,12 +5,10 @@ import pandas as pd
 import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
-from sql_csv_utils import SqlCsvTools
 import smtplib
 
 class MonitoringTools:
     def __init__(self, config, report_path, active=False):
-
         self.path = report_path
         self.config = config
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
@@ -22,7 +20,7 @@ class MonitoringTools:
 
         if not pd.isna(config) and config != {}:
             self.check_config_present()
-            self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
+
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
@@ -44,14 +42,13 @@ class MonitoringTools:
         """add_imagepaths_to_html: adds an image path row to the HTML table before the closing </table> tag.
         Args:
             image_dict: dictionary where the key is the image ID and value is a list of tuples
-                        containing image paths and their success status.
+                        containing image paths.
         """
         for key, value in image_dict.items():
             img_id = key
             for result in value:
                 image_path = result[0]
-                success = result[1]
-                monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td><td>{success}</td></tr>"
+                monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td></tr>"
 
                 with open(self.path, "r") as file:
                     html_content = file.readlines()
@@ -100,7 +97,7 @@ class MonitoringTools:
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
     @staticmethod
-    def append_monitoring_dict(monitoring_dict, unique_id, original_path, success, logger=None):
+    def append_monitoring_dict(monitoring_dict, unique_id, original_path, logger=None):
         """append_monitoring_dict: adds paths to monitoring dictionary,
            allows for multiple original paths to be added per ID without replacement.
         """
@@ -109,12 +106,12 @@ class MonitoringTools:
 
             if not path_exists:
                 # If original_path is not in the list of lists, append the new list
-                monitoring_dict[unique_id].append([original_path, success])
+                monitoring_dict[unique_id].append([original_path])
             if logger:
                 logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
         else:
             # If id does not exist, create a new list of lists
-            monitoring_dict[unique_id] = [[original_path, success]]
+            monitoring_dict[unique_id] = [[original_path]]
 
     def create_html_report(self, report_type: str, section_label: str):
         """
@@ -164,7 +161,6 @@ class MonitoringTools:
               <tr>
                   <th style="width: 50%">File Path</th>
                   <th>ID</th>
-                  <th>Success</th>
               </tr>
           </table>
         </body>
@@ -275,12 +271,16 @@ class MonitoringTools:
 
         return msg
 
-    def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None, remove=False):
-        """send_monitoring_report: completes the final steps after adding batch failure/success rates.
+
+    def send_monitoring_report(self, subject, image_dict: dict, value_list=None, remove=False):
+        """send_monitoring_report: completes the final steps after adding batch image paths to table.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
-                time_stamp: the starting timestamp for upload
+                image_dict: the dictionary of paths added/removed.
+                value_list: list of values for summary stats table. optional
+                remove: boolean. whether to report removals.
+                initial count: the count of images before process start. use only with removals.
         """
         if not remove:
             self.create_monitoring_report()
@@ -290,18 +290,7 @@ class MonitoringTools:
 
         self.add_summary_statistics(value_list)
 
-        if not remove:
-            sql = f"""SELECT COUNT(*)
-                              FROM attachment
-                              WHERE TimestampCreated >= %s 
-                              AND CreatedByAgentID = %s ;"""
-
-            params = (f'{str(time_stamp)}', f'{self.AGENT_ID}')
-
-            self.sql_csv_tools.ensure_db_connection()
-            batch_size = self.sql_csv_tools.get_record(sql=sql, params=params)
-        else:
-            batch_size = len(image_dict)
+        batch_size = len(image_dict)
 
         if batch_size is None:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")

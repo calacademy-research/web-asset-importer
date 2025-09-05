@@ -402,7 +402,7 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                                                         self.assertEqual(status, FILENAME_BUILD_STATUS.REMOVED_FILE)
                                                         self.assertFalse(success)
                                                         # Verify monitoring_dict was updated
-                                                        expected_dict = {12345: [[full_path, True]]}
+                                                        expected_dict = {12345: [[full_path]]}
                                                         self.assertEqual(self.importer.image_client.removed_files, expected_dict)
                                                         self.assertNotIn(full_path, self.importer.image_client.imported_files)
                                                         mock_remove_file_from_database.return_value = True
