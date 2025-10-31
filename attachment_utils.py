@@ -2,7 +2,7 @@ import time_utils
 import db_utils
 from db_utils import DatabaseInconsistentError
 import logging
-from metadata_tools.EXIF_constants import EXIFConstants
+from cas_metadata_tools import EXIFConstants
 import os
 from specify_constants import SpecifyConstants
 

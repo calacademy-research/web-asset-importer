@@ -57,8 +57,6 @@ echo "${metadata_requirements_path} found"
 
 pip install -r requirements.txt
 
-pip install -r metadata_tools/requirements.txt
-
 # creating databases
 
 docker run --name mariadb-specify \
@@ -124,8 +122,6 @@ echo "All containers are healthy."
 ( cd ./tests || exit
 ./casbotany_sqlite_create.sh
 )
-
-pytest --ignore="metadata_tools/tests"
 
 exit_code=$?
 

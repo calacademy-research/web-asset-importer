@@ -1,7 +1,6 @@
 
 from importer import Importer
 import time_utils
-from datetime import datetime
 import os
 import re
 import logging
@@ -18,7 +17,6 @@ from time_utils import get_pst_time_now_string
 # I:\botany\TYPE IMAGES\CAS_Batch13
 # CAS0410512
 # CAS0410512_a
-starting_time_stamp = datetime.now()
 
 class BotanyImporter(Importer):
 
@@ -40,19 +38,14 @@ class BotanyImporter(Importer):
 
         for cur_dir in self.paths:
             self.dir_tools.process_files_or_directories_recursive(cur_dir)
-
         self.process_loaded_files()
 
         if not self.full_import and self.botany_importer_config.MAILING_LIST:
-            image_dict = self.image_client.monitoring_dict
+            image_dict = self.image_client.imported_files
             # can add custom stats with param "value_list" if needed
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"BOT_Batch: {get_pst_time_now_string()}",
-                                                                      time_stamp=starting_time_stamp,
                                                                       image_dict=image_dict)
 
-
-        # FILENAME = "bio_importer.bin"
-        # if not os.path.exists(FILENAME):
 
 
     def process_loaded_files(self):
@@ -80,9 +73,11 @@ class BotanyImporter(Importer):
         #  we can have multiple filepaths per barcode in the case of barcode-a, barcode-b etc.
         # not done for modern samples, but historically this exists.
         # when removed the unittest
+
         filepath_list = self.clean_duplicate_basenames(filepath_list)
         filepath_list = self.clean_duplicate_image_barcodes(filepath_list)
         filepath_list = self.remove_imagedb_imported_filenames_from_list(filepath_list)
+
 
         if self.full_import and not self.existing_barcodes:
             agent_id = self.botany_importer_config.IMPORTER_AGENT_ID
@@ -135,14 +130,23 @@ class BotanyImporter(Importer):
             DisciplineID
         )
         VALUES (
-            '{time_utils.get_pst_time_now_string()}',
-            '{time_utils.get_pst_time_now_string()}',
-            0,
-            '{collecting_event_guid}',
-            3
+             %s,
+             %s,
+             %s,
+             %s,
+             %s
         );""")
+
+        params = (
+            f'{time_utils.get_pst_time_now_string()}',
+            f'{time_utils.get_pst_time_now_string()}',
+            0,
+            f'{collecting_event_guid}',
+            3
+        )
+
         self.logger.debug(sql)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.specify_db_connection.commit()
 
         cursor.close()
@@ -164,29 +168,42 @@ class BotanyImporter(Importer):
         Date1Precision,
         InventoryDatePrecision    
         )
-        VALUES ('{time_utils.get_pst_time_now_string()}',
-        '{time_utils.get_pst_time_now_string()}',
-        {collecting_event_id},
+        VALUES (%s,
+        %s,
+        %s,
+        %s,
+        %s,
+        %s, 
+        %s,
+        %s,
+        %s,
+        %s,
+        %s
+        )""")
+
+        params = (f'{time_utils.get_pst_time_now_string()}',
+        f'{time_utils.get_pst_time_now_string()}',
+        collecting_event_id,
         0,
         4,
-        '{barcode}', 
+        f'{barcode}',
         1,
-        '{uuid4()}',
+        f'{uuid4()}',
         4,
         1,
         1
-        )""")
+                  )
         self.logger.debug(sql)
-        cursor.execute(sql)
+        cursor.execute(sql, params)
         self.specify_db_connection.commit()
         cursor.close()
 
     @staticmethod
     def get_is_taxon_id_redacted(conn, taxon_id):
         """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid={taxon_id};"""
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
         cursor = conn.get_cursor()
-        cursor.execute(sql)
+        cursor.execute(sql, (taxon_id,))
         retval = cursor.fetchone()
         cursor.close()
         if retval is None:

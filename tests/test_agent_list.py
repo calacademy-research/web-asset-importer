@@ -1,21 +1,17 @@
-import shutil
-
 import pandas as pd
 from tests.pic_importer_test_class import AltPicturaeImporter
 import unittest
-import os
 from tests.testing_tools import TestingTools
 
 class TestAgentList(unittest.TestCase, TestingTools):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.md5_hash = self.generate_random_md5()
     def setUp(self):
         """creating instance of PicturaeImporter, +
            creating dummy dataset of real and fake names"""
 
 
-        self.test_picturae_importer = AltPicturaeImporter(date_string=self.md5_hash)
+        self.test_picturae_importer = AltPicturaeImporter()
 
         # jose Gonzalez is a real agent,
         # to make sure true matches are not added to list.
@@ -32,7 +28,7 @@ class TestAgentList(unittest.TestCase, TestingTools):
                 'collector_first_name3': ['Jose', pd.NA],
                 'collector_last_name3': ['Gonzalez', pd.NA],
                 'collector_middle_name3': ['Isabel', pd.NA],
-                'sheet_notes': 'notes'
+                'sheet_notes': ['notes', 'notes']
                 }
 
         self.test_picturae_importer.record_full = pd.DataFrame(data)
@@ -51,6 +47,7 @@ class TestAgentList(unittest.TestCase, TestingTools):
         first_dict = temp_agent_list[0]
         second_dict = temp_agent_list[1]
         third_dict = temp_agent_list[2]
+
         # array
         collectors = [[first_dict['collector_first_name'], 'Bob'], [first_dict['collector_last_name'], 'Fakeson'],
                       [first_dict['collector_title'], 'jr.'], [second_dict['collector_first_name'], 'Enrique'],

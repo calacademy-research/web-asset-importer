@@ -7,14 +7,16 @@ from tests.sqlite_csv_utils import SqlLiteTools
 from importer import Importer
 from picturae_importer import PicturaeImporter
 from get_configs import get_config
+from tests.testing_tools import TestingTools
 
 class AltPicturaeImporterlite(PicturaeImporter):
-    def __init__(self, date_string):
+    def __init__(self):
         self.picturae_config = get_config(config="Botany_PIC")
         Importer.__init__(self, db_config_class=self.picturae_config, collection_name="Botany")
 
         self.picdb_config = get_config(config="picbatch")
-        self.process_csv_files(date=date_string)
+        self.testing_tools = TestingTools()
+        self.process_csv_files()
         self.record_full = pd.DataFrame()
         self.init_all_vars()
         self.logger = logging.getLogger("AltPicturaeImporter")
@@ -57,7 +59,7 @@ class AltPicturaeImporterlite(PicturaeImporter):
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
-            setattr(self, guid_string, uuid4())
+            setattr(self, guid_string, str(uuid4()))
 
     def populate_fields_without_taxonomy(self, row):
 
@@ -73,12 +75,11 @@ class AltPicturaeImporterlite(PicturaeImporter):
 
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
-            setattr(self, guid_string, uuid4())
+            setattr(self, guid_string, str(uuid4()))
 
 
-    def process_csv_files(self, date):
-        self.date_use = date
+    def process_csv_files(self):
 
         self.csv_folder = self.picturae_config.CSV_FOLDER
-
-        self.file_path = f"PIC_record_99999999_99999999.csv"
+        md5 = self.testing_tools.generate_random_md5()
+        self.file_path = f"{md5}/PIC_record_99999999_99999999.csv"

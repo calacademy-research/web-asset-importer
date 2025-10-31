@@ -5,12 +5,10 @@ import pandas as pd
 import time_utils
 from email.utils import make_msgid
 from email.message import EmailMessage
-from sql_csv_utils import SqlCsvTools
 import smtplib
 
 class MonitoringTools:
     def __init__(self, config, report_path, active=False):
-
         self.path = report_path
         self.config = config
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
@@ -22,7 +20,7 @@ class MonitoringTools:
 
         if not pd.isna(config) and config != {}:
             self.check_config_present()
-            self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
+
 
     def clear_txt(self):
         """clears out the all the contents of a text file , leaving a blank file.
@@ -44,14 +42,13 @@ class MonitoringTools:
         """add_imagepaths_to_html: adds an image path row to the HTML table before the closing </table> tag.
         Args:
             image_dict: dictionary where the key is the image ID and value is a list of tuples
-                        containing image paths and their success status.
+                        containing image paths.
         """
         for key, value in image_dict.items():
             img_id = key
             for result in value:
                 image_path = result[0]
-                success = result[1]
-                monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td><td>{success}</td></tr>"
+                monitor_line = f"<tr style='width: 50%'><td>{image_path}</td> <td>{img_id}</td></tr>"
 
                 with open(self.path, "r") as file:
                     html_content = file.readlines()
@@ -99,8 +96,8 @@ class MonitoringTools:
             for index, term in enumerate(self.config.SUMMARY_TERMS):
                 terms += f"<li>{term}: {value_list[index]}</li>\n"
             return terms
-
-    def append_monitoring_dict(self, monitoring_dict, unique_id, original_path, success):
+    @staticmethod
+    def append_monitoring_dict(monitoring_dict, unique_id, original_path, logger=None):
         """append_monitoring_dict: adds paths to monitoring dictionary,
            allows for multiple original paths to be added per ID without replacement.
         """
@@ -109,84 +106,85 @@ class MonitoringTools:
 
             if not path_exists:
                 # If original_path is not in the list of lists, append the new list
-                monitoring_dict[unique_id].append([original_path, success])
-            else:
-                self.logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
+                monitoring_dict[unique_id].append([original_path])
+            if logger:
+                logger.error(f"Attemping to upload {original_path} twice for {unique_id}")
         else:
             # If id does not exist, create a new list of lists
-            monitoring_dict[unique_id] = [[original_path, success]]
+            monitoring_dict[unique_id] = [[original_path]]
 
-        return monitoring_dict
-
-    def create_monitoring_report(self):
-        """add_format_batch_report:
-            creates template of upload batch report. Takes standard summary terms and args,
-           and allows for custom terms to be added with custom_terms.
-           args:
-                custom_terms: the list of custom values to add as summary terms, myst correspond with order of
-                              SUMMARY_TERMS variable in config."""
-        if not os.path.exists(path=self.path):
+    def create_html_report(self, report_type: str, section_label: str):
+        """
+        Creates an HTML batch report (upload/remove) with standard structure.
+        Args:
+            report_type: The report type string, e.g. "Upload" or "Remove".
+            section_label: Section heading inside the report, e.g. "Images Uploaded" or "Images Removed".
+        """
+        if not os.path.exists(self.path):
             os.makedirs(os.path.dirname(self.path), exist_ok=True)
-
             open(self.path, 'w').close()
         else:
             self.clear_txt()
 
-        report = """<html>
-                    <head>
-                    <title>Upload Batch Report</title>
-                    <style>
-                    img {
-                        max-width: 300px; /* Maximum width of 300 pixels */
-                        max-height: 300px; /* Maximum height of 200 pixels */
-                    }
-                            table {
-                        table-layout: fixed;
-                        border-collapse: collapse;
-                        width: 100%;
-                    }
+        report = f"""<html>
+        <head>
+        <title>{report_type} Batch Report</title>
+        <style>
+            img {{
+                max-width: 300px;
+                max-height: 300px;
+            }}
+            table {{
+                table-layout: fixed;
+                border-collapse: collapse;
+                width: 100%;
+            }}
+            table, th, td {{
+                border: 1px solid black;
+            }}
+            th, td {{
+                padding: 8px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-align: left;
+            }}
+        </style>
+        </head>
+        <body>
+          <h1>{report_type} Batch Report</h1>
+          <hr>
+          <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
+          <p>Uploader: {self.AGENT_ID}</p>
 
-                    table, th, td {
-                        border: 1px solid black;
-                    }
-
-                    th, td {
-                        padding: 8px;
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-align: left;
-                    }
-                </style>
-                </head>
-                """ + f"""<body>
-                          <h1>Upload Batch Report</h1>
-                          <hr>
-                          <p>Date and Time: {time_utils.get_pst_time_now_string()}</p>
-                          <p>Uploader: {self.AGENT_ID}</p>
-
-                          <h2>Images Uploaded:</h2>
-                          <table>
-                              <tr>
-                                  <th style="width: 50%">File Path</th>
-                                  <th>ID</th>
-                                  <th>Success</th>
-                              </tr>
-
-                          </table>
-
-                          </body>
-                          </html>
+          <h2>{section_label}:</h2>
+          <table>
+              <tr>
+                  <th style="width: 50%">File Path</th>
+                  <th>ID</th>
+              </tr>
+          </table>
+        </body>
+        </html>
         """
 
         self.add_line_between(line_num=0, string=report)
 
-    def add_batch_size(self, batch_size):
+    def create_monitoring_report(self):
+        self.create_html_report("Upload", "Images Uploaded")
+
+    def create_remove_report(self):
+        self.create_html_report("Remove", "Images Removed")
+
+    def add_batch_size(self, batch_size, remove=False):
         with open(self.path, "r") as file:
             html_content = file.readlines()
 
         list_section = next((i for i, s in enumerate(html_content) if "<ul>" in s), None)
-
-        image_html = f"""    <li>Number of Images Added: {batch_size} </li>"""
+        if not remove:
+            change_type = "Added"
+        else:
+            change_type = "Removed"
+        image_html = f"""    <li>Number of Image records {change_type}: {batch_size} </li>"""
 
         html_content.insert(list_section + 1, image_html + '\n')
 
@@ -273,31 +271,32 @@ class MonitoringTools:
 
         return msg
 
-    def send_monitoring_report(self, subject, time_stamp, image_dict: dict, value_list=None):
-        """send_monitoring_report: completes the final steps after adding batch failure/success rates.
+
+    def send_monitoring_report(self, subject, image_dict: dict, value_list=None, remove=False):
+        """send_monitoring_report: completes the final steps after adding batch image paths to table.
                                     attaches custom graphs and images before sending email through smtp
             args:
                 subject: subject line of report email
-                time_stamp: the starting timestamp for upload
+                image_dict: the dictionary of paths added/removed.
+                value_list: list of values for summary stats table. optional
+                remove: boolean. whether to report removals.
+                initial count: the count of images before process start. use only with removals.
         """
-        self.create_monitoring_report()
+        if not remove:
+            self.create_monitoring_report()
+        else:
+            self.create_remove_report()
         self.add_imagepaths_to_html(image_dict)
 
         self.add_summary_statistics(value_list)
 
-        sql = f"""SELECT COUNT(*)
-                          FROM attachment
-                          WHERE TimestampCreated >= '{str(time_stamp)}' 
-                          AND CreatedByAgentID = '{self.AGENT_ID}';"""
-
-        self.sql_csv_tools.ensure_db_connection()
-        batch_size = self.sql_csv_tools.get_record(sql=sql)
+        batch_size = len(image_dict)
 
         if batch_size is None:
             self.logger.warning("batch_size is None. If not true, check configured AgentID")
             batch_size = 0
         if batch_size > 0:
-            self.add_batch_size(batch_size=batch_size)
+            self.add_batch_size(batch_size=batch_size, remove=remove)
             msg = self.attach_html_images()
             msg['From'] = "ibss-central@calacademy.org"
             msg['Subject'] = subject

@@ -1,4 +1,5 @@
 from os import path
+import regex
 sla = path.sep
 # database credentials
 SPECIFY_DATABASE_HOST = '127.0.0.1'
@@ -9,25 +10,13 @@ PASSWORD = '123pass'
 
 REPORT_PATH = f"html_reports{sla}iz_import_monitoring.html"
 COLLECTION_NAME = "IZ"
-MINIMUM_ID_DIGITS = 5
-MAXIMUM_ID_DIGITS = 12
+CLEAR_EXIF_FIELDS = ["XMP:Title", "IPTC:Caption-Abstract", "EXIF:ImageDescription"]
 
 AGENT_ID = 123456
 
 # path variables
-MINIMUM_ID_DIGITS = 5
-MAXIMUM_ID_DIGITS = 10
-SHORT_MINIMUM_ID_DIGITS = 3
 IMAGE_EXTENSION = r'(\.(jpg|jpeg|tiff|tif|png|dng))$'
 IMAGE_SUFFIX = rf'[a-z\-\(\)0-9 ©_,.]*{IMAGE_EXTENSION}'
-CASIZ_NUMBER = '([0-9]{' + str(MINIMUM_ID_DIGITS) + ','+ str(MAXIMUM_ID_DIGITS)+'})'
-CASIZ_NUMBER_SHORT = '([0-9]{' + str(SHORT_MINIMUM_ID_DIGITS) + ','+ str(MAXIMUM_ID_DIGITS)+'})'
-CASIZ_PREFIX = r'cas(iz)?[#a-z _]*[_ \-]?'
-CASIZ_MATCH = rf'({CASIZ_PREFIX}{CASIZ_NUMBER_SHORT})|({CASIZ_NUMBER})'
-FILENAME_MATCH = rf'{CASIZ_MATCH}{IMAGE_SUFFIX}'
-FILENAME_CONJUNCTION_MATCH = rf'(({CASIZ_MATCH})|([ ]*(and|or)[ ]*({CASIZ_MATCH})))+'
-DIRECTORY_CONJUNCTION_MATCH = FILENAME_CONJUNCTION_MATCH
-DIRECTORY_MATCH = rf'{CASIZ_MATCH}'
 
 
 IZ_SCAN_FOLDERS = [
@@ -35,9 +24,7 @@ IZ_SCAN_FOLDERS = [
     f'/Volumes/images/izg/iz',  # core images - pegasus
     f'/Volumes/data/izg/IZ Images/CASIZ Label Images' # label data
 ]
-# IZ_SCAN_FOLDERS = [
-#     f'/Users/joe/web-asset-importer/test_images'
-# ]
+
 
 
 
@@ -48,3 +35,47 @@ MAILING_LIST = []
 SUMMARY_TERMS = []
 SUMMARY_IMG = []
 
+MINIMUM_ID_DIGITS_WITH_PREFIX = 3
+MAXIMUM_ID_DIGITS = 12
+MINIMUM_ID_DIGITS = 5
+
+CASIZ_NUMBER_REGEX = regex.compile(
+    r'''
+    (?ix)                           # Ignore case, allow comments
+    (?<!\w)                         # No word character before
+    (                               
+      (?:
+        (?!IZACC[\s_#-]?)             # Not IZACC prefix (negative lookahead)
+        (?P<prefix>CASIZ|CAS)        # CASIZ or CAS (named group 'prefix')
+        (?:[\s_#-]*)                  # Spaces, underscores, dashes (zero or more)
+      )?
+      (?P<number>                    # --- Capture only the number ---
+        (?!
+          (?:DSC|P)\d{{{min_digits_with_prefix},}}     # Not camera serials
+        )
+        (?!
+          (?<!CASIZ[\s_#-]*|CAS[\s_#-]*)
+          (?:(?:19|20)\d{{2}}(?:0[1-9]|1[0-2])(?:0[1-9]|[12]\d|3[01]))
+        )
+        \d{{{min_digits_with_prefix},{max_digits}}}
+      )
+    )
+    (?(prefix)
+        (?=\D|$)
+    |
+        (?=\b|[_\s#-]|$)
+    )
+    '''.format(
+        min_digits_with_prefix=MINIMUM_ID_DIGITS_WITH_PREFIX,
+        max_digits=MAXIMUM_ID_DIGITS
+    ),
+    regex.VERBOSE
+)
+
+
+CASIZ_FALLBACK_REGEX = regex.compile(
+    r'(?i)(?:CASIZ|CAS)[\s_#-]*(\d{{{min_digits},{max_digits}}})(?!\d)'.format(
+        min_digits=MINIMUM_ID_DIGITS_WITH_PREFIX,
+        max_digits=MAXIMUM_ID_DIGITS
+    )
+)

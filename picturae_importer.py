@@ -143,11 +143,11 @@ class PicturaeImporter(Importer):
         """updating md5 fields for new taxon and taxon mismatch batches"""
         ending_time_stamp = datetime.now()
 
-        sql = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                       batch_md5=self.batch_md5, batch_size=batch_size,
-                                                       agent_id=self.created_by_agent)
+        sql_statement = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
+                                                                 batch_md5=self.batch_md5, batch_size=batch_size,
+                                                                 agent_id=self.created_by_agent)
 
-        self.batch_sql_tools.insert_table_record(sql=sql)
+        self.batch_sql_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
 
     def exit_timestamp(self):
@@ -324,10 +324,10 @@ class PicturaeImporter(Importer):
 
         for i in range(1, matches+1):
             try:
-                first = escape_apostrophes(getattr(row, f'collector_first_name{i}', ''))
-                middle = escape_apostrophes(getattr(row, f'collector_middle_name{i}', ''))
-                last = escape_apostrophes(getattr(row, f'collector_last_name{i}', ''))
-                agent_id = escape_apostrophes(getattr(row, f'agent_id{i}', ''))
+                first = getattr(row, f'collector_first_name{i}', '')
+                middle = getattr(row, f'collector_middle_name{i}', '')
+                last = getattr(row, f'collector_last_name{i}', '')
+                agent_id = getattr(row, f'agent_id{i}', '')
 
             except ValueError:
                 break
@@ -441,13 +441,10 @@ class PicturaeImporter(Importer):
 
         self.redacted = False
 
-        self.taxon_guid = None
-
-        self.family_diff = row.family_diff
-
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
-            setattr(self, guid_string, uuid4())
+            setattr(self, guid_string, str(uuid4()))
+
 
         self.geography_string = (str(row.County) + ", " + str(row.State) + ", " + str(row.Country)).strip(", ")
 
@@ -472,25 +469,25 @@ class PicturaeImporter(Importer):
                 raise ValueError(f"Family {self.family_name} not present in taxon tree")
                 # self.taxon_list.append(self.family_name)
 
-        elif self.is_hybrid and self.full_name != "missing taxon in row":
-            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
-                                                         taxname=self.tax_name, hybrid=self.is_hybrid,
-                                                         family=self.family_name)
+        elif not self.is_hybrid and self.full_name != "missing taxon in row":
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name)
         else:
-            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name, family=self.family_name)
+            self.taxon_id = self.sql_csv_tools.taxon_get(name=self.full_name,
+                                                         taxname=self.tax_name, hybrid=True)
 
         # append taxon full name
         if not self.taxon_id or pd.isna(self.taxon_id):
+
             self.taxon_list.append(self.full_name)
+
             # check base name if base name differs e.g. if var. or subsp.
             if self.full_name != self.first_intra and self.first_intra != self.gen_spec:
-                self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra, family=self.family_name)
-
+                self.first_intra_id = self.sql_csv_tools.taxon_get(name=self.first_intra)
                 if not self.first_intra_id or pd.isna(self.first_intra):
                     self.taxon_list.append(self.first_intra)
 
             if self.full_name != self.gen_spec and self.gen_spec != self.genus:
-                self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec, family=self.family_name)
+                self.gen_spec_id = self.sql_csv_tools.taxon_get(name=self.gen_spec)
                 # check high taxa gen_spec for author
                 self.taxa_author_tnrs(taxon_name=self.gen_spec, barcode=self.barcode)
                 # adding base name to taxon_list
@@ -500,7 +497,7 @@ class PicturaeImporter(Importer):
                 # base value for gen spec id is set as None so will work either way.
                 # checking for genus id
             if self.full_name != self.genus:
-                self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus, family=self.family_name)
+                self.genus_id = self.sql_csv_tools.taxon_get(name=self.genus)
                 # adding genus name if missing
                 if not self.genus_id or pd.isna(self.genus_id):
                     self.taxon_list.append(self.genus)
@@ -515,18 +512,9 @@ class PicturaeImporter(Importer):
                 index: index num in the taxon list.
                 taxon: the taxon name in the taxon list ,
                        iterrated through from highest to lowest rank"""
-
-        parent_guid = self.taxon_guid
-        self.taxon_guid = uuid4()
+        taxon_guid = uuid4()
         rank_name = taxon
-        if parent_guid:
-            parent_id = self.sql_csv_tools.get_one_match(tab_name="taxon",
-                                                         id_col="ParentID",
-                                                         key_col="GUID",
-                                                         match=parent_guid)
-        else:
-            parent_id = self.sql_csv_tools.taxon_get(name=self.parent_list[index + 1], family=self.family_name)
-
+        parent_id = self.sql_csv_tools.taxon_get(name=self.parent_list[index + 1])
         if taxon == self.full_name:
             rank_end = self.tax_name
         else:
@@ -543,7 +531,6 @@ class PicturaeImporter(Importer):
             rank_id = 140
             tree_item_id = 11
 
-        self.logger.info(f"{self.full_name}")
         if rank_id < 220 or (taxon == self.full_name and float(self.overall_score) < .90):
             author_insert = ''
 
@@ -555,7 +542,7 @@ class PicturaeImporter(Importer):
         if self.is_hybrid is True:
             author_insert = ''
 
-        return author_insert, tree_item_id, rank_end, parent_id, rank_id
+        return author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id
 
 
     def create_locality_record(self):
@@ -597,10 +584,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_agent_id(self):
@@ -647,10 +634,10 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             values, columns = remove_two_index(values, columns)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
                                                              val_list=values)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_collecting_event(self):
@@ -701,10 +688,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_taxon(self):
@@ -717,8 +704,9 @@ class PicturaeImporter(Importer):
         self.parent_list = unique_ordered_list(self.parent_list)
         for index, taxon in reversed(list(enumerate(self.taxon_list))):
             # getting index pos of taxon in parent list
+
             author_insert, tree_item_id, rank_end, \
-                            parent_id, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
+                            parent_id, taxon_guid, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
 
             if BotanyImporter.get_is_taxon_id_redacted(conn=self.specify_db_connection, taxon_id=parent_id):
                 self.redacted = True
@@ -745,7 +733,7 @@ class PicturaeImporter(Importer):
                           1,
                           author_insert,
                           f"{taxon}",
-                          f"{self.taxon_guid}",
+                          f"{taxon_guid}",
                           "World Checklist of Vascular Plants 2023",
                           True,
                           self.is_hybrid,
@@ -760,10 +748,10 @@ class PicturaeImporter(Importer):
 
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name="taxon", col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
             logging.info(f"taxon: {taxon} created")
 
@@ -844,10 +832,10 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                          val_list=value_list)
 
-        self.sql_csv_tools.insert_table_record(sql=sql)
+        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def create_determination(self):
@@ -898,10 +886,10 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
@@ -916,8 +904,12 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-        primary_bool = [True, False, False, False, False]
+
         for index, agent_dict in enumerate(self.full_collector_list):
+
+            is_primary = True if index == 0 else False
+            order_number = index  # auto-increment by index
+
             table = 'collector'
 
             agent_id = agent_dict['agent_id']
@@ -945,8 +937,8 @@ class PicturaeImporter(Importer):
             value_list = [f"{time_utils.get_pst_time_now_string()}",
                           f"{time_utils.get_pst_time_now_string()}",
                           1,
-                          primary_bool[index],
-                          1,
+                          is_primary,
+                          order_number,
                           f"{self.created_by_agent}",
                           f"{self.created_by_agent}",
                           f"{self.collecting_event_id}",
@@ -957,10 +949,10 @@ class PicturaeImporter(Importer):
 
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
                                                              val_list=value_list)
 
-            self.sql_csv_tools.insert_table_record(sql=sql)
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
 
     def hide_unwanted_files(self):
@@ -1029,7 +1021,7 @@ class PicturaeImporter(Importer):
 
                 self.create_agent_list(row)
 
-                if self.family_diff or not self.taxon_id or pd.isna(self.taxon_id):
+                if not self.taxon_id or pd.isna(self.taxon_id):
                     self.populate_taxon()
                     self.create_taxon()
 
@@ -1113,10 +1105,10 @@ class PicturaeImporter(Importer):
         os.remove(self.file_path)
 
         if self.picturae_config.MAILING_LIST:
-            image_dict = self.botany_importer.image_client.monitoring_dict
+            image_dict = self.botany_importer.image_client.imported_files
             value_list = [len(self.new_taxa)]
             self.image_client.monitoring_tools.send_monitoring_report(subject=f"PIC_Batch{time_utils.get_pst_time_now_string()}",
-                                                     time_stamp=starting_time_stamp, image_dict=image_dict,
-                                                     value_list=value_list)
+                                                                      image_dict=image_dict,
+                                                                      value_list=value_list)
 
         self.logger.info("process finished")

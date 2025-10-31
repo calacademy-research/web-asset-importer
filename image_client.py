@@ -49,7 +49,8 @@ class ImageClient:
                 active = False
 
             # dict to create report of image import
-            self.monitoring_dict = {}
+            self.imported_files = {}
+            self.removed_files = {}
 
             self.monitoring_tools = MonitoringTools(config=config, report_path=report_path, active=active)
 
@@ -289,8 +290,8 @@ class ImageClient:
                 self.logger.error(f"Image upload aborted: {r.status_code}:{r.text}")
 
             if self.config.MAILING_LIST:
-                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
-                                                                                    original_path, False)
+                self.monitoring_tools.append_monitoring_dict(self.imported_files, id,
+                                                             original_path, self.monitoring_tools.logger)
 
             raise UploadFailureException
         else:
@@ -308,8 +309,8 @@ class ImageClient:
             logging.info(f"Uploaded: {local_filename},{attach_loc},{url}")
             logging.info("adding to image")
             if self.config.MAILING_LIST:
-                self.monitoring_dict = self.monitoring_tools.append_monitoring_dict(self.monitoring_dict, id,
-                                                                                    original_path, True)
+                self.monitoring_tools.append_monitoring_dict(self.imported_files, id,
+                                                             original_path, self.monitoring_tools.logger)
 
         self.logger.debug("Upload to file server complete")
 
@@ -378,3 +379,9 @@ class ImageClient:
             assert False
 
         assert False
+
+    def send_report(self, subject_prefix):
+        subject = f"{subject_prefix}: SUCCESS REPORT"
+        self.monitoring_tools.send_monitoring_report(subject, image_dict=self.imported_files)
+        subject = f"{subject_prefix}: REMOVED FILES REPORT"
+        self.monitoring_tools.send_monitoring_report(subject, image_dict=self.removed_files, remove=True)
