@@ -197,20 +197,3 @@ class BotanyImporter(Importer):
         cursor.execute(sql, params)
         self.specify_db_connection.commit()
         cursor.close()
-
-    @staticmethod
-    def get_is_taxon_id_redacted(conn, taxon_id):
-        """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
-        cursor = conn.get_cursor()
-        cursor.execute(sql, (taxon_id,))
-        retval = cursor.fetchone()
-        cursor.close()
-        if retval is None:
-            logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
-            return False
-        else:
-            for val in retval:
-                if val is True or val == 1 or val == b'\x01':
-                    return True
-        return False
