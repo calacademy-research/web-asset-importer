@@ -385,6 +385,9 @@ class SqlCsvTools:
             logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
             return False
 
-        val = result[0]
+        if isinstance(result, (tuple, list)):
+            val = result[0]
+        else:
+            val = result
 
         return val is True or val == 1 or val == b"\x01"

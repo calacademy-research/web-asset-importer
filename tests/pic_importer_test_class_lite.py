@@ -25,7 +25,7 @@ class AltPicturaeImporterlite(PicturaeImporter):
         # sql_csv_tools in the parent class
         self.sql_csv_tools = SqlLiteTools(sql_db="tests/casbotany_lite.db")
 
-        self.tax_importer = TaxonomyImporter(config="Botany_PIC",
+        self.tax_importer = TaxonomyImporter(config=self.picturae_config,
                                              record_full=self.record_full, logging_level=self.logger.getEffectiveLevel())
 
         self.tax_importer.sql_csv_tools = self.sql_csv_tools

@@ -33,7 +33,9 @@ class TaxonomyImporter:
 
     def __init__(self, record_full: pd.DataFrame, config, logging_level, tnrs_ignore=False):
         self.record_full = record_full
-        self.config = get_config(config)
+
+        self.config = config
+
 
         self.logger = logging.getLogger(f"Client.{self.__class__.__name__}")
         self.logger.setLevel(logging_level)
@@ -769,11 +771,13 @@ if __name__ == "__main__":
         logging.error(f"Failed to read input CSV '{args.input}': {e}")
         sys.exit(1)
 
-    cleaner = TaxonomyImporter(
+    use_config = get_config(config=args.config)
+
+    tax_importer = TaxonomyImporter(
         record_full=df,
-        config=args.config,
+        config=use_config,
         tnrs_ignore=args.tnrs_ignore,
         logging_level=args.verbose,
     )
 
-    cleaner.run_all()
+    tax_importer.run_all()

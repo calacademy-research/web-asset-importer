@@ -878,8 +878,8 @@ class PicturaeImporter(Importer):
 
         self.assign_col_dtypes()
 
-        # preparing taxonomy for import
-        self.tax_importer.prepare_inputs(self.record_full)
+        # init vars for tax importer
+        self.tax_importer.init_all_vars()
 
         # duplicating images with duplicate bar codes
         self.duplicate_images()
