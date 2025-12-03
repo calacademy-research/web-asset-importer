@@ -373,3 +373,21 @@ class SqlCsvTools:
 
         sql_statement = self.create_insert_statement(col_list, val_list, tab_name)
         return sql_statement
+
+    def get_is_taxon_id_redacted(self, taxon_id):
+        """retrieves redacted boolean with taxon id from vtaxon2"""
+
+        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
+
+        result = self.get_record(sql, (taxon_id,))
+
+        if result is None:
+            logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
+            return False
+
+        if isinstance(result, (tuple, list)):
+            val = result[0]
+        else:
+            val = result
+
+        return val is True or val == 1 or val == b"\x01"
