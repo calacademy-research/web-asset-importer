@@ -34,6 +34,7 @@ class ImageResizer:
 
     def resize_tiff_folders(self):
         """resize_tiff_folder: uses os.walk to find folders containing tiff files"""
+        os.makedirs(self.tmp_dir, exist_ok=True)
         for root, dirs, files in os.walk(self.source_dir):
             if self.subdir_name not in dirs:
                 continue
@@ -53,8 +54,18 @@ class ImageResizer:
             if file_name.endswith(".txt"):
                 continue
 
-            barcode = int(remove_non_numerics(file_name))
-            if barcode < self.min_bar or "Cover" in file_name or not (file_name.lower().endswith(('.tiff', '.tif'))):
+            if not file_name.lower().endswith(('.tiff', '.tif')):
+                continue
+
+            if "Cover" in file_name:
+                continue
+
+            digits = remove_non_numerics(file_name)
+            if not digits:
+                continue
+
+            barcode = int(digits)
+            if barcode < self.min_bar:
                 continue
 
             base_name = os.path.splitext(file_name)[0]
