@@ -6,9 +6,12 @@ from PIL import Image
 import shutil
 import multiprocessing
 import time
+import re
+import argparse
 
 class ImageResizer:
-    def __init__(self, source_dir, dest_dir, tmp_dir, subdir_name, min_bar, quality, max_size_kb, resize_to=None):
+    def __init__(self, source_dir, dest_dir, tmp_dir, subdir_name, min_bar, quality, max_size_kb, resize_to=None,
+                 start_date=None, end_date=None):
 
         """ImageResizer: class written to convert folders of .tiffs into jpegs of custom quality and size.
             args:
@@ -32,17 +35,44 @@ class ImageResizer:
         self.output_file_path = ""
         self.tmp_file_path = ""
 
+        self.start_date = int(remove_non_numerics(str(start_date))) if start_date else None
+        self.end_date = int(remove_non_numerics(str(end_date))) if end_date else None
+
+        self.batch_date_re = re.compile(r"_(\d{8})_BATCH_", re.IGNORECASE)
+
+    def batch_in_range(self, folder_name):
+        """check if folder name in date range"""
+        if self.start_date is None and self.end_date is None:
+            return True
+
+        folder_extract = self.batch_date_re.search(folder_name)
+        if not folder_extract:
+            return False
+
+        folder_date = int(folder_extract.group(1))
+        start = self.start_date if self.start_date is not None else 0
+        end = self.end_date if self.end_date is not None else 99999999
+        return start <= folder_date <= end
+
     def resize_tiff_folders(self):
-        """resize_tiff_folder: uses os.walk to find folders containing tiff files"""
+        """resize_tiff_folder: only walks batch dirs in the requested date range"""
         os.makedirs(self.tmp_dir, exist_ok=True)
-        for root, dirs, files in os.walk(self.source_dir):
-            if self.subdir_name not in dirs:
+
+        for batch_name in sorted(os.listdir(self.source_dir)):
+            batch_path = os.path.join(self.source_dir, batch_name)
+            if not os.path.isdir(batch_path):
                 continue
 
-            tiff_folder = os.path.join(root, self.subdir_name)
-            output_dir = os.path.join(self.dest_dir, os.path.basename(root), 'resized_jpg')
-            if not os.path.exists(output_dir):
-                os.makedirs(output_dir, exist_ok=True)
+            # Filter by CP1_YYYYMMDD_BATCH_#### date range (inclusive)
+            if not self.batch_in_range(batch_name):
+                continue
+
+            tiff_folder = os.path.join(batch_path, self.subdir_name)
+            if not os.path.isdir(tiff_folder):
+                continue
+
+            output_dir = os.path.join(self.dest_dir, batch_name, "resized_jpg")
+            os.makedirs(output_dir, exist_ok=True)
 
             self.process_tiffs(tiff_folder, output_dir)
 
@@ -134,5 +164,13 @@ if __name__ == "__main__":
     source_directory = "/storage_01/picturae/delivery"
     dest_directory = "/admin/picturae_drive_mount/CAS_for_OCR"
     tmp_folder = "/admin/web-asset-importer/image_batch_resizer/tmp_resize"
-    image_resizer = ImageResizer(source_directory, dest_directory, tmp_folder, "undatabased", 800000, 80, 999, (2838, 3745))
+
+    parser = argparse.ArgumentParser(description="Resize Picturae TIFF batches into compressed JPGs.")
+    parser.add_argument("--start-date", default=None, help="Optional inclusive batch date filter, YYYYMMDD")
+    parser.add_argument("--end-date", default=None, help="Optional inclusive batch date filter, YYYYMMDD")
+
+    args = parser.parse_args()
+
+    image_resizer = ImageResizer(source_directory, dest_directory, tmp_folder, "undatabased", 800000, 80, 999, (2838, 3745),
+                                 start_date=20240603, end_date=20240731)
     image_resizer.run_with_restarts()
