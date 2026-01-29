@@ -395,17 +395,26 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                                                         self.assertEqual(status, FILENAME_BUILD_STATUS.SKIPPED_FILE)
                                                         self.assertFalse(success)
                                                         mock_should_skip_file.return_value = False
-                                                        # test removed file
+                                                        # test removed file - when nothing was actually removed
                                                         mock_read_file_key.return_value = {'remove': 'true'}
                                                         mock_remove_file_from_database.return_value = False
                                                         status, success = self.importer.build_filename_map(full_path)
                                                         self.assertEqual(status, FILENAME_BUILD_STATUS.REMOVED_FILE)
                                                         self.assertFalse(success)
-                                                        # Verify monitoring_dict was updated
+                                                        # Verify monitoring_dict was NOT updated when no actual removal
+                                                        self.assertEqual(self.importer.image_client.removed_files, {})
+                                                        self.assertNotIn(full_path, self.importer.image_client.imported_files)
+                                                        # test removed file - when something was actually removed
+                                                        mock_remove_file_from_database.return_value = True
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.REMOVED_FILE)
+                                                        self.assertFalse(success)
+                                                        # Verify monitoring_dict was updated when actual removal occurred
                                                         expected_dict = {12345: [[full_path]]}
                                                         self.assertEqual(self.importer.image_client.removed_files, expected_dict)
                                                         self.assertNotIn(full_path, self.importer.image_client.imported_files)
-                                                        mock_remove_file_from_database.return_value = True
+                                                        # Reset for next tests
+                                                        self.importer.image_client.removed_files = {}
                                                         mock_read_file_key.return_value = {}
                                                         # test already processed
                                                         mock_is_file_already_processed.return_value = True

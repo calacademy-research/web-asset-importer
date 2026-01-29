@@ -473,13 +473,16 @@ class Importer:
         Removes the file's attachment record from the Specify database,
         removes the CollectionObjectAttachment record, and contacts the image server
         to delete the image.
+
+        Returns:
+            bool: True if an attachment was actually removed, False otherwise.
         """
         try:
             # Step 1: Find attachment ID in Specify
             attachment_id = self.attachment_utils.get_attachmentid_from_filepath(full_path)
             if not attachment_id:
                 self.logger.warning(f"No attachment ID found for {full_path}, skipping removal.")
-                return
+                return False
 
             # Step 2: Check if the attachment is still in the database
             sql_check_attachment = "SELECT COUNT(*) FROM attachment WHERE attachmentid = %s"
@@ -491,7 +494,7 @@ class Importer:
             if count == 0:
                 self.logger.info(
                     f"Attachment ID {attachment_id} for {full_path} is already removed. Skipping operation.")
-                return
+                return False
 
             self.logger.info(f"Removing attachment ID {attachment_id} for file {full_path}")
 
@@ -505,14 +508,14 @@ class Importer:
                         f"Successfully removed image {full_path} (internal filename: {internal_filename}) from image server.")
                 else:
                     self.logger.warning(f"Internal filename not found for {full_path}, skipping deletion.")
-                    return
+                    return False
 
             except FileNotFoundException:
                 self.logger.warning(f"File {full_path} not found on image server, skipping deletion.")
-                return
+                return False
             except DeleteFailureException:
                 self.logger.error(f"Failed to remove image {full_path} from server.")
-                return
+                return False
 
             #  Remove the CollectionObjectAttachment link
             sql_delete_co_attachment = "DELETE FROM collectionobjectattachment WHERE attachmentid = %s"
@@ -522,6 +525,8 @@ class Importer:
             sql_delete_attachment = "DELETE FROM attachment WHERE attachmentid = %s"
             self.specify_db_connection.execute(sql_delete_attachment, params)
 
+            return True
 
         except Exception as e:
             self.logger.error(f"Error removing file {full_path}: {e}")
+            return False

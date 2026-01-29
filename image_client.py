@@ -383,5 +383,6 @@ class ImageClient:
     def send_report(self, subject_prefix):
         subject = f"{subject_prefix}: SUCCESS REPORT"
         self.monitoring_tools.send_monitoring_report(subject, image_dict=self.imported_files)
-        subject = f"{subject_prefix}: REMOVED FILES REPORT"
-        self.monitoring_tools.send_monitoring_report(subject, image_dict=self.removed_files, remove=True)
+        if self.removed_files:
+            subject = f"{subject_prefix}: REMOVED FILES REPORT"
+            self.monitoring_tools.send_monitoring_report(subject, image_dict=self.removed_files, remove=True)
