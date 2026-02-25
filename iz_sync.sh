@@ -1,7 +1,6 @@
 #!/bin/bash
 
 LOCKFILE=/tmp/iz_sync.lock
-STALE_SECONDS=86400
 SUCCESS_MARKER=/admin/web-asset-importer/.iz_sync_last_success
 
 cleanup() {
@@ -9,19 +8,18 @@ cleanup() {
 }
 
 if [ -e "$LOCKFILE" ]; then
-    # Check if lockfile is stale (older than 24 hours)
-    lock_age=$(( $(date +%s) - $(stat -c %Y "$LOCKFILE" 2>/dev/null || echo 0) ))
-    if [ "$lock_age" -gt "$STALE_SECONDS" ]; then
-        echo "Stale lockfile detected (age: ${lock_age}s). Removing and proceeding."
-        rm -f "$LOCKFILE"
-    else
-        echo "IZ sync is already running. Exiting."
+    OLD_PID=$(cat "$LOCKFILE" 2>/dev/null)
+    if [ -n "$OLD_PID" ] && kill -0 "$OLD_PID" 2>/dev/null; then
+        echo "IZ sync is already running (pid $OLD_PID). Exiting."
         exit 0
+    else
+        echo "Stale lockfile (pid $OLD_PID no longer running). Removing and proceeding."
+        rm -f "$LOCKFILE"
     fi
 fi
 
-# Create the lock file and trap cleanup
-touch "$LOCKFILE"
+# Create the lock file with our PID and trap cleanup
+echo $$ > "$LOCKFILE"
 trap cleanup EXIT
 
 # Running nightly sync
