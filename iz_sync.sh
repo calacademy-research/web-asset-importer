@@ -1,8 +1,8 @@
 #!/bin/bash
 
-LOCKFILE=/tmp/botany_sync.lock
+LOCKFILE=/tmp/iz_sync.lock
 STALE_SECONDS=86400
-SUCCESS_MARKER=/admin/web-asset-importer/.botany_sync_last_success
+SUCCESS_MARKER=/admin/web-asset-importer/.iz_sync_last_success
 
 cleanup() {
     rm -f "$LOCKFILE"
@@ -15,7 +15,7 @@ if [ -e "$LOCKFILE" ]; then
         echo "Stale lockfile detected (age: ${lock_age}s). Removing and proceeding."
         rm -f "$LOCKFILE"
     else
-        echo "Botany sync is already running. Exiting."
+        echo "IZ sync is already running. Exiting."
         exit 0
     fi
 fi
@@ -31,12 +31,12 @@ git pull
 git submodule update --init --recursive
 
 # Run nightly_sync.py and capture its exit status
-python3 ./nightly_sync.py Botany
+python3 ./nightly_sync.py IZ
 sync_exit_code=$?
 
 # If nightly_sync.py fails, exit with status 1
 if [ "$sync_exit_code" -ne 0 ]; then
-    echo "Sync failed. Check botany_sync_log.txt for details."
+    echo "Sync failed. Check iz_sync_log.txt for details."
     exit 1
 fi
 
