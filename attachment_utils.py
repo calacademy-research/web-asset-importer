@@ -171,3 +171,20 @@ class AttachmentUtils:
             logging.error(f"Error fetching collection object id: {collection_object_id}\n SQL: {sql}")
             raise DatabaseInconsistentError()
         return any(val in [True, 1, b'\x01'] for val in retval)
+
+    def get_is_iz_collection_object_redacted(self, collection_object_id):
+        sql = """
+        SELECT co.YesNo1
+        FROM collectionobject co
+        WHERE co.CollectionObjectID = %s
+        """
+        cursor = self.db_utils.get_cursor()
+        params = (str(collection_object_id) if collection_object_id is not None else None,)
+        cursor.execute(sql, params)
+        retval = cursor.fetchone()
+        cursor.close()
+
+        if retval is None:
+            logging.error(f"Error fetching collection object id: {collection_object_id}\n SQL: {sql}")
+            raise DatabaseInconsistentError()
+        return retval[0] in [True, 1, b'\x01']
