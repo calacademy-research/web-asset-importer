@@ -82,6 +82,7 @@ COLLECTION_CONFIG = {
     },
     "IZ": {
         "config_key": "IZ",
+        "image_db_collection": "Invertebrate Zoology",
         "co_redaction_method": "get_is_iz_collection_object_redacted",
     },
 }
@@ -105,7 +106,7 @@ def main():
     config_entry = COLLECTION_CONFIG[collection_arg]
     importer_config = get_config(config=config_entry["config_key"])
 
-    collection_name = importer_config.COLLECTION_NAME
+    collection_name = config_entry.get("image_db_collection", importer_config.COLLECTION_NAME)
     specify_db_connection = DbUtils(
         importer_config.USER,
         importer_config.PASSWORD,
