@@ -275,14 +275,17 @@ class IzImporter(Importer):
 
 
     def get_casiz_from_exif(self, exif_metadata):
+        # read_exif_tags() uses `exiftool -G` which outputs family 0 group names
+        # (e.g. "XMP:Subject" not "XMP-dc:Subject"), so we must match accordingly.
         priority_tags = [
             EXIFConstants.IPTC_KEYWORDS,
             EXIFConstants.XMP_DC_SUBJECT,
+            "XMP:Subject",
             EXIFConstants.XMP_LR_HIERARCHICAL_SUBJECT,
+            "XMP:HierarchicalSubject",
             EXIFConstants.IPTC_CAPTION_ABSTRACT,
             EXIFConstants.XMP_DESCRIPTION,
-            EXIFConstants.XMP_DC_DESCRIPTION,
-            EXIFConstants.EXIF_IFD0_IMAGE_DESCRIPTION,
+            EXIFConstants.EXIF_IMAGE_DESCRIPTION,
             EXIFConstants.XMP_TITLE,
             EXIFConstants.XMP_CREATOR_WORK_URL
         ]
