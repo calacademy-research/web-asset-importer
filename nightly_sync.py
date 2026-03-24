@@ -67,6 +67,7 @@ def do_sync(collection_name, specify_db_connection, co_redaction_method):
             except Exception as e:
                 print(f"Error, probably sql: \"{e}\"", file=sys.stderr, flush=True)
                 print(f"exception type: {type(e).__name__}", file=sys.stderr, flush=True)
+                next_record = True
 
     return record_list
 
@@ -78,7 +79,7 @@ COLLECTION_CONFIG = {
     },
     "Ichthyology": {
         "config_key": "Ichthyology",
-        "co_redaction_method": "get_is_botany_collection_object_redacted",
+        "co_redaction_method": "get_is_ich_collection_object_redacted",
     },
     "IZ": {
         "config_key": "IZ",
