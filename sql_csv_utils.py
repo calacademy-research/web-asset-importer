@@ -79,25 +79,6 @@ class SqlCsvTools:
             return None
         return value
 
-    @staticmethod
-    def _extract_scalar(result):
-        """Normalize get_one_record/get_records style outputs down to one value."""
-        if result is None:
-            return None
-
-        if isinstance(result, tuple):
-            return result[0] if result else None
-
-        if isinstance(result, list):
-            if not result:
-                return None
-            first = result[0]
-            if isinstance(first, tuple):
-                return first[0] if first else None
-            return first
-
-        return result
-
     def check_agent_name_sql(self, first_name: str, last_name: str, middle_initial: str, title: str):
         """
         Match an agent row while treating empty strings as NULL-equivalent inputs.
@@ -121,7 +102,7 @@ class SqlCsvTools:
         params = tuple(v for value in values for v in (value, value))
 
         result = self.get_record(sql, params=params)
-        return self._extract_scalar(result)
+        return result
 
     def check_collector_list(self, collector_list, new_agents=False):
         """
@@ -232,7 +213,7 @@ class SqlCsvTools:
             )
 
             result = self.get_records(sql=sql, params=params)
-            return self._extract_scalar(result)
+            return result[0][0] if result and result[0] else None
 
         elif len(parts) < 3:
             return self.get_one_match(
@@ -252,7 +233,7 @@ class SqlCsvTools:
         """
         sql = f"SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = %s;"
         result = self.get_record(sql, params=(match,))
-        return self._extract_scalar(result)
+        return result
 
     def create_insert_statement(self, col_list: list, val_list: list, tab_name: str):
         """
@@ -453,5 +434,5 @@ class SqlCsvTools:
             self.logger.info(f"taxon id not yet present in vtaxon2: {taxon_id}")
             return False
 
-        val = self._extract_scalar(result)
+        val = result
         return val is True or val == 1 or val == b"\x01"
