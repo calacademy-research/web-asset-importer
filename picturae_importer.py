@@ -365,11 +365,15 @@ class PicturaeImporter(Importer):
 
         self.barcode = row.CatalogNumber.zfill(9)
         self.raw_barcode = row.CatalogNumber
+        self.accession = row.accession_number
+        self.herb_code = row.herb_code
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
         self.collector_number = row.collector_number
         self.locality = row.locality
+        self.habitat = row.habitat
+        self.specimen_desc = row.specimen_desc
         self.full_name = row.fullname
         self.tax_name = row.taxname
         self.gen_spec = row.gen_spec
@@ -393,10 +397,27 @@ class PicturaeImporter(Importer):
 
         self.redacted = False
 
+        # elevation
+        self.min_elevation = row.min_elevation
+
+        self.max_elevation = row.max_elevation
+
+        self.elevation_unit = row.elevation_unit
+
+        #lat/long
+        self.verbatim_lat = row.latitude
+        self.verbatim_long = row.longitude
+
+        self.latitude = row.latitude_numeric
+        self.longitude = row.longitude_numeric
+
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, str(uuid4()))
 
+        self.coordinate_form = {"DMS": 1, "DDM": 2}.get(row.coordinate_format, 0)
+
+        self.datum = row.datum if row.datum else None
 
         self.geography_string = (str(row.County) + ", " + str(row.State) + ", " + str(row.Country)).strip(", ")
 
@@ -422,6 +443,16 @@ class PicturaeImporter(Importer):
                        'SrcLatLongUnit',
                        'OriginalLatLongUnit',
                        'LocalityName',
+                       'MinElevation',
+                       'MaxElevation',
+                       'OriginalElevationUnit',
+                       'Lat1Text',
+                       'Long1Text',
+                       'Latitude1',
+                       'Longitude1',
+                       'OriginalLatLongUnit',
+                       'SrcLatLongUnit',
+                       'Datum',
                        'DisciplineID',
                        'GeographyID',
                        'ModifiedByAgentID',
@@ -435,6 +466,16 @@ class PicturaeImporter(Importer):
                       0,
                       0,
                       f"{self.locality}",
+                      f'{self.min_elevation}',
+                      f'{self.max_elevation}',
+                      f'{self.elevation_unit}',
+                      f'{self.verbatim_lat}',
+                      f'{self.verbatim_long}',
+                      f'{self.latitude}',
+                      f'{self.longitude}',
+                      f'{self.coordinate_form}',
+                      f'{self.coordinate_form}',
+                      f'{self.datum}',
                       3,
                       f"{self.GeographyID}",
                       f'{self.created_by_agent}',
@@ -526,7 +567,8 @@ class PicturaeImporter(Importer):
                        'LocalityID',
                        'ModifiedByAgentID',
                        'CreatedByAgentID',
-                       'VerbatimLocality'
+                       'VerbatimLocality',
+                       'Remarks'
                        ]
 
         value_list = [f'{time_utils.get_pst_time_now_string()}',
@@ -541,7 +583,8 @@ class PicturaeImporter(Importer):
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
                       f'{self.created_by_agent}',
-                      f'{self.label_data}'
+                      f'{self.label_data}',
+                      f'{self.habitat}'
                       ]
 
         # removing na values from both lists
@@ -590,6 +633,8 @@ class PicturaeImporter(Importer):
                        'Version',
                        'CollectionMemberID',
                        'CatalogNumber',
+                       'AltCatalogNumber',
+                       'Modifier'
                        'CatalogedDate',
                        'CatalogedDatePrecision',
                        'GUID',
@@ -601,7 +646,7 @@ class PicturaeImporter(Importer):
                        'CatalogerID',
                        'Remarks',
                        'ReservedText',
-                       'Modifier',
+                       'Text1',
                        'YesNo2'
                        ]
 
@@ -611,6 +656,8 @@ class PicturaeImporter(Importer):
                       0,
                       4,
                       f"{self.barcode}",
+                      f"{self.accession}",
+                      f"{self.herb_code}",
                       f"{starting_time_stamp.strftime('%Y-%m-%d')}",
                       1,
                       f"{self.collection_ob_guid}",
@@ -622,7 +669,7 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{notes}",
                       f"{self.picturae_config.PROJECT_NAME}",
-                      f"CAS",
+                      f"{self.specimen_desc}",
                       self.redacted]
 
         # removing na values from both lists
