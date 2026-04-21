@@ -425,14 +425,19 @@ class SqlCsvTools:
 
     def get_is_taxon_id_redacted(self, taxon_id):
         """
-        Retrieve RedactLocality boolean from vtaxon2.
+        Retrieve RedactLocality boolean from vtaxon2. Pulls two columns to differentiate between an
+        empty response, and a none result from the redacted column.
         """
-        sql = "SELECT RedactLocality FROM vtaxon2 WHERE taxonid = %s;"
-        result = self.get_record(sql, params=(taxon_id,))
+        sql = "SELECT taxonid, RedactLocality FROM vtaxon2 WHERE taxonid = %s;"
+        result = self.get_records(sql, params=(taxon_id,))
 
-        if result is None:
+        if not result:
             self.logger.info(f"taxon id not yet present in vtaxon2: {taxon_id}")
             return False
 
-        val = result
-        return val is True or val == 1 or val == b"\x01"
+        redacted = result[0][1]
+
+        if redacted is None:
+            return False
+
+        return redacted is True or redacted == 1 or redacted == b"\x01"
