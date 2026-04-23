@@ -1,34 +1,38 @@
 import traceback
+import logging
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from statistics import median
+from typing import Union, Optional, List, Sequence, Any
+
 import pandas as pd
+
+from specify_db import SpecifyDb
 from gen_import_utils import remove_two_index
 import time_utils
-from dataclasses import dataclass
-from datetime import datetime
-from datetime import timedelta
 import string_utils
-import sys
-from specify_db import SpecifyDb
-import logging
-from typing import Union, Optional, List
+
 
 class DatabaseConnectionError(Exception):
     pass
 
+
 @dataclass
 class SqlStatement:
     sql: str
-    params: Optional[List] = None
+    params: Optional[Sequence[Any]] = None
+
 
 class SqlCsvTools:
     def __init__(self, config, logging_level=logging.INFO):
         self.config = config
         self.specify_db_connection = SpecifyDb(db_config_class=self.config)
-        self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
+        self.logger = logging.getLogger(f"Client.{self.__class__.__name__}")
         self.logger.setLevel(logging_level)
         self.check_db_connection()
 
     def check_db_connection(self):
-        """checking whether database connection is functional"""
+        """Check whether database connection is functional."""
         try:
             self.specify_db_connection.connect()
             self.logger.info("sql_csv_tools connection established")
@@ -36,358 +40,404 @@ class SqlCsvTools:
             raise DatabaseConnectionError from e
 
     def ensure_db_connection(self):
-        """Ensure that the database connection is functional. Recreate if an error is raised."""
+        """Ensure that the database connection is functional. Recreate if needed."""
         try:
-            # Attempt to connect to the database
             self.specify_db_connection.connect()
             self.logger.info("Database connection established")
-        except Exception as e:
-            # If an error is raised, recreate the database connection
+        except Exception:
             self.logger.warning("Database connection error. Recreating connection...")
             self.specify_db_connection = SpecifyDb(db_config_class=self.config)
             self.specify_db_connection.connect()
             self.logger.info("Database connection recreated")
 
     def sql_db_connection(self):
-        """standard connector"""
+        """Standard connector."""
         return self.specify_db_connection.connect()
 
-    def get_record(self, sql, params):
-        """dbtools get_one_record"""
+    def get_record(self, sql, params=None):
+        """Get one record."""
         return self.specify_db_connection.get_one_record(sql=sql, params=params)
 
-    def get_records(self, sql, params):
+    def get_records(self, sql, params=None):
+        """Get many records."""
         return self.specify_db_connection.get_records(sql=sql, params=params)
 
     def get_cursor(self, buffered=False):
-        """standard db cursor"""
+        """Standard db cursor."""
         return self.specify_db_connection.get_cursor(buffered=buffered)
 
     def commit(self):
-        """standard db commit"""
+        """Standard db commit."""
         return self.specify_db_connection.commit()
 
+    @staticmethod
+    def _normalize_nullable(value):
+        """Convert empty strings to None for SQL NULL-safe matching."""
+        if value is None:
+            return None
+        if isinstance(value, str) and value.strip() == "":
+            return None
+        return value
 
-    # static methods
     def check_agent_name_sql(self, first_name: str, last_name: str, middle_initial: str, title: str):
-        """create_name_sql: create a custom sql string, based on number of non-na arguments, the
-                            database does not recognize empty strings '' and NA as equivalent.
-                            Has conditional to ensure the first statement always starts with WHERE
-            args:
-                first_name: first name of agent
-                last_name: last name of agent
-                middle_initial: middle initial of agent
-                title: agent's title. (mr, ms, dr. etc..)
         """
-        sql = """
-                SELECT AgentID FROM agent
-                WHERE 
-                    (FirstName = %s OR (%s IS NULL AND FirstName IS NULL))
-                    AND (LastName = %s OR (%s IS NULL AND LastName IS NULL))
-                    AND (MiddleInitial = %s OR (%s IS NULL AND MiddleInitial IS NULL))
-                    AND (Title = %s OR (%s IS NULL AND Title IS NULL))
-            """
-        name_list = [first_name, last_name, middle_initial, title]
+        Match an agent row while treating empty strings as NULL-equivalent inputs.
+        """
+        first_name = self._normalize_nullable(first_name)
+        last_name = self._normalize_nullable(last_name)
+        middle_initial = self._normalize_nullable(middle_initial)
+        title = self._normalize_nullable(title)
 
-        params = tuple(
-            item
-            for name in name_list
-            for item in (lambda processed: (processed, processed))(
-                name if name not in (None, "") else None
-            )
-        )
+        sql = """
+            SELECT AgentID
+            FROM agent
+            WHERE
+                (FirstName = %s OR (%s IS NULL AND FirstName IS NULL))
+                AND (LastName = %s OR (%s IS NULL AND LastName IS NULL))
+                AND (MiddleInitial = %s OR (%s IS NULL AND MiddleInitial IS NULL))
+                AND (Title = %s OR (%s IS NULL AND Title IS NULL))
+        """
+
+        values = [first_name, last_name, middle_initial, title]
+        params = tuple(v for value in values for v in (value, value))
 
         result = self.get_record(sql, params=params)
-        return result[0] if isinstance(result, (list, dict, set)) else result
+        return result
 
     def check_collector_list(self, collector_list, new_agents=False):
-        """checks if collector list is empty or contains collector unknown,
-           then assigns it unspecified agent dict
-           args:
-                collector_list: the list of collector name dicts to be processed
-                new_agents: if True, list contains new agents to add to database.
-                            set to true to avoid re-adding unspecified as an agent id
         """
-
-        sql = "SELECT AgentID FROM agent WHERE LastName = 'unspecified';"
-        agent_id = self.specify_db_connection.get_one_record(sql=sql)
+        Ensure collector list is not empty and replace "collector unknown" with unspecified.
+        """
+        agent_id = self.get_one_match("agent", "AgentID", "LastName", "unspecified")
 
         unknown_dict = {
-            'collector_first_name': '',
-            'collector_middle_initial': '',
-            'collector_last_name': 'unspecified',
-            'collector_title': '',
-            'agent_id': agent_id
+            "collector_first_name": "",
+            "collector_middle_initial": "",
+            "collector_last_name": "unspecified",
+            "collector_title": "",
+            "agent_id": agent_id,
         }
 
         if not collector_list and not new_agents:
             collector_list.append(unknown_dict)
         else:
             for index, name_dict in enumerate(collector_list):
-                no_agent = any(isinstance(value, str) and value.lower() == "collector unknown"
-                               for value in name_dict.values())
+                no_agent = any(
+                    isinstance(value, str) and value.lower() == "collector unknown"
+                    for value in name_dict.values()
+                )
                 if no_agent:
                     collector_list[index] = unknown_dict if not new_agents else None
+
             collector_list = [x for x in collector_list if x is not None]
 
         return collector_list
 
+    def get_collecting_event_ids_by_agent_id(self, agent_id: Union[int, str]):
+        """
+        Return distinct CollectingEventID values for an AgentID from collector.
+        """
+        sql = """
+            SELECT DISTINCT CollectingEventID
+            FROM collector
+            WHERE AgentID = %s
+              AND CollectingEventID IS NOT NULL
+        """
+        rows = self.get_records(sql, params=(agent_id,))
+        return [row[0] for row in rows if row and row[0] is not None]
+
+    def get_agent_collecting_range(self, first_name: str, last_name: str, middle_initial: str, title: str):
+        """
+        Find an agent via name fields, get their collecting event ids, then return:
+        (max_year, min_year, median_year)
+        """
+        agent_id = self.check_agent_name_sql(
+            first_name=first_name,
+            last_name=last_name,
+            middle_initial=middle_initial,
+            title=title,
+        )
+
+        if agent_id is None:
+            return None, None, None
+
+        collecting_event_ids = self.get_collecting_event_ids_by_agent_id(agent_id)
+
+        if not collecting_event_ids:
+            return None, None, None
+
+        placeholders = ", ".join(["%s"] * len(collecting_event_ids))
+        sql = f"""
+            SELECT YEAR(StartDate) AS StartDateYear
+            FROM collectingevent
+            WHERE CollectingEventID IN ({placeholders})
+              AND StartDate IS NOT NULL
+              AND YEAR(StartDate) IS NOT NULL
+        """
+
+        rows = self.get_records(sql, params=tuple(collecting_event_ids))
+        years = sorted(int(row[0]) for row in rows if row and row[0] is not None)
+
+        if not years:
+            return None, None, None
+
+        med = median(years)
+        if isinstance(med, float) and med.is_integer():
+            med = int(med)
+
+        return max(years), min(years), med
+
     def get_one_hybrid(self, match, fullname):
-        """get_one_hybrid:
-            used instead of get_one_record for hybrids to
-            match multi-term hybrids irrespective of order
-            args:
-                match = the hybrid term of a taxonomic name e.g Genus A x B,
-                        match - "A X B"
-                fullname = the full name of the taxonomic name.
+        """
+        Match multi-term hybrids irrespective of order.
         """
         parts = match.split()
+
         if len(parts) == 3:
             basename = fullname.split()[0]
 
-            sql = '''SELECT TaxonID FROM taxon WHERE 
-                             LOWER(FullName) LIKE %s 
-                             AND LOWER(FullName) LIKE %s 
-                             AND LOWER(FullName) LIKE %s 
-                             AND LOWER(FullName) LIKE %s;'''
+            sql = """
+                SELECT TaxonID
+                FROM taxon
+                WHERE LOWER(FullName) LIKE %s
+                  AND LOWER(FullName) LIKE %s
+                  AND LOWER(FullName) LIKE %s
+                  AND LOWER(FullName) LIKE %s
+            """
 
-            # Creating the params tuple with wildcard "%" for LIKE
-            params = (f"%{parts[0]}%", f"%{parts[1]}%", f"%{parts[2]}%", f"%{basename}%")
+            params = (
+                f"%{parts[0].lower()}%",
+                f"%{parts[1].lower()}%",
+                f"%{parts[2].lower()}%",
+                f"%{basename.lower()}%",
+            )
 
             result = self.get_records(sql=sql, params=params)
-
-            if result:
-                taxon_id = result[0]
-            else:
-                taxon_id = None
-
-            return taxon_id
+            return result[0][0] if result and result[0] else None
 
         elif len(parts) < 3:
-            taxon_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=fullname)
+            return self.get_one_match(
+                tab_name="taxon",
+                id_col="TaxonID",
+                key_col="FullName",
+                match=fullname,
+            )
 
-            return taxon_id
         else:
             self.logger.error("hybrid tax name has more than 3 terms")
-
             return None
 
     def get_one_match(self, tab_name, id_col, key_col, match):
-        """populate_sql:
-                creates a custom select statement for get one record,
-                from which a result can be gotten more seamlessly
-                without having to rewrite the sql variable every time
-           args:
-                tab_name: the name of the table to select
-                id_col: the name of the column in which the unique id is stored
-                key_col: column on which to match values
-                match: value with which to match key_col
+        """
+        General helper to get one id_col value by exact match on key_col.
         """
         sql = f"SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = %s;"
-
-        return self.get_record(sql, params=(match,))
-
-
+        result = self.get_record(sql, params=(match,))
+        return result
 
     def create_insert_statement(self, col_list: list, val_list: list, tab_name: str):
-        """create_sql_string:
-               creates a new sql insert statement given a list of db columns,
-               and values to input.
-            args:
-                col_list: list of database table columns to fill
-                val_list: list of values to input into each table
-                tab_name: name of the table you wish to insert data into
         """
-        # removing brackets, making sure comma is not inside of quotations
-        column_list = ', '.join(col_list)
-        placeholders = ', '.join(['%s'] * len(val_list))
-        sql = f'''INSERT INTO {tab_name} ({column_list}) VALUES ({placeholders});'''
-        return SqlStatement(sql=sql, params=val_list if val_list else None)
+        Create parameterized INSERT statement.
+        """
+        column_list = ", ".join(col_list)
+        placeholders = ", ".join(["%s"] * len(val_list))
+        sql = f"INSERT INTO {tab_name} ({column_list}) VALUES ({placeholders});"
+        return SqlStatement(sql=sql, params=tuple(val_list) if val_list else None)
 
     def insert_table_record(self, sql, params=None):
-        """create_table_record:
-               general code for the inserting of a new record into any table on database,
-               creates connection, and runs sql query. cursor.execute with arg multi, to
-               handle multi-query commands.
-           args:
-               sql: the verbatim sql string, or multi sql query string to send to database
-               connection: the connection parameter in the case of specify self.specify_db_connection
-               logger: the logger instance of your class self.logger
-               sqlite: option for sqlite configuration, as get_cursor()
-                          requires database ip, which sqlite does not have
+        """
+        Execute INSERT/UPDATE style statement.
         """
         cursor = self.get_cursor()
         try:
-            if params:
+            if params is not None:
                 self.logger.debug(f"running query - {sql} with params {params}")
-                params = tuple(params)
-                cursor.execute(sql, params)
+                cursor.execute(sql, tuple(params))
             else:
                 self.logger.debug(f"running query - {sql}")
                 cursor.execute(sql)
+
             self.commit()
-        except Exception as e:
+        except Exception:
             self.logger.error(traceback.format_exc())
-        cursor.close()
+        finally:
+            cursor.close()
 
-    def create_batch_record(self, start_time: datetime, end_time: datetime,
-                            batch_size: int, batch_md5: str, agent_id: Union[str, int]):
-        """create_timestamps:
-                uses starting and ending timestamps to create window for sql database purge,
-                adds 10 second buffer on either end to allow sql queries to populate.
-                appends each timestamp record in picturae_batch table.
-            args:
-                start_time: starting time stamp
-                end_time: ending time stamp
+    def create_batch_record(
+        self,
+        start_time: datetime,
+        end_time: datetime,
+        batch_size: int,
+        batch_md5: str,
+        agent_id: Union[str, int],
+    ):
         """
-
-        end_time = end_time
-
+        Create parameterized insert for picturae_batch.
+        """
         delt_time = timedelta(seconds=15)
-
         time_stamp_list = [start_time - delt_time, end_time + delt_time]
 
-        column_list = ["batch_MD5",
-                       "TimestampCreated",
-                       "TimestampModified",
-                       "StartTimeStamp",
-                       "EndTimeStamp",
-                       "batch_size",
-                       "CreatedByAgentID",
-                       "ModifiedByAgentID"
-                       ]
-        value_list = [f"{batch_md5}",
-                      f"{time_utils.get_pst_time_now_string()}",
-                      f"{time_utils.get_pst_time_now_string()}",
-                      f"{time_stamp_list[0]}",
-                      f"{time_stamp_list[1]}",
-                      f"{batch_size}",
-                      f"{agent_id}",
-                      f"{agent_id}"
-                      ]
+        column_list = [
+            "batch_MD5",
+            "TimestampCreated",
+            "TimestampModified",
+            "StartTimeStamp",
+            "EndTimeStamp",
+            "batch_size",
+            "CreatedByAgentID",
+            "ModifiedByAgentID",
+        ]
+
+        value_list = [
+            batch_md5,
+            time_utils.get_pst_time_now_string(),
+            time_utils.get_pst_time_now_string(),
+            time_stamp_list[0],
+            time_stamp_list[1],
+            batch_size,
+            agent_id,
+            agent_id,
+        ]
 
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql_statement = self.create_insert_statement(col_list=column_list, val_list=value_list, tab_name="picturae_batch")
+        return self.create_insert_statement(
+            col_list=column_list,
+            val_list=value_list,
+            tab_name="picturae_batch",
+        )
 
-        return sql_statement
+    def create_update_statement(
+        self,
+        tab_name,
+        agent_id,
+        col_list,
+        val_list,
+        condition_sql,
+        condition_params=None,
+    ):
+        """
+        Create parameterized UPDATE statement.
 
-    def create_update_statement(self, tab_name, agent_id, col_list, val_list, condition):
-        """create_update_string: function used to create sql string used to upload a list of values in the database
-
-            args:
-                tab_name: name of table to update
-                col_list: list of columns to update
-                val_list: list of values with which to update above list of columns(order matters)
-                condition: condition sql string used to select sub-sect of records to update.
+        condition_sql should contain placeholders if needed, e.g.
+            "WHERE TaxonID = %s"
+        condition_params should be the corresponding values.
         """
         val_list, col_list = remove_two_index(val_list, col_list)
-        update_string = " SET TimestampModified = %s, ModifiedByAgentID = %s, "
+
+        update_string = " SET TimestampModified = %s, ModifiedByAgentID = %s"
         params = [time_utils.get_pst_time_now_string(), agent_id]
 
         for col, val in zip(col_list, val_list):
-            update_string += f" {col} = %s,"
+            update_string += f", {col} = %s"
             params.append(val)
 
-        update_string = update_string.rstrip(',')
-        sql = f"UPDATE {tab_name} " + update_string + ' ' + condition
-        return SqlStatement(sql=sql, params=params if params else None)
+        sql = f"UPDATE {tab_name}{update_string} {condition_sql}"
+
+        if condition_params:
+            params.extend(condition_params)
+
+        return SqlStatement(sql=sql, params=tuple(params))
 
     def taxon_get(self, name, hybrid=False, taxname=None):
-        """taxon_get: function to retrieve taxon id from specify database:
-            args:
-                name: the full taxon name to check
-                hybrid: whether the taxon name belongs to a hybrid
-                taxname: the name ending substring of a taxon name, only useful for retrieving hybrids.
         """
-
+        Retrieve taxon id from specify database.
+        """
         name = name.lower()
+
         if hybrid is False:
             if "subsp." in name or "var." in name:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
+                result_id = self.get_one_match(
+                    tab_name="taxon",
+                    id_col="TaxonID",
+                    key_col="FullName",
+                    match=name,
+                )
                 if result_id is None:
                     if "subsp." in name:
                         name = name.replace(" subsp. ", " var. ")
                     elif "var." in name:
                         name = name.replace(" var. ", " subsp. ")
-                    else:
-                        pass
 
-                    result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
+                    result_id = self.get_one_match(
+                        tab_name="taxon",
+                        id_col="TaxonID",
+                        key_col="FullName",
+                        match=name,
+                    )
             else:
-                result_id = self.get_one_match(tab_name="taxon", id_col="TaxonID", key_col="FullName", match=name)
-            return result_id
-        else:
-            result_id = self.get_one_hybrid(match=taxname, fullname=name)
+                result_id = self.get_one_match(
+                    tab_name="taxon",
+                    id_col="TaxonID",
+                    key_col="FullName",
+                    match=name,
+                )
 
             return result_id
+
+        return self.get_one_hybrid(match=taxname, fullname=name)
 
     def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: Union[str, int]):
-        """new_taxa_record: creates record level data for any new taxa added to the database,
-                            populates useful table for qc and troubleshooting
-        args:
-            taxon_list: list of new taxa added to taxon tree during upload
-            connection: connection instance for this sql, using self.specify_db_connection
-            df: pandas dataframe, the record table uploaded to the database in question
         """
-        taxa_frame = df[df['fullname'].isin(taxon_list)].drop_duplicates(subset=['fullname'])
+        Insert rows into picturaetaxa_added for newly added taxa.
+        """
+        taxa_frame = df[df["fullname"].isin(taxon_list)].drop_duplicates(subset=["fullname"])
+
         for _, row in taxa_frame.iterrows():
-            tax_id = self.get_one_match('picturaetaxa_added', 'newtaxID', 'fullname', row['fullname'])
+            tax_id = self.get_one_match("picturaetaxa_added", "newtaxID", "fullname", row["fullname"])
             if tax_id is None:
-                sql_statement = self.create_new_tax_tab(row, 'picturaetaxa_added', agent_id)
+                sql_statement = self.create_new_tax_tab(row, "picturaetaxa_added", agent_id)
                 self.insert_table_record(sql_statement.sql, sql_statement.params)
 
     def create_new_tax_tab(self, row, tab_name: str, agent_id: Union[str, int]):
-        """create_new_tax: does a similar function as create_unmatch_tab,
-                            but instead uploads a table of taxa newly added
-                            to the database for QC monitoring(make sure no wonky taxa are added)
-            args:
-                row: row of new_taxa dataframe through which function will iterate
-                df: new_taxa dataframe in order to get column index numbers
-                tab_name: name of new_taxa table on mysql database.
         """
-        hybrid = string_utils.str_to_bool(row['Hybrid'])
+        Create insert statement for new taxon QC table.
+        """
+        hybrid = string_utils.str_to_bool(row["Hybrid"])
 
-        col_list = ["fullname",
-                    "TimestampCreated",
-                    "TimestampModified",
-                    "batch_MD5",
-                    "family",
-                    "name",
-                    "hybrid",
-                    "CreatedByAgentID",
-                    "ModifiedByAgentID"]
+        col_list = [
+            "fullname",
+            "TimestampCreated",
+            "TimestampModified",
+            "batch_MD5",
+            "family",
+            "name",
+            "hybrid",
+            "CreatedByAgentID",
+            "ModifiedByAgentID",
+        ]
 
-        val_list = [f"{row['fullname']}",
-                    f"{time_utils.get_pst_time_now_string()}",
-                    f"{time_utils.get_pst_time_now_string()}",
-                    f"{row['batch_md5']}",
-                    f"{row['Family']}",
-                    f"{row['taxname']}",
-                    hybrid,
-                    f"{agent_id}",
-                    f"{agent_id}"]
-
+        val_list = [
+            row["fullname"],
+            time_utils.get_pst_time_now_string(),
+            time_utils.get_pst_time_now_string(),
+            row["batch_md5"],
+            row["Family"],
+            row["taxname"],
+            hybrid,
+            agent_id,
+            agent_id,
+        ]
 
         val_list, col_list = remove_two_index(val_list, col_list)
 
-        sql_statement = self.create_insert_statement(col_list, val_list, tab_name)
-        return sql_statement
+        return self.create_insert_statement(col_list, val_list, tab_name)
 
     def get_is_taxon_id_redacted(self, taxon_id):
-        """retrieves redacted boolean with taxon id from vtaxon2"""
+        """
+        Retrieve RedactLocality boolean from vtaxon2. Pulls two columns to differentiate between an
+        empty response, and a none result from the redacted column.
+        """
+        sql = "SELECT taxonid, RedactLocality FROM vtaxon2 WHERE taxonid = %s;"
+        result = self.get_records(sql, params=(taxon_id,))
 
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
-
-        result = self.get_record(sql, (taxon_id,))
-
-        if result is None:
-            logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
+        if not result:
+            self.logger.info(f"taxon id not yet present in vtaxon2: {taxon_id}")
             return False
 
-        if isinstance(result, (tuple, list)):
-            val = result[0]
-        else:
-            val = result
+        redacted = result[0][1]
 
-        return val is True or val == 1 or val == b"\x01"
+        if redacted is None:
+            return False
+
+        return redacted is True or redacted == 1 or redacted == b"\x01"

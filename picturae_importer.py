@@ -200,9 +200,9 @@ class PicturaeImporter(Importer):
                 # constructing paths of new duplicate image
                 new_image_path = os.path.dirname(row.image_path) + f"{os.path.sep}{new_bar}.tif"
 
-                old_path = self.picturae_config.PREFIX + row.image_path
+                old_path = row.image_path
 
-                new_path = self.picturae_config.PREFIX + new_image_path
+                new_path = new_image_path
 
                 try:
                     if os.path.exists(new_path) is False and not row.image_present_db:
@@ -227,7 +227,7 @@ class PicturaeImporter(Importer):
                                 overwriting data functions
         """
         for row in self.record_full.itertuples(index=False):
-            image_path = self.picturae_config.PREFIX + str(row.image_path)
+            image_path = str(row.image_path)
             if not row.image_valid:
                 raise ValueError(f"image {row.image_path} is not valid ")
 
@@ -365,11 +365,15 @@ class PicturaeImporter(Importer):
 
         self.barcode = row.CatalogNumber.zfill(9)
         self.raw_barcode = row.CatalogNumber
+        self.accession = row.accession_number
+        self.herb_code = row.herb_code
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
         self.collector_number = row.collector_number
         self.locality = row.locality
+        self.habitat = row.habitat
+        self.specimen_desc = row.specimen_desc
         self.full_name = row.fullname
         self.tax_name = row.taxname
         self.gen_spec = row.gen_spec
@@ -393,10 +397,36 @@ class PicturaeImporter(Importer):
 
         self.redacted = False
 
+        # elevation
+        self.min_elevation = row.min_elevation
+
+        self.max_elevation = row.max_elevation
+
+        self.elevation_unit = row.elevation_unit
+
+        #lat/long
+        self.verbatim_lat = row.latitude
+        self.verbatim_long = row.longitude
+
+        self.latitude = row.latitude_numeric
+        self.longitude = row.longitude_numeric
+
+        #utm
+
+        self.utm_northing = remove_non_numerics(row.northing)
+        self.utm_easting = remove_non_numerics(row.easting)
+
+        self.utm_zone = row.zone
+
+        self.utm_datum = (lambda x: x if pd.notna(x) and str(x).strip() else None)(getattr(row, "utm_datum", None))
+
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, str(uuid4()))
 
+        self.coordinate_form = {"DMS": 1, "DDM": 2}.get(row.coordinate_format, 0)
+
+        self.datum = row.datum if row.datum else None
 
         self.geography_string = (str(row.County) + ", " + str(row.State) + ", " + str(row.Country)).strip(", ")
 
@@ -413,15 +443,21 @@ class PicturaeImporter(Importer):
         if self.locality == '' or pd.isna(self.locality):
             self.locality=["[unspecified]"]
 
-        table = 'locality'
-
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'Version',
                        'GUID',
-                       'SrcLatLongUnit',
-                       'OriginalLatLongUnit',
                        'LocalityName',
+                       'MinElevation',
+                       'MaxElevation',
+                       'OriginalElevationUnit',
+                       'Lat1Text',
+                       'Long1Text',
+                       'Latitude1',
+                       'Longitude1',
+                       'OriginalLatLongUnit',
+                       'SrcLatLongUnit',
+                       'Datum',
                        'DisciplineID',
                        'GeographyID',
                        'ModifiedByAgentID',
@@ -432,9 +468,17 @@ class PicturaeImporter(Importer):
                       f'{time_utils.get_pst_time_now_string()}',
                       1,
                       f"{self.locality_guid}",
-                      0,
-                      0,
                       f"{self.locality}",
+                      f'{self.min_elevation}',
+                      f'{self.max_elevation}',
+                      f'{self.elevation_unit}',
+                      f'{self.verbatim_lat}',
+                      f'{self.verbatim_long}',
+                      f'{self.latitude}',
+                      f'{self.longitude}',
+                      f'{self.coordinate_form}',
+                      f'{self.coordinate_form}',
+                      f'{self.datum}',
                       3,
                       f"{self.GeographyID}",
                       f'{self.created_by_agent}',
@@ -443,11 +487,53 @@ class PicturaeImporter(Importer):
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='locality', col_list=column_list,
                                                          val_list=value_list)
 
         self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
+    def create_locality_detail_record(self):
+        """  defines column and value list , runs them as args
+             through create_sql_string and create_table record
+             in order to add new locality_detail record to database"""
+
+        if self.utm_northing == '' or pd.isna(self.utm_northing):
+            pass
+        else:
+            self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality',
+                                                                id_col='LocalityID',
+                                                                key_col='GUID',
+                                                                match=self.locality_guid)
+            column_list = ['TimestampCreated',
+                       'TimestampModified',
+                       'Version',
+                       'UtmNorthing',
+                       'UtmEasting',
+                       'UtmZone',
+                       'UtmDatum',
+                       'LocalityID',
+                       'ModifiedByAgentID',
+                       'CreatedByAgentID'
+                       ]
+
+            value_list = [f'{time_utils.get_pst_time_now_string()}',
+                      f'{time_utils.get_pst_time_now_string()}',
+                      0,
+                      f'{self.utm_northing}',
+                      f'{self.utm_easting}',
+                      f'{self.utm_zone}',
+                      f'{self.utm_datum}',
+                      f'{self.locality_id}',
+                      f'{self.created_by_agent}',
+                      f'{self.created_by_agent}'
+                      ]
+
+            value_list, column_list = remove_two_index(value_list, column_list)
+
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='localitydetail', col_list=column_list,
+                                                                       val_list=value_list)
+
+            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
     def create_agent_id(self):
         """create_agent_id:
@@ -456,7 +542,6 @@ class PicturaeImporter(Importer):
                 in order to add new agent record to database.
                 Includes a forloop to cycle through multiple collectors.
         """
-        table = 'agent'
         for name_dict in self.new_collector_list:
             self.agent_guid = uuid4()
 
@@ -493,8 +578,8 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             values, columns = remove_two_index(values, columns)
 
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=columns,
-                                                             val_list=values)
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='agent', col_list=columns,
+                                                                       val_list=values)
 
             self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
@@ -512,8 +597,6 @@ class PicturaeImporter(Importer):
                                                             id_col='LocalityID',
                                                             key_col='GUID', match=self.locality_guid)
 
-        table = 'collectingevent'
-
         column_list = ['TimestampCreated',
                        'TimestampModified',
                        'Version',
@@ -526,7 +609,8 @@ class PicturaeImporter(Importer):
                        'LocalityID',
                        'ModifiedByAgentID',
                        'CreatedByAgentID',
-                       'VerbatimLocality'
+                       'VerbatimLocality',
+                       'Remarks'
                        ]
 
         value_list = [f'{time_utils.get_pst_time_now_string()}',
@@ -541,14 +625,15 @@ class PicturaeImporter(Importer):
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
                       f'{self.created_by_agent}',
-                      f'{self.label_data}'
+                      f'{self.label_data}',
+                      f'{self.habitat}'
                       ]
 
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
-                                                         val_list=value_list)
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collectingevent', col_list=column_list,
+                                                                   val_list=value_list)
 
         self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
@@ -574,8 +659,6 @@ class PicturaeImporter(Importer):
         if self.redacted is False:
             self.redacted = self.sql_csv_tools.get_is_taxon_id_redacted(taxon_id=self.taxon_id)
 
-        table = 'collectionobject'
-
         if self.sheet_notes or self.tax_notes:
             notes = f"{self.sheet_notes + ' ' + self.tax_notes}"
         else:
@@ -590,6 +673,8 @@ class PicturaeImporter(Importer):
                        'Version',
                        'CollectionMemberID',
                        'CatalogNumber',
+                       'AltCatalogNumber',
+                       'Modifier',
                        'CatalogedDate',
                        'CatalogedDatePrecision',
                        'GUID',
@@ -601,7 +686,7 @@ class PicturaeImporter(Importer):
                        'CatalogerID',
                        'Remarks',
                        'ReservedText',
-                       'Modifier',
+                       'Text1',
                        'YesNo2'
                        ]
 
@@ -611,6 +696,8 @@ class PicturaeImporter(Importer):
                       0,
                       4,
                       f"{self.barcode}",
+                      f"{self.accession}",
+                      f"{self.herb_code}",
                       f"{starting_time_stamp.strftime('%Y-%m-%d')}",
                       1,
                       f"{self.collection_ob_guid}",
@@ -622,13 +709,13 @@ class PicturaeImporter(Importer):
                       f"{self.created_by_agent}",
                       f"{notes}",
                       f"{self.picturae_config.PROJECT_NAME}",
-                      f"CAS",
+                      f"{self.specimen_desc}",
                       self.redacted]
 
         # removing na values from both lists
         value_list, column_list = remove_two_index(value_list, column_list)
 
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collectionobject', col_list=column_list,
                                                          val_list=value_list)
 
         self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
@@ -642,12 +729,10 @@ class PicturaeImporter(Importer):
            returns:
                 none
         """
-        table = 'determination'
 
         self.collection_ob_id = self.sql_csv_tools.get_one_match(tab_name='collectionobject',
                                                                  id_col='CollectionObjectID',
                                                                  key_col='GUID', match=self.collection_ob_guid)
-
         if self.taxon_id is not None:
 
             column_list = ['TimestampCreated',
@@ -682,7 +767,7 @@ class PicturaeImporter(Importer):
             # removing na values from both lists
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='determination', col_list=column_list,
                                                              val_list=value_list)
 
             self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
@@ -705,8 +790,6 @@ class PicturaeImporter(Importer):
 
             is_primary = True if index == 0 else False
             order_number = index  # auto-increment by index
-
-            table = 'collector'
 
             agent_id = agent_dict['agent_id']
 
@@ -745,8 +828,8 @@ class PicturaeImporter(Importer):
 
             value_list, column_list = remove_two_index(value_list, column_list)
 
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name=table, col_list=column_list,
-                                                             val_list=value_list)
+            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collector', col_list=column_list,
+                                                                       val_list=value_list)
 
             self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
@@ -831,6 +914,8 @@ class PicturaeImporter(Importer):
 
 
                 self.create_locality_record()
+
+                self.create_locality_detail_record()
 
                 if len(self.new_collector_list) > 0:
                     self.create_agent_id()
