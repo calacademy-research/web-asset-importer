@@ -359,9 +359,9 @@ class Importer:
         try:
             (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
-            is_redacted_property = attachment_properties_map.get(not SpecifyConstants.ST_IS_PUBLIC, None)
-            if is_redacted_property is not None and is_redacted_property:
-                is_public = False
+            is_public_property = attachment_properties_map.get(SpecifyConstants.ST_IS_PUBLIC, None)
+            if is_public_property is not None:
+                is_public = is_public_property
             else:
                 is_public = not force_redacted
 
