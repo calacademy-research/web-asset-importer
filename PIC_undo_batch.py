@@ -2,6 +2,8 @@
     database.
     NOTE: only use this process if your upload process includes a LOCK user command
           to prevent other changes to the database during upload"""
+import logging
+
 import pandas as pd
 
 from importer import Importer
@@ -171,10 +173,10 @@ class PicturaeUndoBatch(Importer):
 
         # clearing picbatch records
         if self.data_deleted is True:
-            for table in ['picturaetaxa_added', 'picturae_batch']:
+            for table in ['picturae_batch']:
                 self.batch_log_clear(table=table, MD5=MD5)
 
 
     def run_all(self, MD5):
-        print("runnning PIC_undo_batch")
+        self.logger.INFO("runnning PIC_undo_batch")
         self.picturae_csv_undo(table="picturae_batch", MD5=MD5)
