@@ -420,6 +420,9 @@ class PicturaeImporter(Importer):
 
         self.utm_datum = (lambda x: x if pd.notna(x) and str(x).strip() else None)(getattr(row, "utm_datum", None))
 
+        self.locality_det_notes = (lambda x: x if pd.notna(x) and
+                                                  str(x).strip() else None)(getattr(row, "locality_det_remarks", None))
+
         guid_list = ['collecting_event_guid', 'collection_ob_guid', 'locality_guid', 'determination_guid']
         for guid_string in guid_list:
             setattr(self, guid_string, str(uuid4()))
@@ -981,11 +984,6 @@ class PicturaeImporter(Importer):
 
         self.record_full.to_csv(self.file_path)
 
-        # creating new taxon list
-        if len(self.new_taxa) > 0:
-            self.new_taxa = list(set(self.new_taxa))
-            self.batch_sql_tools.insert_taxa_added_record(taxon_list=self.new_taxa, df=self.record_full,
-                                                          agent_id=self.created_by_agent)
         # uploading attachments
 
         self.upload_attachments()

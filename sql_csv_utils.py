@@ -4,9 +4,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from statistics import median
 from typing import Union, Optional, List, Sequence, Any
-
 import pandas as pd
-
 from specify_db import SpecifyDb
 from gen_import_utils import remove_two_index
 import time_utils
@@ -32,7 +30,7 @@ class SqlCsvTools:
         self.check_db_connection()
 
     def check_db_connection(self):
-        """Check whether database connection is functional."""
+        """check whether database connection is functional"""
         try:
             self.specify_db_connection.connect()
             self.logger.info("sql_csv_tools connection established")
@@ -40,7 +38,7 @@ class SqlCsvTools:
             raise DatabaseConnectionError from e
 
     def ensure_db_connection(self):
-        """Ensure that the database connection is functional. Recreate if needed."""
+        """ensure that the database connection is functional. Recreate if exception"""
         try:
             self.specify_db_connection.connect()
             self.logger.info("Database connection established")
@@ -51,28 +49,28 @@ class SqlCsvTools:
             self.logger.info("Database connection recreated")
 
     def sql_db_connection(self):
-        """Standard connector."""
+        """standard connector"""
         return self.specify_db_connection.connect()
 
     def get_record(self, sql, params=None):
-        """Get one record."""
+        """get one record"""
         return self.specify_db_connection.get_one_record(sql=sql, params=params)
 
     def get_records(self, sql, params=None):
-        """Get many records."""
+        """get many records"""
         return self.specify_db_connection.get_records(sql=sql, params=params)
 
     def get_cursor(self, buffered=False):
-        """Standard db cursor."""
+        """standard db cursor"""
         return self.specify_db_connection.get_cursor(buffered=buffered)
 
     def commit(self):
-        """Standard db commit."""
+        """Standard db commit"""
         return self.specify_db_connection.commit()
 
     @staticmethod
     def _normalize_nullable(value):
-        """Convert empty strings to None for SQL NULL-safe matching."""
+        """convert empty strings to None for SQL NULL-safe matching"""
         if value is None:
             return None
         if isinstance(value, str) and value.strip() == "":
@@ -80,8 +78,13 @@ class SqlCsvTools:
         return value
 
     def check_agent_name_sql(self, first_name: str, last_name: str, middle_initial: str, title: str):
-        """
-        Match an agent row while treating empty strings as NULL-equivalent inputs.
+        """check_agent_name_sql: create a custom sql string, based on number of non-na arguments,
+                                queries database for unique agent name.
+            args:
+                first_name: first name of agent
+                last_name: last name of agent
+                middle_initial: middle initial of agent
+                title: agent's title. (mr, ms, dr. etc..)
         """
         first_name = self._normalize_nullable(first_name)
         last_name = self._normalize_nullable(last_name)
@@ -105,8 +108,12 @@ class SqlCsvTools:
         return result
 
     def check_collector_list(self, collector_list, new_agents=False):
-        """
-        Ensure collector list is not empty and replace "collector unknown" with unspecified.
+        """checks if collector list is empty or contains collector unknown,
+           then assigns it unspecified agent dict
+           args:
+                collector_list: the list of collector name dicts to be processed
+                new_agents: if True, list contains new agents to add to database.
+                            set to true to avoid re-adding unspecified as an agent id
         """
         agent_id = self.get_one_match("agent", "AgentID", "LastName", "unspecified")
 
@@ -188,8 +195,13 @@ class SqlCsvTools:
         return max(years), min(years), med
 
     def get_one_hybrid(self, match, fullname):
-        """
-        Match multi-term hybrids irrespective of order.
+        """get_one_hybrid:
+                    used instead of get_one_record for hybrids to
+                    match multi-term hybrids irrespective of order
+                    args:
+                        match = the hybrid term of a taxonomic name e.g Genus A x B,
+                                match - "A X B"
+                        fullname = the full name of the taxonomic name.
         """
         parts = match.split()
 
@@ -228,25 +240,43 @@ class SqlCsvTools:
             return None
 
     def get_one_match(self, tab_name, id_col, key_col, match):
-        """
-        General helper to get one id_col value by exact match on key_col.
+        """populate_sql:
+                        creates a custom select statement for get one record,
+                        from which a result can be gotten more seamlessly
+                        without having to rewrite the sql variable every time
+                   args:
+                        tab_name: the name of the table to select
+                        id_col: the name of the column in which the unique id is stored
+                        key_col: column on which to match values
+                        match: value with which to match key_col
         """
         sql = f"SELECT {id_col} FROM {tab_name} WHERE `{key_col}` = %s;"
         result = self.get_record(sql, params=(match,))
         return result
 
     def create_insert_statement(self, col_list: list, val_list: list, tab_name: str):
+        """create_sql_string:
+               creates a new sql insert statement given a list of db columns,
+               and values to input.
+            args:
+                col_list: list of database table columns to fill
+                val_list: list of values to input into each table
+                tab_name: name of the table you wish to insert data into
         """
-        Create parameterized INSERT statement.
-        """
+
         column_list = ", ".join(col_list)
         placeholders = ", ".join(["%s"] * len(val_list))
         sql = f"INSERT INTO {tab_name} ({column_list}) VALUES ({placeholders});"
         return SqlStatement(sql=sql, params=tuple(val_list) if val_list else None)
 
     def insert_table_record(self, sql, params=None):
-        """
-        Execute INSERT/UPDATE style statement.
+        """create_table_record:
+                       general code for the inserting of a new record into any table on database,
+                       creates connection, and runs sql query. cursor.execute with arg multi, to
+                       handle multi-query commands.
+                   args:
+                       sql: the verbatim sql string, or multi sql query string to send to database
+                       params: params to pass to sql command
         """
         cursor = self.get_cursor()
         try:
@@ -272,7 +302,13 @@ class SqlCsvTools:
         agent_id: Union[str, int],
     ):
         """
-        Create parameterized insert for picturae_batch.
+            create_timestamps:
+                uses starting and ending timestamps to create window for sql database purge,
+                adds 10 second buffer on either end to allow sql queries to populate.
+                appends each timestamp record in picturae_batch table.
+            args:
+                start_time: starting time stamp
+                end_time: ending time stamp
         """
         delt_time = timedelta(seconds=15)
         time_stamp_list = [start_time - delt_time, end_time + delt_time]
@@ -316,12 +352,14 @@ class SqlCsvTools:
         condition_sql,
         condition_params=None,
     ):
-        """
-        Create parameterized UPDATE statement.
+        """create_update_string: function used to create sql string used to upload a list of values in the database
 
-        condition_sql should contain placeholders if needed, e.g.
-            "WHERE TaxonID = %s"
-        condition_params should be the corresponding values.
+            args:
+                tab_name: name of table to update
+                col_list: list of columns to update
+                val_list: list of values with which to update above list of columns(order matters)
+                condition_sql: condition sql string used to select sub-sect of records to update.
+                condition_params: params for the condition sql
         """
         val_list, col_list = remove_two_index(val_list, col_list)
 
@@ -340,8 +378,11 @@ class SqlCsvTools:
         return SqlStatement(sql=sql, params=tuple(params))
 
     def taxon_get(self, name, hybrid=False, taxname=None):
-        """
-        Retrieve taxon id from specify database.
+        """taxon_get: function to retrieve taxon id from specify database:
+              args:
+                  name: the full taxon name to check
+                  hybrid: whether the taxon name belongs to a hybrid
+                  taxname: the name ending substring of a taxon name, only useful for retrieving hybrids.
         """
         name = name.lower()
 
@@ -377,51 +418,6 @@ class SqlCsvTools:
 
         return self.get_one_hybrid(match=taxname, fullname=name)
 
-    def insert_taxa_added_record(self, taxon_list, df: pd.DataFrame, agent_id: Union[str, int]):
-        """
-        Insert rows into picturaetaxa_added for newly added taxa.
-        """
-        taxa_frame = df[df["fullname"].isin(taxon_list)].drop_duplicates(subset=["fullname"])
-
-        for _, row in taxa_frame.iterrows():
-            tax_id = self.get_one_match("picturaetaxa_added", "newtaxID", "fullname", row["fullname"])
-            if tax_id is None:
-                sql_statement = self.create_new_tax_tab(row, "picturaetaxa_added", agent_id)
-                self.insert_table_record(sql_statement.sql, sql_statement.params)
-
-    def create_new_tax_tab(self, row, tab_name: str, agent_id: Union[str, int]):
-        """
-        Create insert statement for new taxon QC table.
-        """
-        hybrid = string_utils.str_to_bool(row["Hybrid"])
-
-        col_list = [
-            "fullname",
-            "TimestampCreated",
-            "TimestampModified",
-            "batch_MD5",
-            "family",
-            "name",
-            "hybrid",
-            "CreatedByAgentID",
-            "ModifiedByAgentID",
-        ]
-
-        val_list = [
-            row["fullname"],
-            time_utils.get_pst_time_now_string(),
-            time_utils.get_pst_time_now_string(),
-            row["batch_md5"],
-            row["Family"],
-            row["taxname"],
-            hybrid,
-            agent_id,
-            agent_id,
-        ]
-
-        val_list, col_list = remove_two_index(val_list, col_list)
-
-        return self.create_insert_statement(col_list, val_list, tab_name)
 
     def get_is_taxon_id_redacted(self, taxon_id):
         """

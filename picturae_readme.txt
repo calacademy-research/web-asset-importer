@@ -26,12 +26,11 @@ file list:
                           client_tools.py , and in turn calls botany_importer.py
 
     picturae_DDL: (run this before running the importer!)
-                    This DDL creates new sql tables for troubleshooting problems with taxa and batch uploads:
-
-                          picturaetaxa_added: new taxa added to the database
+                    This DDL creates new sql tables for troubleshooting problems with batch uploads:
                           And creates and nb upload log:
                           picturae_batch: tracks each upload with timestamps and MD5 code,
                                            can be used for purging or troubleshooting.
+                          all_data_alembo (optional): holds a table of all the raw pre-wrangled data.
 
     string_utils: .py file which contains functions import for parsing strings and integers
 
