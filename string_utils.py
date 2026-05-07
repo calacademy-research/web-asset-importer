@@ -204,3 +204,22 @@ def to_decimal_degrees(coord: str, num_digits: int):
 def zero_out_barcode(number):
     """changes barcode to specify barcode with leading zeroes, function made for lapply"""
     return str(number).zfill(9)
+
+
+def dedupe_collectors_by_agent_id(collector_list):
+    """removes duplicate agent ids from collector list"""
+    seen_agent_ids = set()
+    deduped = []
+
+    for collector in collector_list:
+        agent_id = collector.get('agent_id')
+
+        if not agent_id:
+            deduped.append(collector)
+            continue
+
+        if agent_id not in seen_agent_ids:
+            seen_agent_ids.add(agent_id)
+            deduped.append(collector)
+
+    return deduped
