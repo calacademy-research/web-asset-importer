@@ -259,6 +259,7 @@ class PicturaeImporter(Importer):
             self.image_list = list(set(self.image_list))
             # running unhide files at beginning just in case failed run
 
+
     def create_agent_list(self, row):
         """create_agent_list:
                 creates a list of collectors that will be checked and added to agent/collector tables.
@@ -351,6 +352,9 @@ class PicturaeImporter(Importer):
         self.new_collector_list = self.sql_csv_tools.check_collector_list(collector_list=self.new_collector_list,
                                                                           new_agents=True)
 
+        self.full_collector_list = dedupe_collectors_by_agent_id(self.full_collector_list)
+        self.new_collector_list = dedupe_collectors_by_agent_id(self.new_collector_list)
+
 
     def populate_fields(self, row):
         """populate_fields:
@@ -398,9 +402,9 @@ class PicturaeImporter(Importer):
         self.redacted = False
 
         # elevation
-        self.min_elevation = row.min_elevation
+        self.min_elevation = remove_non_numerics(row.min_elevation)
 
-        self.max_elevation = row.max_elevation
+        self.max_elevation = remove_non_numerics(row.max_elevation)
 
         self.elevation_unit = row.elevation_unit
 
