@@ -420,7 +420,7 @@ class PicturaeImporter(Importer):
         self.utm_northing = remove_non_numerics(row.northing)
         self.utm_easting = remove_non_numerics(row.easting)
 
-        self.utm_zone = row.zone
+        self.utm_zone = remove_non_numerics(row.zone)
 
         self.utm_datum = (lambda x: x if pd.notna(x) and str(x).strip() else None)(getattr(row, "utm_datum", None))
 
