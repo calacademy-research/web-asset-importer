@@ -127,16 +127,10 @@ def main(args):
             md5_insert = args.md5
             PicturaeUndoBatch(MD5=md5_insert)
     elif args.subcommand == 'update':
-        if args.collection == "Botany_PIC":
-            pic_config = get_config(config="Botany_PIC")
-            date_override = args.date
-            force_update = args.force_update
-            UpdatePICFields(config=pic_config, date=date_override, force_update=force_update)
         if args.collection == 'Botany':
             bot_config = get_config(config="Botany")
-            date_override = args.date
             force_update = args.force_update
-            UpdateBotDbFields(config=bot_config, date=date_override, force_update=force_update)
+            UpdateBotDbFields(config=bot_config, force_update=force_update)
     else:
         print(f"Unknown command: {args.subcommand}")
 
