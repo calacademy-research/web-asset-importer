@@ -31,6 +31,7 @@ FOLDER_REGEX = r"_.+?_"
 
 PROJECT_NAME = "name of digitization project"
 
+UPDATE_CSV_PREFIX = f"{sla}path{sla}to{sla}update{sla}directory{sla}"
 
 # summary statistics, figures to configure html report
 MAILING_LIST = ['email_address']
