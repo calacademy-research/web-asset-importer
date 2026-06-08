@@ -402,9 +402,9 @@ class PicturaeImporter(Importer):
         self.redacted = False
 
         # elevation
-        self.min_elevation = remove_non_numerics(row.min_elevation)
+        self.min_elevation = remove_non_numerics(pd.to_numeric(row.min_elevation, errors="coerce"))
 
-        self.max_elevation = remove_non_numerics(row.max_elevation)
+        self.max_elevation = remove_non_numerics(pd.to_numeric(row.min_elevation, errors="coerce"))
 
         self.elevation_unit = row.elevation_unit
 
