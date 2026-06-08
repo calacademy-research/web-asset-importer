@@ -404,7 +404,7 @@ class PicturaeImporter(Importer):
         # elevation
         self.min_elevation = remove_non_numerics(pd.to_numeric(row.min_elevation, errors="coerce"))
 
-        self.max_elevation = remove_non_numerics(pd.to_numeric(row.min_elevation, errors="coerce"))
+        self.max_elevation = remove_non_numerics(pd.to_numeric(row.max_elevation, errors="coerce"))
 
         self.elevation_unit = row.elevation_unit
 
