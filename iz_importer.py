@@ -391,11 +391,12 @@ class IzImporter(Importer):
 
         if file_key and str(file_key.get('remove', '')).lower() == 'true':
             self.logger.info(f"Marked for removal: {full_path}")
-            self.remove_file_from_database(full_path)
-            for casiz_number in self.casiz_numbers:
-                self.image_client.monitoring_tools.append_monitoring_dict(
-                    self.image_client.removed_files, 
-                    casiz_number, full_path, True)
+            actually_removed = self.remove_file_from_database(full_path)
+            if actually_removed:
+                for casiz_number in self.casiz_numbers:
+                    self.image_client.monitoring_tools.append_monitoring_dict(
+                        self.image_client.removed_files,
+                        casiz_number, full_path)
             self.log_file_status(filename=os.path.basename(full_path), path=full_path, rejected="Marked for removal")
             return FILENAME_BUILD_STATUS.REMOVED_FILE, False
 

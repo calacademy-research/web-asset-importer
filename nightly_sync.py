@@ -5,23 +5,19 @@ from get_configs import get_config
 import traceback
 import logging
 import sys
-from typing import Optional
+from typing import Optional, Callable
 
 image_db: Optional[ImageDb] = None
-botany_importer = None
 attachment_utils: Optional[AttachmentUtils] = None
+collection_object_redaction_checker: Optional[Callable] = None
 
-def import_configs():
-    botany_importer_config = get_config(config='Botany')
-    ich_importer_config = get_config(config='Ichthyology')
-    return botany_importer_config, ich_importer_config
 
 def get_specify_state(internal_filename):
-    global attachment_utils
+    global attachment_utils, collection_object_redaction_checker
     coid = attachment_utils.get_collectionobjectid_from_filename(internal_filename)
     if coid is None:
         return None
-    redacted_collection_object = attachment_utils.get_is_botany_collection_object_redacted(coid)
+    redacted_collection_object = collection_object_redaction_checker(coid)
     redacted_attachment = attachment_utils.get_is_attachment_redacted(internal_filename)
     logging.debug(
         f"get specify state {internal_filename}, collection object: {coid} collection object state: {redacted_collection_object} attachment state: {redacted_attachment}")
@@ -42,12 +38,13 @@ def redact(internal_filename, redacted):
         logging.debug(f"No state change required. State is {redacted} object is {internal_filename}")
 
 
-def do_sync(collection_name, specify_db_connection):
-    global image_db, attachment_utils
+def do_sync(collection_name, specify_db_connection, co_redaction_method):
+    global image_db, attachment_utils, collection_object_redaction_checker
 
-    print(f"Starting sync..")
+    print(f"Starting sync for {collection_name}..")
     image_db = ImageDb()
     attachment_utils = AttachmentUtils(specify_db_connection)
+    collection_object_redaction_checker = getattr(attachment_utils, co_redaction_method)
     cursor = image_db.get_cursor()
     query = f"""SELECT  internal_filename,  redacted FROM images where collection='{collection_name}'"""
 
@@ -74,30 +71,50 @@ def do_sync(collection_name, specify_db_connection):
     return record_list
 
 
+COLLECTION_CONFIG = {
+    "Botany": {
+        "config_key": "Botany",
+        "co_redaction_method": "get_is_botany_collection_object_redacted",
+    },
+    "Ichthyology": {
+        "config_key": "Ichthyology",
+        "co_redaction_method": "get_is_botany_collection_object_redacted",
+    },
+    "IZ": {
+        "config_key": "IZ",
+        "image_db_collection": "Invertebrate Zoology",
+        "co_redaction_method": "get_is_iz_collection_object_redacted",
+    },
+}
+
+
 def main():
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
-    botany_importer_config, ich_importer_config = import_configs()
+
     if len(sys.argv) != 2:
-        print("Need a collection argument.")
+        print(f"Usage: {sys.argv[0]} <collection>")
+        print(f"Available collections: {', '.join(COLLECTION_CONFIG.keys())}")
         sys.exit(1)
-    if sys.argv[1] == "Botany":
-        collection_name = botany_importer_config.COLLECTION_NAME
-        specify_db_connection = DbUtils(
-            botany_importer_config.USER,
-            botany_importer_config.PASSWORD,
-            botany_importer_config.SPECIFY_DATABASE_PORT,
-            botany_importer_config.SPECIFY_DATABASE_HOST,
-            botany_importer_config.SPECIFY_DATABASE)
-    elif sys.argv[1] == "Ichthyology":
-        collection_name = ich_importer_config.COLLECTION_NAME
-        specify_db_connection = DbUtils(
-            ich_importer_config.USER,
-            ich_importer_config.PASSWORD,
-            ich_importer_config.SPECIFY_DATABASE_PORT,
-            ich_importer_config.SPECIFY_DATABASE_HOST,
-            ich_importer_config.SPECIFY_DATABASE)
-    do_sync(collection_name, specify_db_connection)
+
+    collection_arg = sys.argv[1]
+    if collection_arg not in COLLECTION_CONFIG:
+        print(f"Unknown collection: {collection_arg}")
+        print(f"Available collections: {', '.join(COLLECTION_CONFIG.keys())}")
+        sys.exit(1)
+
+    config_entry = COLLECTION_CONFIG[collection_arg]
+    importer_config = get_config(config=config_entry["config_key"])
+
+    collection_name = config_entry.get("image_db_collection", importer_config.COLLECTION_NAME)
+    specify_db_connection = DbUtils(
+        importer_config.USER,
+        importer_config.PASSWORD,
+        importer_config.SPECIFY_DATABASE_PORT,
+        importer_config.SPECIFY_DATABASE_HOST,
+        importer_config.SPECIFY_DATABASE)
+
+    do_sync(collection_name, specify_db_connection, config_entry["co_redaction_method"])
 
 
 if __name__ == '__main__':
