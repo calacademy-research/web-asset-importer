@@ -8,6 +8,7 @@ from importer import Importer
 from picturae_importer import PicturaeImporter
 from get_configs import get_config
 from tests.testing_tools import TestingTools
+from taxon_importer import TaxonomyImporter
 
 class AltPicturaeImporterlite(PicturaeImporter):
     def __init__(self):
@@ -23,6 +24,11 @@ class AltPicturaeImporterlite(PicturaeImporter):
         # keep name as sql_csv_tools since it needs to replace the internally called function
         # sql_csv_tools in the parent class
         self.sql_csv_tools = SqlLiteTools(sql_db="tests/casbotany_lite.db")
+
+        self.tax_importer = TaxonomyImporter(config=self.picturae_config,
+                                             record_full=self.record_full, logging_level=self.logger.getEffectiveLevel())
+
+        self.tax_importer.sql_csv_tools = self.sql_csv_tools
 
     # patched populate_fields function to avoid having to pull from the geography tree, for taxon tree tests
     def populate_fields(self, row):

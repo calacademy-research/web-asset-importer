@@ -63,7 +63,7 @@ class UpdatePICFields:
                                                       match=f"{barcode}")
 
         if pd.isna(is_present) or self.force_update:
-            condition = f"""WHERE CatalogNumber = {barcode};"""
+            condition = f'''WHERE CatalogNumber = "{barcode}";'''
 
             sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['AltCatalogNumber'],
                                                              val_list=[accession], condition=condition,
@@ -83,7 +83,7 @@ class UpdatePICFields:
                                                       key_col="CatalogNumber", match=f"{barcode}")
         if pd.isna(is_present) or self.force_update:
 
-            condition = f"""WHERE CatalogNumber = {barcode};"""
+            condition = f'''WHERE CatalogNumber = "{barcode}";'''
 
             sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Modifier'],
                                                                      val_list=[herb_code], condition=condition,

@@ -442,7 +442,29 @@ def table_sql_list():
                       FOREIGN KEY ("ModifiedByAgentID") REFERENCES "agent" ("AgentID"),
                       FOREIGN KEY ("CreatedByAgentID") REFERENCES "agent" ("AgentID"),
                       FOREIGN KEY ("LocalityID") REFERENCES "locality" ("LocalityID")
-                      );''']
+                      );''',
+
+                    '''CREATE TABLE IF NOT EXISTS vtaxon2 (
+                          "taxonid"                INTEGER PRIMARY KEY,
+                          "rankid"                 INTEGER DEFAULT NULL,
+                          "taxonRank"              TEXT DEFAULT NULL,
+                          "kingdom"                TEXT DEFAULT NULL,
+                          "Division"               TEXT DEFAULT NULL,
+                          "Class"                  TEXT DEFAULT NULL,
+                          "Order"                  TEXT DEFAULT NULL,
+                          "Family"                 TEXT DEFAULT NULL,
+                          "Genus"                  TEXT DEFAULT NULL,
+                          "species"                TEXT DEFAULT NULL,
+                          "InfraspecificRank"      TEXT DEFAULT NULL,
+                          "InfraspecificEpithet"   TEXT DEFAULT NULL,
+                          "author"                 TEXT DEFAULT NULL,
+                          "fullname"               TEXT DEFAULT NULL,
+                          "ScientificName"         TEXT DEFAULT NULL,
+                          "higherClassification"   TEXT DEFAULT NULL,
+                          "BlockExport"            INTEGER DEFAULT NULL,
+                          "RedactLocality"         INTEGER DEFAULT NULL
+                    );'''
+                                        ]
 
     return sql_bot_list
 

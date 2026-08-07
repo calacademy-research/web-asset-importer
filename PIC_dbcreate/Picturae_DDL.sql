@@ -1,19 +1,6 @@
 # ddl to run inside docker container / or vm for creation of new picturae upload batch database
 
 
-CREATE TABLE IF NOT EXISTS picturaetaxa_added (newtaxID INTEGER PRIMARY KEY AUTO_INCREMENT,
-                                                TimestampCreated VARCHAR(128) NOT NULL ,
-                                                TimestampModified VARCHAR(128) NOT NULL ,
-                                                batch_MD5 VARCHAR(128),
-                                                fullname VARCHAR(512),
-                                                name varchar(512),
-                                                family varchar(512),
-                                                hybrid BOOLEAN,
-                                                CreatedByAgentID VARCHAR(128),
-                                                ModifiedByAgentID VARCHAR(128));
-
-
-
 CREATE TABLE IF NOT EXISTS  picturae_batch (batchID INTEGER PRIMARY KEY AUTO_INCREMENT,
                                              batch_MD5 VARCHAR(128) NOT NULL ,
                                              TimestampCreated VARCHAR(128) NOT NULL ,
@@ -66,7 +53,6 @@ CREATE TABLE IF NOT EXISTS `all_data_alembo` (`recordID` INTEGER PRIMARY KEY AUT
                                               `acc_herb_tr` BOOLEAN DEFAULT NULL,
                                               `hab_spec_tr` BOOLEAN DEFAULT NULL,
                                               `complete` BOOLEAN DEFAULT NULL ) ;
-# DROP TABLE picturaetaxa_added;
 # DROP TABLE picturae_batch;
 
 

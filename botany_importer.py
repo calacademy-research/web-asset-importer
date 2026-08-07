@@ -61,7 +61,7 @@ class BotanyImporter(Importer):
             self.logger.debug(f"No barcode; skipping")
             return
         self.logger.debug(f"Barcode: {barcode}")
-        sql = f'''select CollectionObjectID from collectionobject where CatalogNumber={barcode};'''
+        sql = f'''select CollectionObjectID from collectionobject where CatalogNumber="{barcode}";'''
         collection_object_id = self.specify_db_connection.get_one_record(sql)
         self.logger.debug(f"retrieving id for: {collection_object_id}")
         if collection_object_id is None and not self.existing_barcodes:
@@ -197,20 +197,3 @@ class BotanyImporter(Importer):
         cursor.execute(sql, params)
         self.specify_db_connection.commit()
         cursor.close()
-
-    @staticmethod
-    def get_is_taxon_id_redacted(conn, taxon_id):
-        """retrieves redacted boolean with taxon id from vtaxon2"""
-        sql = f"""SELECT RedactLocality FROM vtaxon2 WHERE taxonid= %s;"""
-        cursor = conn.get_cursor()
-        cursor.execute(sql, (taxon_id,))
-        retval = cursor.fetchone()
-        cursor.close()
-        if retval is None:
-            logging.info(f"taxon id not yet present in vtaxon2: {taxon_id}\n sql:{sql}")
-            return False
-        else:
-            for val in retval:
-                if val is True or val == 1 or val == b'\x01':
-                    return True
-        return False

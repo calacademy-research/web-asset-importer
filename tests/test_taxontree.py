@@ -23,8 +23,6 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
         self.sql_csv_tools = self.test_picturae_importer_lite.sql_csv_tools
 
-
-
         # creating restore point for db
         shutil.copyfile("tests/casbotany_lite.db", "tests/casbotany_backup.db")
 
@@ -34,6 +32,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                 'end_date': ['5/05/1955', '5/20/1980', '3/20/1925', '4/05/2008'],
                 'collector_number': ['123456', '123455', '123454', '123453'],
                 'locality': ['place1', 'place2', 'place3', 'place4'],
+                'taxon_id': ['123', '124', '125', '126'],
                 'fullname': ['Castilleja miniata', 'Castilleja miniata subsp. fakus var. fake x cool',
                              'Rafflesia arnoldi var. summi', 'Salix x ambigua'],
                 'Genus': ['Castilleja', 'Castilleja', 'Rafflesia', 'Salix'],
@@ -66,7 +65,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
         tax_ranks = [220, 230, 240, 270, 260]
         tax_def = [13, 14, 15, 21, 17]
         for index, tax in enumerate(tax_names):
-            def_tree, rank_id = self.test_picturae_importer_lite.taxon_assign_defitem(tax)
+            def_tree, rank_id = self.test_picturae_importer_lite.tax_importer.taxon_assign_defitem(tax)
             self.assertEqual(def_tree, tax_def[index])
             self.assertEqual(rank_id, tax_ranks[index])
 
@@ -78,10 +77,12 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                      ["Rafflesia arnoldi var. summi", "Rafflesia arnoldi"],
                      ["Salix x ambigua"]]
 
+        self.test_picturae_importer_lite.tax_importer.init_all_vars()
         for index, row in self.test_picturae_importer_lite.record_full.iterrows():
             self.test_picturae_importer_lite.populate_fields(row)
-            self.test_picturae_importer_lite.populate_taxon()
-            self.assertEqual(self.test_picturae_importer_lite.taxon_list, tax_names[index])
+            self.test_picturae_importer_lite.tax_importer.populate_fields(row)
+            self.test_picturae_importer_lite.tax_importer.populate_taxon()
+            self.assertEqual(self.test_picturae_importer_lite.tax_importer.taxon_list, tax_names[index])
 
     def test_generate_taxon_fields(self):
         """Tests that generate taxon fields assigns the expected values to each field"""
@@ -92,30 +93,32 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
 
         rank_num = 0
 
-        for _, row in self.test_picturae_importer_lite.record_full.iterrows():
+        self.test_picturae_importer_lite.tax_importer.init_all_vars()
+        for row in self.test_picturae_importer_lite.record_full.itertuples():
             self.test_picturae_importer_lite.populate_fields(row)
-            self.test_picturae_importer_lite.populate_taxon()
+            self.test_picturae_importer_lite.tax_importer.populate_fields(row)
+            self.test_picturae_importer_lite.tax_importer.populate_taxon()
 
             # Generate taxon fields
             self.test_picturae_importer_lite.taxon_guid = uuid4()
-            self.test_picturae_importer_lite.parent_list = unique_ordered_list([
-                self.test_picturae_importer_lite.full_name,
-                self.test_picturae_importer_lite.first_intra,
-                self.test_picturae_importer_lite.gen_spec,
-                self.test_picturae_importer_lite.genus,
-                self.test_picturae_importer_lite.family_name
+            self.test_picturae_importer_lite.tax_importer.parent_list = unique_ordered_list([
+                self.test_picturae_importer_lite.tax_importer.full_name,
+                self.test_picturae_importer_lite.tax_importer.first_intra,
+                self.test_picturae_importer_lite.tax_importer.gen_spec,
+                self.test_picturae_importer_lite.tax_importer.genus,
+                self.test_picturae_importer_lite.tax_importer.family_name
             ])
 
-            for index, taxon in reversed(list(enumerate(self.test_picturae_importer_lite.taxon_list))):
+            for index, taxon in reversed(list(enumerate(self.test_picturae_importer_lite.tax_importer.taxon_list))):
                 author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id = (
-                    self.test_picturae_importer_lite.generate_taxon_fields(index=index, taxon=taxon)
+                    self.test_picturae_importer_lite.tax_importer.generate_taxon_fields(index=index, taxon=taxon)
                 )
 
                 expected_parent_id = self.sql_csv_tools.get_one_match(
                     id_col="TaxonID",
                     tab_name="taxon",
                     key_col="FullName",
-                    match=self.test_picturae_importer_lite.parent_list[index + 1]
+                    match=self.test_picturae_importer_lite.tax_importer.parent_list[index + 1]
                 )
 
                 # Assertions
@@ -127,7 +130,7 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
                 if self.test_picturae_importer_lite.is_hybrid:
                     self.assertTrue(pd.isna(author_insert) or author_insert == '')
                 elif taxon == self.test_picturae_importer_lite.full_name:
-                    self.assertEqual(author_insert, row['matched_name_author'])
+                    self.assertEqual(author_insert, row.matched_name_author)
 
                 rank_num += 1
 
@@ -136,16 +139,18 @@ class Testtaxontrees(unittest.TestCase, TestingTools):
         """test_taxon_insert: tests the insert function which inserts taxon fields into
                               database, makes sure column assignments return correctly
         """
-
-        for index, row in self.test_picturae_importer_lite.record_full.iterrows():
+        self.test_picturae_importer_lite.tax_importer.init_all_vars()
+        for row in self.test_picturae_importer_lite.record_full.itertuples():
             self.test_picturae_importer_lite.populate_fields(row)
 
-            self.test_picturae_importer_lite.populate_taxon()
+            self.test_picturae_importer_lite.tax_importer.populate_fields(row)
+
+            self.test_picturae_importer_lite.tax_importer.populate_taxon()
 
 
-            self.test_picturae_importer_lite.taxon_guid = uuid4()
+            self.test_picturae_importer_lite.tax_importer.taxon_guid = uuid4()
 
-            self.test_picturae_importer_lite.create_taxon()
+            self.test_picturae_importer_lite.tax_importer.create_taxon()
 
             # pulling sample taxon to make sure columns line up
 
