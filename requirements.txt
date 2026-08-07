@@ -19,7 +19,7 @@ requests==2.33.0
 sh~=2.0.4
 six==1.16.0
 toml==0.10.2
-urllib3==2.6.3
+urllib3==2.7.0
 yarg==0.1.9
 mysql-connector-python~=9.1.0
 Pillow~=12.2.0
