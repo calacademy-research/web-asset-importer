@@ -8,7 +8,9 @@
       "modified": "2025-06-23T16:06:00",
       "casiz": {
         "from_filename": null,
-        "from_exif": [214277],
+        "from_exif": [
+          214277
+        ],
         "from_directory": null,
         "from": "EXIF"
       },
@@ -17,19 +19,36 @@
         "from_exif": "© Christina N. Piotrowski licensed under CC BY-NC-SA"
       },
       "metadata": {
-        "CopyrightDate": [""],
-        "CopyrightHolder": ["© Christina N. Piotrowski licensed under CC BY-NC-SA"],
-        "Credit": ["Christina N. Piotrowski"],
-        "License": ["Creative Commons Attribution-NonCommercial-ShareAlike"],
-        "Remarks": [""],
-        "IsPublic": ["TRUE"],
-        "subType": [""],
-        "createdByAgent": [""],
-        "metadataText": ["Christina N. Piotrowski"]
+        "CopyrightDate": [
+          ""
+        ],
+        "CopyrightHolder": [
+          "© Christina N. Piotrowski licensed under CC BY-NC-SA"
+        ],
+        "Credit": [
+          "Christina N. Piotrowski"
+        ],
+        "License": [
+          "Creative Commons Attribution-NonCommercial-ShareAlike"
+        ],
+        "Remarks": [
+          ""
+        ],
+        "IsPublic": [
+          "TRUE"
+        ],
+        "subType": [
+          ""
+        ],
+        "createdByAgent": [
+          ""
+        ],
+        "metadataText": [
+          "Christina N. Piotrowski"
+        ]
       },
       "copyright_source": "file key"
     },
-
     "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg": {
       "path": "iz_test_images/Ashley Kidd copyright Ashley Kidd/CASIZ_117433_AKidd.jpeg",
       "extension": ".jpeg",
@@ -2180,7 +2199,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          9853
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -2232,8 +2251,7 @@
           190479
         ],
         "from_exif": [
-          190478,
-          190479
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2283,8 +2301,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          190478,
-          190479
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -2335,7 +2352,7 @@
           171855
         ],
         "from_exif": [
-          171855
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2388,7 +2405,7 @@
           5833
         ],
         "from_exif": [
-          5833
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2439,7 +2456,7 @@
           81334
         ],
         "from_exif": [
-          81334
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -2491,7 +2508,7 @@
           22878
         ],
         "from_exif": [
-          22878
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -4171,7 +4188,7 @@
       "casiz": {
         "from_filename": null,
         "from_exif": [
-          27106
+          214715
         ],
         "from_directory": null,
         "from": "EXIF"
@@ -4222,7 +4239,7 @@
           234193
         ],
         "from_exif": [
-          234193
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -4273,7 +4290,7 @@
           64302
         ],
         "from_exif": [
-          234193
+          214715
         ],
         "from_directory": null,
         "from": "Filename"
@@ -4407,7 +4424,6 @@
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015",
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata",
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/CP-0001",
-
     "iz_test_images/Christina N. Piotrowski/Piotrowski VIP2015/cp vip 2015 specimen images batch 1 with metadata/casiz 214568 cp-0278 serpulidae eggs releasing",
     "iz_test_images/Sriram Ramamurthy",
     "iz_test_images/Jessica A. Goodheart Credit Jessica A. Goodheart © Jessica A. Goodheart",
