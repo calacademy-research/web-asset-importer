@@ -265,7 +265,25 @@ class Importer:
 
         return deleteme
 
-    import time
+
+
+    def clean_tmp_dir(self):
+        """helper method to empty out tmp directory between file uploads to prevent junk file buildup"""
+        if not os.path.exists(self.TMP_JPG):
+            return
+
+        for filename in os.listdir(self.TMP_JPG):
+            file_path = os.path.join(self.TMP_JPG, filename)
+
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    os.remove(file_path)
+                elif os.path.isdir(file_path):
+                    shutil.rmtree(file_path)
+            except OSError as e:
+                self.logger.warning(
+                    f"Unable to remove temporary path {file_path}: {e}"
+                )
 
     def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
         deleteme = self.convert_image_if_required(filepath)
@@ -292,7 +310,12 @@ class Importer:
                 time.sleep(10)  # Wait 10 seconds before retrying
 
         # If the second attempt fails, re-throw the most recent exception
+
+        if deleteme and os.path.exists(self.TMP_JPG):
+            self.clean_tmp_dir()
+
         raise last_exception
+
 
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []
@@ -419,6 +442,7 @@ class Importer:
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
                 self.logger.error(traceback.format_exc())
+
 
     def cleanup_incomplete_import(self, cur_filepath, collection):
         """
