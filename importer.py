@@ -88,22 +88,33 @@ class Importer:
             os.mkdir(self.TMP_JPG)
 
         file_name_no_extention, extention = self.split_filepath(basename)
+        extention = extention.lower()
+
+
         if extention not in ['tif', 'dng', 'tiff', 'jpeg']:
             self.logger.error(f"Bad filename, can't convert {image_filepath}")
             raise ConvertException(f"Bad filename, can't convert {image_filepath}")
 
-        if extention == 'dng':
-            temp_tiff_path = os.path.join('/tmp', file_name_no_extention + "_temp.tif")
+        conversion_id = uuid4().hex
+        unique_extension = f"{conversion_id}"
+        temp_tiff_path = None
+
+        if extention.lower() == 'dng':
+            temp_tiff_path = os.path.join(self.TMP_JPG, file_name_no_extention + f"{conversion_id}" + "_temp.tif")
             self._convert_dng_to_tiff(image_filepath, temp_tiff_path)
             image_filepath = temp_tiff_path
 
-        jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + ".jpg")
+        jpg_dest = os.path.join(self.TMP_JPG, file_name_no_extention + unique_extension + ".jpg")
 
         proc = subprocess.Popen(['convert', '-quality', '99', image_filepath, jpg_dest],
                                 stdout=subprocess.PIPE)
 
         output = proc.communicate(timeout=60)[0]
-        onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f))]
+
+        if extention == 'dng':
+            os.remove(temp_tiff_path)  # Remove the temporary TIFF file
+
+        onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f)) and unique_extension in f]
         if len(onlyfiles) == 0:
             raise ConvertException(f"No files produced from conversion")
         files_dict = {}
@@ -115,9 +126,6 @@ class Importer:
         os.rename(os.path.join(self.TMP_JPG, top), target)
         if len(onlyfiles) > 2:
             self.logger.info("multi-file case")
-
-        if extention == 'dng':
-            os.remove(temp_tiff_path)  # Remove the temporary TIFF file
 
         return target, output
 
@@ -265,10 +273,8 @@ class Importer:
 
         return deleteme
 
-
-
     def clean_tmp_dir(self):
-        """helper method to empty out tmp directory between file uploads to prevent junk file buildup"""
+        """Helper method to empty out tmp directory between file uploads to prevent junk file buildup."""
         if not os.path.exists(self.TMP_JPG):
             return
 
@@ -280,10 +286,12 @@ class Importer:
                     os.remove(file_path)
                 elif os.path.isdir(file_path):
                     shutil.rmtree(file_path)
+
             except OSError as e:
                 self.logger.warning(
                     f"Unable to remove temporary path {file_path}: {e}"
                 )
+
 
     def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
         deleteme = self.convert_image_if_required(filepath)
@@ -315,7 +323,6 @@ class Importer:
             self.clean_tmp_dir()
 
         raise last_exception
-
 
     def remove_specify_imported_and_id_linked_from_path(self, filepath_list, collection_object_id):
         keep_filepaths = []
@@ -363,7 +370,6 @@ class Importer:
                 keep_filepaths.append(cur_filepath)
         return keep_filepaths
 
-
     def import_single_file_to_image_db_and_specify(self, cur_filepath, collection_object_id, agent_id,
                                                    force_redacted, attachment_properties_map,
                                                    skip_redacted_check, id):
@@ -377,8 +383,8 @@ class Importer:
         elif force_redacted:
             is_redacted = True
         else:
-            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(collection_object_id=collection_object_id)
-
+            is_redacted = self.attachment_utils.get_is_botany_collection_object_redacted(
+                collection_object_id=collection_object_id)
         try:
             (url, attach_loc) = self.upload_filepath_to_image_database(cur_filepath, redacted=is_redacted, id=id)
 
@@ -422,7 +428,6 @@ class Importer:
             traceback.print_exc()
             return None
 
-
     def import_to_imagedb_and_specify(self,
                                       filepath_list,
                                       collection_object_id,
@@ -442,7 +447,6 @@ class Importer:
             except Exception as e:
                 self.logger.error(f"Exception importing path at {cur_filepath}: {e}")
                 self.logger.error(traceback.format_exc())
-
 
     def cleanup_incomplete_import(self, cur_filepath, collection):
         """
@@ -473,7 +477,6 @@ class Importer:
         else:
             self.logger.info(f"No cleanup required after incomplete upload of: {cur_filepath}")
 
-
     def check_for_valid_image(self, full_path):
         # self.logger.debug(f"Ich importer verify file: {full_path}")
         if not filetype.is_image(full_path):
@@ -489,8 +492,6 @@ class Importer:
 
             return False
         return True
-
-
 
     def remove_file_from_database(self, full_path):
         """
