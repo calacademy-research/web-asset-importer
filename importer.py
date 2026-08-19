@@ -114,8 +114,6 @@ class Importer:
         if extention == 'dng':
             os.remove(temp_tiff_path)  # Remove the temporary TIFF file
 
-        self.clean_tmp_dir(uuid=conversion_id)
-
         onlyfiles = [f for f in listdir(self.TMP_JPG) if isfile(join(self.TMP_JPG, f)) and unique_extension in f]
         if len(onlyfiles) == 0:
             raise ConvertException(f"No files produced from conversion")
@@ -275,11 +273,8 @@ class Importer:
 
         return deleteme
 
-    def clean_tmp_dir(self, uuid=None):
-        """Helper method to empty out tmp directory between file uploads to prevent junk file buildup.
-
-        If uuid is provided, JPG files containing that UUID are preserved.
-        """
+    def clean_tmp_dir(self):
+        """Helper method to empty out tmp directory between file uploads to prevent junk file buildup."""
         if not os.path.exists(self.TMP_JPG):
             return
 
@@ -287,13 +282,6 @@ class Importer:
             file_path = os.path.join(self.TMP_JPG, filename)
 
             try:
-                if (
-                        uuid is not None
-                        and uuid in filename
-                        and filename.lower().endswith((".jpg", ".jpeg"))
-                ):
-                    continue
-
                 if os.path.isfile(file_path) or os.path.islink(file_path):
                     os.remove(file_path)
                 elif os.path.isdir(file_path):
@@ -303,6 +291,7 @@ class Importer:
                 self.logger.warning(
                     f"Unable to remove temporary path {file_path}: {e}"
                 )
+
 
     def upload_filepath_to_image_database(self, filepath, redacted=False, id=None):
         deleteme = self.convert_image_if_required(filepath)
