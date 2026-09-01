@@ -862,8 +862,13 @@ class PicturaeImporter(Importer):
 
         for image_path in self.image_list:
             if os.path.islink(image_path):
+                target = os.path.join(
+                    os.path.dirname(image_path),
+                    os.readlink(image_path)
+                )
+
                 symlink_targets.append(
-                    os.path.realpath(image_path).lower()
+                    os.path.normpath(target).lower()
                 )
 
         keep_paths = set(lower_list + symlink_targets)
