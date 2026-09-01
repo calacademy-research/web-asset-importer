@@ -40,6 +40,9 @@ class DirTools:
 
     def process_directory(self, dirpath):
         for file in os.listdir(dirpath):
+            if file.startswith("."):
+                self.logger.debug(f"Skipping hidden file: {file}")
+                continue
             full_path = os.path.join(dirpath, file)
             if not os.path.isdir(full_path):
                 if self.processed_limit is not None and self.processed_num > self.processed_limit:

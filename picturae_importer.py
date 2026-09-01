@@ -880,6 +880,8 @@ class PicturaeImporter(Importer):
 
         for folder_path in folder_paths:
             for file_name in os.listdir(folder_path):
+                if file_name.startswith("."):
+                    continue
                 file_path = os.path.join(folder_path, file_name)
                 if file_path.lower() not in keep_paths:
                     new_file_name = f".hidden_{file_name}"
