@@ -205,11 +205,17 @@ class PicturaeImporter(Importer):
                 new_path = new_image_path
 
                 try:
-                    if os.path.exists(new_path) is False and not row.image_present_db:
-                        shutil.copy2(old_path, new_path)
-                        self.logger.info(f"copy made of duplicate sheet {parent_bar}, at {new_bar}")
+                    if not os.path.lexists(new_path) and not row.image_present_db:
+
+                        symlink_target = os.path.basename(old_path)
+
+                        os.symlink(symlink_target, new_path)
+
+                        self.logger.info(f"symlink made for duplicate sheet {parent_bar}, "
+                                         f"at {new_bar} -> {symlink_target}")
+
                     else:
-                        self.logger.info(f"Copy of image for {parent_bar} already exists at {new_bar}")
+                        self.logger.info(f"Symlink for {parent_bar} already exists at {new_bar}")
 
 
                     self.record_full.loc[self.record_full['CatalogNumber'] == new_bar, 'image_path'] = new_image_path
@@ -852,11 +858,30 @@ class PicturaeImporter(Importer):
                 none
         """
         lower_list = [image_path.lower() for image_path in self.image_list]
-        folder_paths = set([os.path.dirname(img_path) for img_path in self.image_list])
+        symlink_targets = []
+
+        for image_path in self.image_list:
+            if os.path.islink(image_path):
+                target = os.path.join(
+                    os.path.dirname(image_path),
+                    os.readlink(image_path)
+                )
+
+                symlink_targets.append(
+                    os.path.normpath(target).lower()
+                )
+
+        keep_paths = set(lower_list + symlink_targets)
+
+        folder_paths = {
+            os.path.dirname(img_path)
+            for img_path in self.image_list
+        }
+
         for folder_path in folder_paths:
             for file_name in os.listdir(folder_path):
                 file_path = os.path.join(folder_path, file_name)
-                if file_path.lower() not in lower_list:
+                if file_path.lower() not in keep_paths:
                     new_file_name = f".hidden_{file_name}"
                     new_file_path = os.path.join(folder_path, new_file_name)
                     os.rename(file_path, new_file_path)
