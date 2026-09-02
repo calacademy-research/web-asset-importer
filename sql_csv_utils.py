@@ -282,6 +282,7 @@ class SqlCsvTools:
         try:
             if params is not None:
                 self.logger.debug(f"running query - {sql} with params {params}")
+                print(f"running query - {sql} with params {params}")
                 cursor.execute(sql, tuple(params))
             else:
                 self.logger.debug(f"running query - {sql}")

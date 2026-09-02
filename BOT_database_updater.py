@@ -6,22 +6,28 @@ from gen_import_utils import remove_two_index, get_row_value_or_default
 import time_utils
 import glob
 import os
+from string_utils import detect_is_empty
 from uuid import uuid4
 
+## testing
+from update_function_rollback import UpdateFunctionRollback
+from get_configs import get_config
+
 class UpdateBotDbFields:
-    def __init__(self, config, force_update=False):
+    def __init__(self, config, force_update=False, autorun=True):
         self.config = config
         self.force_update = force_update
         self.AGENT_ID = config.IMPORTER_AGENT_ID
         logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger('UpdateDbFields')
+        self.logger = logging.getLogger("UpdateDbFields")
         self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
         self.update_frame = self.load_update_csvs()
         self.update_frame.fillna('')
         self.locality_guid = None
         self.locality_id = None
         self.collecting_event_id = None
-        self.process_update_csv()
+        if autorun:
+            self.process_update_csv()
 
 
     def load_update_csvs(self):
@@ -45,7 +51,7 @@ class UpdateBotDbFields:
             self.logger.info(f"Loading csv: {csv_file}")
 
             try:
-                df = pd.read_csv(csv_file)
+                df = pd.read_csv(csv_file, dtype=str,keep_default_na=False)
                 frame_list.append(df)
 
             except Exception as e:
@@ -65,46 +71,70 @@ class UpdateBotDbFields:
             barcode , and then calls the required update functions"""
         # checking accession number
         for index, row in self.update_frame.iterrows():
+            self.locality_guid = None
+            self.locality_id = None
+            self.collecting_event_id = None
+
+            barcode = str(row["barcode"]).strip().zfill(9)
+            self.logger.info("Processing barcode #: %s", barcode)
+
+            self.collecting_event_id = self.get_collectingevent_id(barcode)
+
+            if self.collecting_event_id is None:
+                self.logger.warning(
+                    "No collectionobject found for barcode %s; skipping",
+                    barcode,
+                )
+                continue
+
+
             if "accession_number" in self.update_frame:
-                self.update_accession(barcode=row['barcode'], accession=row['accession_number'],
+                self.update_accession(barcode=barcode, accession=row['accession_number'],
                                       herb_code=row['Modifier'])
+
 
             # checking lat/long values for update
             if (('Longitude1' and 'Latitude1') or ('Longitude2' and 'Latitude2')) and \
                     (('Lat1Text' and 'Long1Text') or ('Lat2Text' and 'Long2Text')) and \
-                    'OriginalLatLongUnit' in self.update_frame:
-                up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2',
-                                                            'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text',
-                                                            'OriginalLatLongUnit', 'SrcLatLongUnit', 'Datum'])
+                    'OriginalLatLongUnit' in self.update_frame.columns:
 
-                self.update_coords(row=row, colname_list=up_list)
+                if detect_is_empty(row.get("Longitude1")) or detect_is_empty(row.get("Latitude1")):
+                    pass
+                else:
+                    up_list = self.make_update_list(check_list=['Longitude1', 'Latitude1', 'Longitude2', 'Latitude2',
+                                                                'Lat1Text', 'Long1Text', 'Lat2Text', 'Long2Text',
+                                                                'OriginalLatLongUnit', 'SrcLatLongUnit',
+                                                                'LatLongMethod', 'Datum'])
+
+                    self.update_coords(row=row, colname_list=up_list)
 
             # checking the habitat string for update
-            if 'Habitat' in self.update_frame:
-                self.update_habitat(row=row,
-                                    habitat_string=row['Habitat'])
-
-            if 'LocalityName' in self.update_frame:
-                self.update_locality_string(row=row, loc_string=row['LocalityName'])
+            if 'Habitat' in self.update_frame and not detect_is_empty(row["Habitat"]):
+                self.update_habitat(habitat_string=row['Habitat'])
 
             # checking elevation fields for update
             if 'MaxElevation' and 'MinElevation' and 'OriginalElevationUnit' in self.update_frame:
-                up_list = self.make_update_list(check_list=['MaxElevation', 'MinElevation', 'OriginalElevationUnit'])
 
-                self.update_elevation(row=row, colname_list=up_list,
-                                      val_list=row[up_list]
-                                      )
+                if detect_is_empty(row["MaxElevation"]) and detect_is_empty(row["Min"]):
+                    pass
+                else:
+                    up_list = self.make_update_list(check_list=['MaxElevation', 'MinElevation', 'OriginalElevationUnit'])
+
+                    self.update_elevation(row=row, colname_list=up_list,
+                                          val_list=row[up_list]
+                                          )
 
             # updating/creating localitydetail table record, column checks done inside function
-            if "UtmNorthing" or "UtmEasting" or "Township" or "Range" or "Section" in self.update_frame:
-                self.update_locality_det(row=row)
+            # if "UtmNorthing" or "UtmEasting" or "Township" or "Range" or "Section" in self.update_frame:
+            #     if (detect_is_empty(row["Township"]) or detect_is_empty(row["Range"])) and \
+            #             (detect_is_empty("UtmNorthing")):
+            #         pass
+            #     else:
+            #         self.update_locality_det(row=row)
 
-            if "County" in self.update_frame:
-                self.update_county(row=row)
-
-            self.locality_guid = None
-            self.locality_id = None
-            self.collecting_event_id = None
+            # if "County" in self.update_frame:
+            #     self.update_county(row=row)
+            #
 
 
     def make_update_list(self, check_list):
@@ -113,7 +143,7 @@ class UpdateBotDbFields:
             and appends to variable length column list"""
         up_list = []
         for field in check_list:
-            if field in self.update_frame:
+            if field in self.update_frame.columns:
                 up_list.append(field)
         return up_list
 
@@ -171,7 +201,8 @@ class UpdateBotDbFields:
         """
         if self.locality_guid is None:
             if pd.notna(row['barcode']):
-                self.collecting_event_id = self.get_collectingevent_id(barcode=row['barcode'])
+                barcode = row['barcode'].strip().zfill(9)
+                self.collecting_event_id = self.get_collectingevent_id(barcode=barcode)
 
             else:
                 self.collecting_event_id = row["CollectingEventID"]
@@ -182,8 +213,8 @@ class UpdateBotDbFields:
 
             if self.collecting_event_id:
 
-                count = self.check_key_unique(tab="collectingevent", id_col="LocalityID", id=locality_id,
-                                              primarykey="CollectingEventID")
+                count = self.check_key_unique(tab="collectingevent", id_col="LocalityID", id_num=locality_id,
+                                              primary_key="CollectingEventID")
 
                 if count == 1:
                     self.locality_id = locality_id
@@ -191,6 +222,9 @@ class UpdateBotDbFields:
                                                                           key_col="LocalityID", match=self.locality_id)
                     self.logger.info("locality id unique, editing locality")
                 else:
+                    # copying locality text
+                    self.locality_text = self.sql_csv_tools.get_one_match(tab_name='locality', id_col="LocalityName",
+                                                                          key_col="LocalityID", match=self.locality_id)
 
                     self.locality_guid = self.create_new_locality_record(row)
 
@@ -198,7 +232,7 @@ class UpdateBotDbFields:
                     self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality', id_col="LocalityID",
                                                                         key_col="GUID", match=self.locality_guid)
 
-                    self.logger.info(f"new locality being created at {self.locality_id} for collectingevent")
+                    self.logger.info(f"new locality created at {self.locality_id} for collectingevent")
 
                     condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
@@ -213,18 +247,17 @@ class UpdateBotDbFields:
 
     def update_coords(self, colname_list, row):
 
-        val_list = row[colname_list].copy()
+        val_list = row[colname_list].copy().to_list()
 
         if "Latitude2" in colname_list:
             self.latlongtype = "Line"
         else:
             self.latlongtype = "Point"
 
-        val_list["LatLongType"] = self.latlongtype
+        val_list.append(self.latlongtype)
 
         if "LatLongType" not in colname_list:
             colname_list.append("LatLongType")
-
 
 
         self.update_collectingevent_locality(row=row)
@@ -240,15 +273,12 @@ class UpdateBotDbFields:
 
 
 
-    def update_habitat(self, row, habitat_string):
+    def update_habitat(self, habitat_string):
         """function used to update habitat string in database
             args:
                 barcode: the barcode of the record to update
                 habitat_string: the habitat description to update the record with
         """
-
-        self.update_collectingevent_locality(row=row)
-
 
         condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
 
@@ -259,36 +289,25 @@ class UpdateBotDbFields:
         self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
 
-    def update_locality_string(self, row, loc_string):
-        """update_locality_string: """
+    def check_key_unique(self, tab, id_col, id_num, primary_key):
+        sql = (
+            f"SELECT COUNT(DISTINCT `{primary_key}`) "
+            f"FROM `{tab}` "
+            f"WHERE `{id_col}` = %s"
+        )
 
-        self.update_collectingevent_locality(row=row)
+        count = self.sql_csv_tools.get_record(
+            sql=sql,
+            params=(int(id_num),),
+        )
 
-        condition = f"""WHERE LocalityID = {self.locality_id};"""
-
-        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=['LocalityName'],
-                                                                 val_list=[loc_string],
-                                                                 condition_sql=condition,
-                                                                 agent_id=self.AGENT_ID
-                                                                )
-
-        self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
-
-    def check_key_unique(self, tab, id_col, id, primarykey):
-
-        sql = f'''SELECT COUNT(DISTINCT %s) from %s WHERE %s = %s'''
-
-
-        params = (primarykey, tab, id_col, id, )
-
-        count = self.sql_csv_tools.get_record(sql=sql, params=params)
-
-        if not pd.isna(count):
-            count = int(count)
-
-            return count
-        else:
+        if count is None or pd.isna(count):
             return 0
+
+        return int(count)
+
+
+
     def update_elevation(self, row, colname_list, val_list):
         """updates the elevation fields in the locality table, assumes having at least min max and unit
             note: according to NfN we won't be parsing elevation accuracy
@@ -323,8 +342,8 @@ class UpdateBotDbFields:
         table = 'locality'
 
         geography_id = self.sql_csv_tools.get_one_match(tab_name="locality", id_col="GeographyID",
-                                                        key_col="LocalityName",
-                                                        match=row['LocalityName'])
+                                                        key_col="LocalityID",
+                                                        match=self.locality_id)
 
         column_list = ['TimestampCreated',
                        'TimestampModified',
@@ -346,7 +365,7 @@ class UpdateBotDbFields:
                       f"{locality_guid}",
                       0,
                       0,
-                      f"{row['LocalityName']}",
+                      f"{self.locality_text}",
                       f"{row['Text2']}",
                       3,
                       f"{geography_id}",
@@ -453,13 +472,13 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE LocalityDetailID = {self.locality_det_id};"""
 
-        col_list = self.make_update_list(['Township', 'RangeDesc', 'Section'])
+        col_list = self.make_update_list(['Township', 'RangeDesc', 'Section', "BaseMeridian"])
 
-        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
-                                                         col_list=col_list,
-                                                         val_list=row[col_list],
-                                                        condition_sql=condition,
-                                                         agent_id=self.AGENT_ID)
+        sql_statement= self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
+                                                                  col_list=col_list,
+                                                                  val_list=row[col_list],
+                                                                  condition_sql=condition,
+                                                                  agent_id=self.AGENT_ID)
 
         self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
@@ -486,9 +505,61 @@ class UpdateBotDbFields:
     def update_county(self, row):
         pass
 
-# def update_dummy():
-#     from get_configs import get_config
-#     config = get_config(config='Botany')
-#     UpdateBotDbFields(config=config, date="2024-02-28", force_update=True)
-#
-# update_dummy()
+
+
+def configure_logging():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
+        force=True,
+    )
+
+    logging.getLogger("UpdateDbFields").setLevel(logging.DEBUG)
+    logging.getLogger("Client.SqlCsvTools").setLevel(logging.DEBUG)
+    logging.getLogger("Client.SpecifyDb").setLevel(logging.DEBUG)
+
+
+def run_update_test():
+    """Capture original values, apply updates, and leave them for inspection."""
+    config = get_config("Botany_PIC")
+    updater = UpdateBotDbFields(
+        config=config,
+        force_update=True,
+        autorun=False,
+    )
+    rollback = UpdateFunctionRollback(config)
+    rollback.start_new_run()
+
+    for _, row in updater.update_frame.iterrows():
+        barcode = str(row["barcode"]).strip().zfill(9)
+
+        try:
+            rollback.capture(barcode)
+            rollback.clear_updater_context(updater)
+
+            updater.process_update_csv()
+
+            # updater.update_habitat(
+            #     row=row,
+            #     habitat_string=row["Habitat"],
+            # )
+
+        except ValueError as e:
+            if "No collectionobject found for barcode" in str(e):
+                updater.logger.warning(str(e))
+                continue
+
+            raise
+        finally:
+            rollback.clear_updater_context(updater)
+
+    updater.logger.warning(
+        "Test updates are still applied. Inspect the database, then run "
+        "`python update_function_rollback.py` to restore the saved state."
+    )
+
+
+if __name__ == "__main__":
+    configure_logging()
+    run_update_test()
+
