@@ -281,12 +281,11 @@ class SqlCsvTools:
         cursor = self.get_cursor()
         try:
             if params is not None:
-                self.logger.debug(f"running query - {sql} with params {params}")
+                self.logger.debug("Running query: %s with params %r", sql, params)
                 cursor.execute(sql, tuple(params))
             else:
-                self.logger.debug(f"running query - {sql}")
+                self.logger.debug("Running query: %s", sql)
                 cursor.execute(sql)
-
             self.commit()
         except Exception:
             self.logger.error(traceback.format_exc())
