@@ -13,7 +13,6 @@ from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
 from PIC_undo_batch import PicturaeUndoBatch
-from PIC_database_updater import UpdatePICFields
 from BOT_database_updater import UpdateBotDbFields
 args = None
 logger = None
@@ -45,6 +44,13 @@ def parse_command_line():
     purge_parser = subparsers.add_parser('purge')
     update_parser = subparsers.add_parser('update')
 
+    update_parser.add_argument(
+        '-uf',
+        '--force_update',
+        action='store_true',
+        help='Overwrite existing data when updating',
+    )
+
     search_parser.add_argument('term')
 
     parser.add_argument('-d', '--date', nargs="?", help='batch date in the form YYYYMMDD, '
@@ -62,11 +68,6 @@ def parse_command_line():
                                                                                 "record and creating new image record"
                                                                                 "for images without collection objects",
                                                                                 default=False)
-
-    parser.add_argument('-uf', '--force_update', nargs="?", type=bool, help='Set to True if '
-                                                                            'you desire to overwrite '
-                                                                            'existing data when updating',
-                                                                            default=False)
 
     return parser.parse_args()
 
@@ -179,7 +180,7 @@ def bad_collection():
     print(f"Available collections: {[x for x in collection_definitions.COLLECTION_DIRS.keys()]}")
     print(f"Run {sys.argv[0]} --help for more info.")
     print("   Note: command and collection required for detailed help. e.g.:")
-    print("   ./image-client.py Botany import --help")
+    print("   ./image_client.py Botany import --help")
     sys.exit(1)
 
 

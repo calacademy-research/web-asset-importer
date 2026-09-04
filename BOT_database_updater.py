@@ -9,22 +9,17 @@ import os
 from string_utils import detect_is_empty
 from uuid import uuid4
 
-## testing
-from update_function_rollback import UpdateFunctionRollback
-from get_configs import get_config
-
 class UpdateBotDbFields:
-    def __init__(self, config, force_update=False, autorun=True):
+    def __init__(self, config, force_update=False):
         self.config = config
         self.force_update = force_update
         self.AGENT_ID = config.IMPORTER_AGENT_ID
         logging.basicConfig(level=logging.DEBUG)
-        self.logger = logging.getLogger("UpdateDbFields")
+        self.logger = logging.getLogger("Client.UpdateDbFields")
         self.sql_csv_tools = SqlCsvTools(config=self.config, logging_level=self.logger.getEffectiveLevel())
         self.update_frame = self.load_update_csvs()
         self.update_frame.fillna('')
-        if autorun:
-            self.process_update_csv()
+        self.process_update_csv()
 
 
     def load_update_csvs(self):
@@ -158,9 +153,9 @@ class UpdateBotDbFields:
                                           )
 
             # updating/creating localitydetail table record, column checks done inside function
-            if "UtmNorthing" or "UtmEasting" or "Township" or "Range" or "Section" in self.update_frame.columns:
+            if ("UtmNorthing" and "UtmEasting") or ("Township" and "Range") in self.update_frame.columns:
                 if (detect_is_empty(row["Township"]) or detect_is_empty(row["Range"])) and \
-                        (detect_is_empty("UtmNorthing")):
+                        (detect_is_empty(row["UtmNorthing"])):
                     pass
                 else:
                     self.update_locality_det(row=row)
@@ -534,62 +529,4 @@ class UpdateBotDbFields:
 
     def update_county(self):
         pass
-
-
-
-def configure_logging():
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s — %(name)s — %(levelname)s — %(message)s",
-        force=True,
-    )
-
-    logging.getLogger("UpdateDbFields").setLevel(logging.DEBUG)
-    logging.getLogger("Client.SqlCsvTools").setLevel(logging.DEBUG)
-    logging.getLogger("Client.SpecifyDb").setLevel(logging.DEBUG)
-
-
-def run_update_test():
-    """Capture original values, apply updates, and leave them for inspection."""
-    config = get_config("Botany_PIC")
-    updater = UpdateBotDbFields(
-        config=config,
-        force_update=True,
-        autorun=False,
-    )
-    rollback = UpdateFunctionRollback(config)
-    rollback.start_new_run()
-
-    for _, row in updater.update_frame.iterrows():
-        barcode = str(row["barcode"]).strip().zfill(9)
-
-        try:
-            rollback.capture(barcode)
-            rollback.clear_updater_context(updater)
-
-            updater.process_update_csv()
-
-            # updater.update_habitat(
-            #     row=row,
-            #     habitat_string=row["Habitat"],
-            # )
-
-        except ValueError as e:
-            if "No collectionobject found for barcode" in str(e):
-                updater.logger.warning(str(e))
-                continue
-
-            raise
-        finally:
-            rollback.clear_updater_context(updater)
-
-    updater.logger.warning(
-        "Test updates are still applied. Inspect the database, then run "
-        "`python update_function_rollback.py` to restore the saved state."
-    )
-
-
-if __name__ == "__main__":
-    configure_logging()
-    run_update_test()
 
