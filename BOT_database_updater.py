@@ -102,7 +102,7 @@ class UpdateBotDbFields:
             if pd.notna(self.barcode):
                 self.collecting_event_id = self.get_collectingevent_id()
 
-            if  "CollectingEventID" in self.update_frame.columns:
+            if "CollectingEventID" in self.update_frame.columns:
                 self.collecting_event_id = row["CollectingEventID"]
 
 
@@ -148,7 +148,7 @@ class UpdateBotDbFields:
                 else:
                     up_list = self.make_update_list(check_list=['MaxElevation', 'MinElevation', 'OriginalElevationUnit'])
 
-                    self.update_elevation(row=row, colname_list=up_list,
+                    self.update_elevation(colname_list=up_list,
                                           val_list=row[up_list]
                                           )
 
@@ -161,7 +161,7 @@ class UpdateBotDbFields:
                     self.update_locality_det()
 
             # if "County" in self.update_frame.columns:
-            #     self.update_county(row=row)
+            #     self.update_county()
             #
 
             self.locality_id = None
