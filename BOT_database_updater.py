@@ -153,12 +153,12 @@ class UpdateBotDbFields:
                                           )
 
             # updating/creating localitydetail table record, column checks done inside function
-            if ("UtmNorthing" and "UtmEasting") or ("Township" and "Range") in self.update_frame.columns:
-                if (detect_is_empty(row["Township"]) or detect_is_empty(row["Range"])) and \
+            if ("UtmNorthing" and "UtmEasting") or ("Township" and "RangeDesc") in self.update_frame.columns:
+                if (detect_is_empty(row["Township"]) or detect_is_empty(row["RangeDesc"])) and \
                         (detect_is_empty(row["UtmNorthing"])):
                     pass
                 else:
-                    self.update_locality_det(row=row)
+                    self.update_locality_det()
 
             # if "County" in self.update_frame.columns:
             #     self.update_county(row=row)
@@ -415,6 +415,7 @@ class UpdateBotDbFields:
                        'RangeDesc',
                        'Section',
                        'Township',
+                       'BaseMeridian',
                        'UtmDatum',
                        'UtmEasting',
                        'UtmNorthing',
@@ -427,9 +428,10 @@ class UpdateBotDbFields:
         value_list = [f'{time_utils.get_pst_time_now_string()}',
                       f'{time_utils.get_pst_time_now_string()}',
                       0,
-                      f"{get_row_value_or_default(row=self.row, column_name='Range')}",
+                      f"{get_row_value_or_default(row=self.row, column_name='RangeDesc')}",
                       f"{get_row_value_or_default(row=self.row, column_name='Section')}",
                       f"{get_row_value_or_default(row=self.row, column_name='Township')}",
+                      f"{get_row_value_or_default(row=self.row, column_name='BaseMeridian')}",
                       f"{get_row_value_or_default(row=self.row, column_name='UtmDatum')}",
                       f"{get_row_value_or_default(row=self.row, column_name='UtmEasting')}",
                       f"{get_row_value_or_default(row=self.row, column_name='UtmNorthing')}",
@@ -451,7 +453,7 @@ class UpdateBotDbFields:
         self.logger.info("New entry created in the localitydetail table")
 
 
-    def update_locality_det(self, row):
+    def update_locality_det(self):
 
         """update_locality_det:
                 creates localitydetail record if not exists, if exists, updates UTM and TRS fields if present
@@ -472,8 +474,8 @@ class UpdateBotDbFields:
         else:
             self.logger.info("editing existing localitydetail entry")
 
-            if 'Township' or 'Range' or 'Section' in self.update_frame.columns and not \
-                    (detect_is_empty(self.row["Township"]) or detect_is_empty(self.row["Range"])):
+            if 'Township' or 'RangeDesc' or 'Section' in self.update_frame.columns and not \
+                    (detect_is_empty(self.row["Township"]) or detect_is_empty(self.row["RangeDesc"])):
 
                 self.update_trs()
 
