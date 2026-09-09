@@ -532,18 +532,34 @@ class UpdateBotDbFields:
         """updater for the county field in the Geography table.
         Fetches the county from Geo-tree and replaces the geography id in location.
         """
-        full_name = f"""{self.row['County']}, {self.row['State'], self.row['Country']}"""
+        existing_geography_level = 0
+        if not self.force_update:
+            existing_geography_id = self.sql_csv_tools.get_one_match(tab_name="Locality",
+                                                                     id_col="GeographyID",
+                                                                     key_col="LocalityID",
+                                                                     match=self.locality_id)
 
-        geography_id = self.sql_csv_tools.get_one_match(tab_name="Geography", id_col="GeographyID", key_col="FullName",
-                                                        match=full_name)
+            existing_geography_level = self.sql_csv_tools.get_one_match(tab_name="Geography",
+                                                                        id_col="RankID",
+                                                                        key_col="GeographyID",
+                                                                        match=existing_geography_id)
 
-        condition = f"""WHERE LocalityID = {self.locality_id};"""
+        if int(existing_geography_level) >= 400:
+            self.logger.info(f"""County already filled at {self.barcode}""")
+            pass
+        else:
+            full_name = f"""{self.row['County']}, {self.row['State'], self.row['Country']}"""
 
-        sql_statement = self.sql_csv_tools.create_update_statement(tab_name="Locality",
-                                                                   agent_id=self.AGENT_ID,
-                                                                   col_list=["GeographyID"],
-                                                                   val_list=[geography_id],
-                                                                   condition_sql=condition)
+            geography_id = self.sql_csv_tools.get_one_match(tab_name="Geography", id_col="GeographyID", key_col="FullName",
+                                                            match=full_name)
 
-        self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
+            condition = f"""WHERE LocalityID = {self.locality_id};"""
+
+            sql_statement = self.sql_csv_tools.create_update_statement(tab_name="Locality",
+                                                                       agent_id=self.AGENT_ID,
+                                                                       col_list=["GeographyID"],
+                                                                       val_list=[geography_id],
+                                                                       condition_sql=condition)
+
+            self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
