@@ -38,10 +38,9 @@ class PicturaeImporter(Importer):
 
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
-        self.csv_folder = self.picturae_config.CSV_FOLDER
-
         self.botany_importer = None
 
+        self.csv_folder = self.picturae_config.CSV_FOLDER
 
         self.process_csv_files()
 
@@ -57,9 +56,7 @@ class PicturaeImporter(Importer):
 
 
     def process_csv_files(self):
-
-        self.csv_folder = self.picturae_config.CSV_FOLDER
-
+        """finds and gathers csv files for import"""
         self.file_path = None
         max_digits = -1
 
@@ -128,12 +125,10 @@ class PicturaeImporter(Importer):
         self.no_match_dict = {}
 
         # intializing parameters for database upload
-        init_list = ['GeographyID', 'taxon_id', 'barcode',
-                     'verbatim_date', 'start_date', 'end_date',
-                     'collector_number', 'locality', 'collecting_event_guid',
-                     'collecting_event_id', 'locality_guid', 'agent_guid',
-                     'geography_string', 'GeographyID', 'locality_id',
-                     'full_name', 'tax_name', 'locality',
+        init_list = ['taxon_id', 'barcode', 'verbatim_date', 'start_date', 'end_date',
+                     'collector_number', 'collecting_event_guid', 'collecting_event_id',
+                     'locality_guid', 'agent_guid', 'geography_string', 'GeographyID',
+                     'locality_id','full_name', 'tax_name', 'locality',
                      'determination_guid', 'collection_ob_id', 'collection_ob_guid',
                      'name_id', 'author_sci', 'family', 'gen_spec_id', 'family_id', 'parent_author',
                      'redacted']
@@ -181,7 +176,7 @@ class PicturaeImporter(Importer):
         self.record_full = self.record_full.replace([None, 'nan', np.nan, '<NA>'], '')
 
         # removing leading apostrophes from data columns
-        for col_name in list(["start", "end"]):
+        for col_name in ("start", "end"):
             self.record_full[f"{col_name}_date"] = self.record_full[f"{col_name}_date"].str.lstrip("\'")
 
 
@@ -223,9 +218,6 @@ class PicturaeImporter(Importer):
                 except Exception as e:
                     raise FileNotFoundError(f"Error: {e}")
 
-            else:
-                pass
-
 
     def create_file_list(self):
         """create_file_list: creates a list of imagepaths and barcodes for upload,
@@ -261,10 +253,8 @@ class PicturaeImporter(Importer):
                 self.image_list.append(image_path)
                 self.barcode_list.append(row.CatalogNumber)
 
-            self.barcode_list = list(set(self.barcode_list))
-            self.image_list = list(set(self.image_list))
-            # running unhide files at beginning just in case failed run
-
+        self.barcode_list = list(dict.fromkeys(self.barcode_list))
+        self.image_list = list(dict.fromkeys(self.image_list))
 
     def create_agent_list(self, row):
         """create_agent_list:
@@ -282,14 +272,11 @@ class PicturaeImporter(Importer):
         matches = sum([name.startswith("collector_first_name") for name in column_names])
 
         for i in range(1, matches+1):
-            try:
-                first = getattr(row, f'collector_first_name{i}', '')
-                middle = getattr(row, f'collector_middle_name{i}', '')
-                last = getattr(row, f'collector_last_name{i}', '')
-                agent_id = getattr(row, f'agent_id{i}', '')
 
-            except ValueError:
-                break
+            first = getattr(row, f'collector_first_name{i}', '')
+            middle = getattr(row, f'collector_middle_name{i}', '')
+            last = getattr(row, f'collector_last_name{i}', '')
+            agent_id = getattr(row, f'agent_id{i}', '')
 
             if pd.notna(agent_id) and agent_id != '':
                 # note do not convert agent_id to string it will mess with sql
@@ -324,7 +311,6 @@ class PicturaeImporter(Importer):
                 else:
                     title = title_last
 
-                middle = middle
                 elements = [str(first_name).strip(), str(last_name).strip(), str(title).strip(), str(middle).strip()]
 
                 for index in range(len(elements)):
@@ -447,6 +433,22 @@ class PicturaeImporter(Importer):
                                                             key_col='FullName', match=self.geography_string)
 
 
+    def specify_insert(self, table, columns, values):
+        """generic insert protocol for specify tables"""
+        values, columns = remove_two_index(values, columns)
+
+        statement = self.sql_csv_tools.create_insert_statement(
+            tab_name=table,
+            col_list=columns,
+            val_list=values,
+        )
+
+        self.sql_csv_tools.insert_table_record(
+            statement.sql,
+            statement.params,
+        )
+
+
     def create_locality_record(self):
         """create_locality_record:
                defines column and value list , runs them as args
@@ -498,12 +500,14 @@ class PicturaeImporter(Importer):
                       f'{self.created_by_agent}']
 
         # removing na values from both lists
-        value_list, column_list = remove_two_index(value_list, column_list)
+        self.specify_insert(table="locality", columns=column_list, values=value_list)
 
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='locality', col_list=column_list,
-                                                         val_list=value_list)
-
-        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
+        self.locality_id = self.sql_csv_tools.get_one_match(
+            tab_name="locality",
+            id_col="LocalityID",
+            key_col="GUID",
+            match=self.locality_guid,
+        )
 
     def create_locality_detail_record(self):
         """  defines column and value list , runs them as args
@@ -513,10 +517,6 @@ class PicturaeImporter(Importer):
         if self.utm_northing == '' or pd.isna(self.utm_northing):
             pass
         else:
-            self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality',
-                                                                id_col='LocalityID',
-                                                                key_col='GUID',
-                                                                match=self.locality_guid)
             column_list = ['TimestampCreated',
                        'TimestampModified',
                        'Version',
@@ -541,12 +541,8 @@ class PicturaeImporter(Importer):
                       f'{self.created_by_agent}'
                       ]
 
-            value_list, column_list = remove_two_index(value_list, column_list)
+            self.specify_insert(table="localitydetail", columns=column_list, values=value_list)
 
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='localitydetail', col_list=column_list,
-                                                                       val_list=value_list)
-
-            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
 
     def create_agent_id(self):
         """create_agent_id:
@@ -558,43 +554,38 @@ class PicturaeImporter(Importer):
         for name_dict in self.new_collector_list:
             self.agent_guid = uuid4()
 
-            columns = ['TimestampCreated',
-                       'TimestampModified',
-                       'Version',
-                       'AgentType',
-                       'DateOfBirthPrecision',
-                       'DateOfDeathPrecision',
-                       'FirstName',
-                       'LastName',
-                       'MiddleInitial',
-                       'Title',
-                       'DivisionID',
-                       'GUID',
-                       'ModifiedByAgentID',
-                       'CreatedByAgentID']
+            column_list = ['TimestampCreated',
+                           'TimestampModified',
+                           'Version',
+                           'AgentType',
+                           'DateOfBirthPrecision',
+                           'DateOfDeathPrecision',
+                           'FirstName',
+                           'LastName',
+                           'MiddleInitial',
+                           'Title',
+                           'DivisionID',
+                           'GUID',
+                           'ModifiedByAgentID',
+                           'CreatedByAgentID']
 
-            values = [f'{time_utils.get_pst_time_now_string()}',
-                      f'{time_utils.get_pst_time_now_string()}',
-                      1,
-                      1,
-                      1,
-                      1,
-                      f"{name_dict['collector_first_name']}",
-                      f"{name_dict['collector_last_name']}",
-                      f"{name_dict['collector_middle_initial']}",
-                      f"{name_dict['collector_title']}",
-                      2,
-                      f'{self.agent_guid}',
-                      f'{self.created_by_agent}',
-                      f'{self.created_by_agent}'
-                      ]
-            # removing na values from both lists
-            values, columns = remove_two_index(values, columns)
+            value_list = [f'{time_utils.get_pst_time_now_string()}',
+                          f'{time_utils.get_pst_time_now_string()}',
+                          1,
+                          1,
+                          1,
+                          1,
+                          f"{name_dict['collector_first_name']}",
+                          f"{name_dict['collector_last_name']}",
+                          f"{name_dict['collector_middle_initial']}",
+                          f"{name_dict['collector_title']}",
+                          2,
+                          f'{self.agent_guid}',
+                          f'{self.created_by_agent}',
+                          f'{self.created_by_agent}'
+                          ]
 
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='agent', col_list=columns,
-                                                                       val_list=values)
-
-            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
+            self.specify_insert(table="agent", columns=column_list, values=value_list)
 
 
     def create_collecting_event(self):
@@ -603,12 +594,6 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectingevent record to database.
          """
-
-        # re-pulling locality id to reflect update
-
-        self.locality_id = self.sql_csv_tools.get_one_match(tab_name='locality',
-                                                            id_col='LocalityID',
-                                                            key_col='GUID', match=self.locality_guid)
 
         column_list = ['TimestampCreated',
                        'TimestampModified',
@@ -642,13 +627,7 @@ class PicturaeImporter(Importer):
                       f'{self.habitat}'
                       ]
 
-        # removing na values from both lists
-        value_list, column_list = remove_two_index(value_list, column_list)
-
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collectingevent', col_list=column_list,
-                                                                   val_list=value_list)
-
-        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
+        self.specify_insert(table="collectingevent", columns=column_list, values=value_list)
 
     def create_collection_object(self):
         """create_collection_object:
@@ -726,12 +705,7 @@ class PicturaeImporter(Importer):
                       self.redacted]
 
         # removing na values from both lists
-        value_list, column_list = remove_two_index(value_list, column_list)
-
-        sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collectionobject', col_list=column_list,
-                                                         val_list=value_list)
-
-        self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
+        self.specify_insert(table="collectionobject", columns=column_list, values=value_list)
 
 
     def create_determination(self):
@@ -777,13 +751,7 @@ class PicturaeImporter(Importer):
                           f"{self.taxon_id}"
                           ]
 
-            # removing na values from both lists
-            value_list, column_list = remove_two_index(value_list, column_list)
-
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='determination', col_list=column_list,
-                                                             val_list=value_list)
-
-            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
+            self.specify_insert(table="determination", columns=column_list, values=value_list)
 
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
@@ -801,7 +769,7 @@ class PicturaeImporter(Importer):
 
         for index, agent_dict in enumerate(self.full_collector_list):
 
-            is_primary = True if index == 0 else False
+            is_primary = index == 0
             order_number = index  # auto-increment by index
 
             agent_id = agent_dict['agent_id']
@@ -837,15 +805,7 @@ class PicturaeImporter(Importer):
                           2,
                           f"{agent_id}"]
 
-            # removing na values from both lists
-
-            value_list, column_list = remove_two_index(value_list, column_list)
-
-            sql_statement = self.sql_csv_tools.create_insert_statement(tab_name='collector', col_list=column_list,
-                                                                       val_list=value_list)
-
-            self.sql_csv_tools.insert_table_record(sql_statement.sql, sql_statement.params)
-
+            self.specify_insert(table="collector", columns=column_list, values=value_list)
 
     def hide_unwanted_files(self):
         """hide_unwanted_files:
@@ -924,13 +884,16 @@ class PicturaeImporter(Importer):
 
         self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
 
-        for row in self.record_full.itertuples(index=False):
-            if row.CatalogNumber in self.barcode_list:
+        barcode_set = set(self.barcode_list)
 
+        for row in self.record_full.itertuples(index=True):
+            if row.CatalogNumber not in barcode_set:
+                continue
+            else:
                 self.populate_fields(row)
 
                 # updating barcode present
-                self.record_full.loc[self.record_full['CatalogNumber'] == self.raw_barcode, 'barcode_present'] = True
+                self.record_full.at[row.Index, "barcode_present"] = True
 
                 self.create_agent_list(row)
 
@@ -951,8 +914,7 @@ class PicturaeImporter(Importer):
 
                 self.create_locality_detail_record()
 
-                if len(self.new_collector_list) > 0:
-                    self.create_agent_id()
+                self.create_agent_id()
 
                 self.create_collecting_event()
 
@@ -961,8 +923,6 @@ class PicturaeImporter(Importer):
                 self.create_determination()
 
                 self.create_collector()
-            else:
-                pass
 
     def upload_attachments(self):
         """upload_attachments:
