@@ -81,6 +81,13 @@ class UpdateBotDbFields:
             if 'Habitat' in columns and not detect_is_empty(row["Habitat"]):
                 self.update_habitat(habitat_string=row['Habitat'])
 
+
+            if 'specimen_description' in columns and not detect_is_empty(row['specimen_description']):
+                self.update_spec_desc(specimen_string=row['specimen_description'])
+
+
+
+
             # checking elevation fields for update
             if {'MaxElevation', 'MinElevation', 'OriginalElevationUnit'}.issubset(columns):
 
@@ -302,6 +309,22 @@ class UpdateBotDbFields:
         self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
 
+    def update_spec_desc(self, specimen_string):
+        """function used to update specimen description string in database
+            args:
+                barcode: the barcode of the record to update
+                specimen_string: the specimen description to update the record with
+        """
+
+        condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+
+        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Text1'],
+                                                                   val_list=[specimen_string], condition_sql=condition,
+                                                                   agent_id=self.AGENT_ID)
+
+        self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
+
+
     def check_key_unique(self, tab, id_col, id_num, primary_key):
         sql = (
             f"SELECT COUNT(DISTINCT `{primary_key}`) "
@@ -318,6 +341,23 @@ class UpdateBotDbFields:
             return 0
 
         return int(count)
+
+
+
+    def update_habitat(self, habitat_string):
+        """function used to update habitat string in database
+            args:
+                barcode: the barcode of the record to update
+                habitat_string: the habitat description to update the record with
+        """
+
+        condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+
+        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
+                                                                 val_list=[habitat_string], condition_sql=condition,
+                                                                 agent_id=self.AGENT_ID)
+
+        self.sql_csv_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
 
 
 
