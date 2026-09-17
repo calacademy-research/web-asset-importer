@@ -316,6 +316,7 @@ class UpdateBotDbFields:
                 specimen_string: the specimen description to update the record with
         """
 
+        
         condition = f'''WHERE CatalogNumber = "{self.barcode}"'''
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Text1'],
