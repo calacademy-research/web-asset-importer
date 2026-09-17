@@ -318,7 +318,7 @@ class UpdateBotDbFields:
 
         condition = f"""WHERE CatalogNumber = '{self.barcode}'"""
 
-        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Text1'],
+        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Description'],
                                                                    val_list=[specimen_string], condition_sql=condition,
                                                                    agent_id=self.AGENT_ID)
 
