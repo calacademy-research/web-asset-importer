@@ -103,10 +103,14 @@ class UpdateBotDbFields:
 
             # updating/creating localitydetail table record, column checks done inside function
             if {"UtmNorthing", "UtmEasting"}.issubset(columns) or {"Township", "RangeDesc"}.issubset(columns):
-                if (detect_is_empty(row["Township"]) or detect_is_empty(row["RangeDesc"])) and \
-                        (detect_is_empty(row["UtmNorthing"])):
-                    pass
-                else:
+
+                has_trs = any(not detect_is_empty(row.get(field, ""))
+                              for field in ("Township", "RangeDesc", "Section", "BaseMeridian"))
+
+                has_utm = all(not detect_is_empty(row.get(field, ""))
+                              for field in ("UtmNorthing", "UtmEasting"))
+
+                if has_trs or has_utm:
                     self.update_locality_det()
 
             if {"Country", "State", "County"}.issubset(self.update_frame.columns):
