@@ -272,8 +272,8 @@ class UpdateBotDbFields:
     def update_coords(self, colname_list):
 
         val_list = self.row[colname_list].copy().to_list()
-
-        if "Latitude2" in colname_list:
+        # update to detect if empty
+        if "Latitude2" in colname_list and not detect_is_empty(self.row["Latitude2"]):
             latlongtype = "Line"
         else:
             latlongtype = "Point"
