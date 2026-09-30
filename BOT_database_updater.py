@@ -103,10 +103,14 @@ class UpdateBotDbFields:
 
             # updating/creating localitydetail table record, column checks done inside function
             if {"UtmNorthing", "UtmEasting"}.issubset(columns) or {"Township", "RangeDesc"}.issubset(columns):
-                if (detect_is_empty(row["Township"]) or detect_is_empty(row["RangeDesc"])) and \
-                        (detect_is_empty(row["UtmNorthing"])):
-                    pass
-                else:
+
+                has_trs = any(not detect_is_empty(row.get(field, ""))
+                              for field in ("Township", "RangeDesc", "Section", "BaseMeridian"))
+
+                has_utm = all(not detect_is_empty(row.get(field, ""))
+                              for field in ("UtmNorthing", "UtmEasting"))
+
+                if has_trs or has_utm:
                     self.update_locality_det()
 
             if {"Country", "State", "County"}.issubset(self.update_frame.columns):
@@ -209,7 +213,7 @@ class UpdateBotDbFields:
                                                       match=f"{self.barcode}")
 
         if pd.isna(is_present) or self.force_update:
-            condition = f'''WHERE CatalogNumber = "{self.barcode}";'''
+            condition = f"""WHERE CatalogNumber = '{self.barcode}'"""
 
             sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject',
                                                                        col_list=['AltCatalogNumber', 'Modifier'],
@@ -254,7 +258,7 @@ class UpdateBotDbFields:
 
                 self.logger.info(f"new locality created at {self.locality_id} for collectingevent")
 
-                condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+                condition = f"""WHERE CollectingEventID = '{self.collecting_event_id}'"""
 
                 sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['LocalityID'],
                                                                          val_list=[self.locality_id], condition_sql=condition,
@@ -268,8 +272,8 @@ class UpdateBotDbFields:
     def update_coords(self, colname_list):
 
         val_list = self.row[colname_list].copy().to_list()
-
-        if "Latitude2" in colname_list:
+        # update to detect if empty
+        if "Latitude2" in colname_list and not detect_is_empty(self.row["Latitude2"]):
             latlongtype = "Line"
         else:
             latlongtype = "Point"
@@ -282,7 +286,7 @@ class UpdateBotDbFields:
 
         self.update_collectingevent_locality()
 
-        condition = f"""WHERE LocalityID = '{self.locality_id}';"""
+        condition = f"""WHERE LocalityID = '{self.locality_id}'"""
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
                                                                  val_list=val_list, condition_sql=condition,
@@ -300,7 +304,7 @@ class UpdateBotDbFields:
                 habitat_string: the habitat description to update the record with
         """
 
-        condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+        condition = f"""WHERE CollectingEventID = '{self.collecting_event_id}'"""
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
                                                                  val_list=[habitat_string], condition_sql=condition,
@@ -316,9 +320,9 @@ class UpdateBotDbFields:
                 specimen_string: the specimen description to update the record with
         """
 
-        condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+        condition = f"""WHERE CatalogNumber = '{self.barcode}'"""
 
-        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Text1'],
+        sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectionobject', col_list=['Text1'],
                                                                    val_list=[specimen_string], condition_sql=condition,
                                                                    agent_id=self.AGENT_ID)
 
@@ -351,7 +355,7 @@ class UpdateBotDbFields:
                 habitat_string: the habitat description to update the record with
         """
 
-        condition = f"""WHERE CollectingEventID = {self.collecting_event_id}"""
+        condition = f"""WHERE CollectingEventID = '{self.collecting_event_id}'"""
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='collectingevent', col_list=['Remarks'],
                                                                  val_list=[habitat_string], condition_sql=condition,
@@ -373,8 +377,7 @@ class UpdateBotDbFields:
 
         self.update_collectingevent_locality()
 
-
-        condition = f"""WHERE LocalityID = {self.locality_id};"""
+        condition = f"""WHERE LocalityID = '{self.locality_id}'"""
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='locality', col_list=colname_list,
                                                                  val_list=val_list,
@@ -531,7 +534,7 @@ class UpdateBotDbFields:
                 locality_det_id: the localitydetail ID to update.
                 row: row from update csv"""
 
-        condition = f"""WHERE LocalityDetailID = {self.locality_det_id};"""
+        condition = f"""WHERE LocalityDetailID = '{self.locality_det_id}'"""
 
         col_list = self.make_update_list(['Township', 'RangeDesc', 'Section', "BaseMeridian"])
 
@@ -552,7 +555,7 @@ class UpdateBotDbFields:
 
         col_list = self.make_update_list(['UtmEasting', 'UtmNorthing', 'UtmDatum', 'UtmZone'])
 
-        condition = f"""WHERE LocalityDetailID = {self.locality_det_id};"""
+        condition = f"""WHERE LocalityDetailID = '{self.locality_det_id}'"""
 
         sql_statement = self.sql_csv_tools.create_update_statement(tab_name='localitydetail',
                                                                    agent_id=self.AGENT_ID,
@@ -588,7 +591,7 @@ class UpdateBotDbFields:
             geography_id = self.sql_csv_tools.get_one_match(tab_name="Geography", id_col="GeographyID", key_col="FullName",
                                                             match=full_name)
 
-            condition = f"""WHERE LocalityID = {self.locality_id};"""
+            condition = f"""WHERE LocalityID = '{self.locality_id}'"""
 
             sql_statement = self.sql_csv_tools.create_update_statement(tab_name="Locality",
                                                                        agent_id=self.AGENT_ID,
