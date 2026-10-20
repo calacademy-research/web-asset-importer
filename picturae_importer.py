@@ -166,14 +166,13 @@ class PicturaeImporter(Importer):
             re-standardizing null and nan records to all be pd.NA() and
             evaluate strings into booleans
         """
-        # setting datatypes for columns
-        string_list = self.record_full.columns.to_list()
 
-        self.record_full[string_list] = self.record_full[string_list].astype(str)
+        self.record_full = self.record_full.apply(lambda column: column.map(normalize_na_values))
 
-        self.record_full = self.record_full.replace({'True': True, 'False': False}).infer_objects(copy=False)
-
-        self.record_full = self.record_full.replace([None, 'nan', np.nan, '<NA>'], '')
+        # Restore booleans after normalization converts them to strings.
+        self.record_full = self.record_full.replace(
+            {"True": True, "False": False}
+        ).infer_objects(copy=False)
 
         # removing leading apostrophes from data columns
         for col_name in ("start", "end"):
@@ -648,7 +647,7 @@ class PicturaeImporter(Importer):
                                                                     id_col='CollectingEventID',
                                                                     key_col='GUID', match=self.collecting_event_guid)
 
-        if self.redacted is False:
+        if self.redacted is False and pd.notna(self.taxon_id) and str(self.taxon_id).strip():
             self.redacted = self.sql_csv_tools.get_is_taxon_id_redacted(taxon_id=self.taxon_id)
 
         if self.sheet_notes or self.tax_notes:
@@ -720,7 +719,7 @@ class PicturaeImporter(Importer):
         self.collection_ob_id = self.sql_csv_tools.get_one_match(tab_name='collectionobject',
                                                                  id_col='CollectionObjectID',
                                                                  key_col='GUID', match=self.collection_ob_guid)
-        if self.taxon_id is not None:
+        if self.taxon_id:
 
             column_list = ['TimestampCreated',
                            'TimestampModified',
@@ -752,7 +751,6 @@ class PicturaeImporter(Importer):
                           ]
 
             self.specify_insert(table="determination", columns=column_list, values=value_list)
-
         else:
             self.logger.error(f"failed to add determination , missing taxon for {self.full_name}")
 
@@ -897,7 +895,7 @@ class PicturaeImporter(Importer):
 
                 self.create_agent_list(row)
 
-                if not self.taxon_id or pd.isna(self.taxon_id):
+                if not self.taxon_id and self.family_name and self.full_name:
                     # Drive TaxonomyImporter off the current row
                     self.tax_importer.populate_fields(row)
 
@@ -920,7 +918,8 @@ class PicturaeImporter(Importer):
 
                 self.create_collection_object()
 
-                self.create_determination()
+                if self.taxon_id:
+                    self.create_determination()
 
                 self.create_collector()
 

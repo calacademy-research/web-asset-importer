@@ -224,6 +224,13 @@ def dedupe_collectors_by_agent_id(collector_list):
 
     return deduped
 
+def normalize_na_values(value):
+    """normalize na/ none values to empty string"""
+    if pd.isna(value):
+        return ""
+
+    value = str(value).strip()
+    return "" if value in {"nan", "<NA>", "None"} else value
 
 def detect_is_empty(value) -> bool:
     """
