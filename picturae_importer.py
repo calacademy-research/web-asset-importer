@@ -878,50 +878,87 @@ class PicturaeImporter(Importer):
             returns:
                 new table records related
         """
-        # the order of operations matters, if you change the order certain variables may overwrite
 
-        self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
+        self.record_full = self.record_full.drop_duplicates(subset=["CatalogNumber"]).copy()
 
         barcode_set = set(self.barcode_list)
+        tax_importer = self.tax_importer
 
         for row in self.record_full.itertuples(index=True):
             if row.CatalogNumber not in barcode_set:
                 continue
-            else:
-                self.populate_fields(row)
 
-                # updating barcode present
-                self.record_full.at[row.Index, "barcode_present"] = True
+            self.populate_fields(row)
 
-                self.create_agent_list(row)
+            self.record_full.at[row.Index, "barcode_present"] = True
 
-                if not self.taxon_id and self.family_name and self.full_name:
-                    # Drive TaxonomyImporter off the current row
-                    self.tax_importer.populate_fields(row)
+            self.create_agent_list(row)
 
-                    if not self.tax_importer.taxon_id or pd.isna(self.tax_importer.taxon_id):
-                        self.tax_importer.populate_taxon()
-                        if self.tax_importer.taxon_list:
-                            self.tax_importer.create_taxon()
+            if (
+                    tax_importer.missing_taxon_id(self.taxon_id)
+                    and self.family_name
+                    and self.full_name
+            ):
+                search_name = (
+                    self.family_name
+                    if self.full_name == "missing taxon in row"
+                    else self.full_name
+                )
 
-                    self.taxon_id = self.tax_importer.taxon_id
-                    self.new_taxa.extend(self.tax_importer.new_taxa)
+                # Check the stored FullName before attempting creation.
+                # This includes taxa created for earlier specimens.
+                self.taxon_id = tax_importer.find_taxon(search_name)
 
+                if tax_importer.missing_taxon_id(self.taxon_id):
+                    tax_importer.populate_fields(row)
 
-                self.create_locality_record()
+                    previous_new_count = len(tax_importer.new_taxa)
 
-                self.create_locality_detail_record()
+                    tax_importer.populate_taxon()
 
-                self.create_agent_id()
+                    if tax_importer.taxon_list:
+                        tax_importer.create_taxon()
 
-                self.create_collecting_event()
+                        # create_taxon() does not assign the inserted ID.
+                        self.taxon_id = tax_importer.find_taxon(search_name)
 
-                self.create_collection_object()
+                        if tax_importer.missing_taxon_id(self.taxon_id):
+                            raise RuntimeError(
+                                f"Taxon creation returned no retrievable TaxonID "
+                                f"for {search_name!r}, barcode {self.barcode}"
+                            )
 
-                if self.taxon_id:
-                    self.create_determination()
+                        # Add only names from this creation operation.
+                        for name in tax_importer.new_taxa[previous_new_count:]:
+                            if name not in self.new_taxa:
+                                self.new_taxa.append(name)
+                    else:
+                        # populate_taxon() found an existing taxon or family.
+                        self.taxon_id = tax_importer.taxon_id
 
-                self.create_collector()
+                tax_importer.taxon_id = self.taxon_id
+
+            # Normalize missing IDs before later truth-value checks.
+            if tax_importer.missing_taxon_id(self.taxon_id):
+                self.taxon_id = None
+
+            self.record_full.at[row.Index, "taxon_id"] = self.taxon_id
+
+            self.create_locality_record()
+            self.create_locality_detail_record()
+            self.create_agent_id()
+            self.create_collecting_event()
+
+            # Preserve the resolved ID across the legacy lookup inside
+            # create_collection_object().
+            resolved_taxon_id = self.taxon_id
+            self.create_collection_object()
+            self.taxon_id = resolved_taxon_id
+
+            if self.taxon_id:
+                self.create_determination()
+
+            self.create_collector()
 
     def upload_attachments(self):
         """upload_attachments:

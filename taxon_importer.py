@@ -641,6 +641,21 @@ class TaxonomyImporter:
         return author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id
 
 
+    @staticmethod
+    def missing_taxon_id(value):
+        """Check whether a normalized taxon ID is missing."""
+        return pd.isna(value) or not value
+
+
+    def find_taxon(self, full_name):
+        """Look up a taxon directly by its stored FullName."""
+        return self.sql_csv_tools.get_one_match(
+            tab_name="taxon",
+            id_col="TaxonID",
+            key_col="FullName",
+            match=full_name,
+        )
+
     def create_taxon(self):
         """create_taxon: populates the taxon table iteratively by adding higher taxa first,
                          before lower taxa. Assigns taxa ranks and TaxonTreedefItemID.
