@@ -593,10 +593,8 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectingevent record to database.
          """
-        if self.start_date or self.end_date:
-            date_precision = 1
-        else:
-            date_precision = None
+        start_date_precision = int(bool(self.start_date))
+        end_date_precision = int(bool(self.end_date))
 
         column_list = ['TimestampCreated',
                        'TimestampModified',
@@ -624,8 +622,8 @@ class PicturaeImporter(Importer):
                       f'{self.collector_number}',
                       f'{self.verbatim_date}',
                       f'{self.start_date}',
-                      date_precision,
-                      date_precision,
+                      start_date_precision,
+                      end_date_precision,
                       f'{self.end_date}',
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
