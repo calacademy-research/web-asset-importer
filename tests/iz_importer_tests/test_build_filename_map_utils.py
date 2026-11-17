@@ -6,6 +6,7 @@ IzImporter.__init__
 │       ├── validate_path
 │       │   └── include_by_extension
 │       ├── _should_skip_file
+│       ├── _is_zero_filled
 │       ├── _read_file_key
 │       │   └── _find_key_file
 │       ├── _is_file_already_processed
@@ -20,6 +21,7 @@ IzImporter.__init__
 
 import os
 import sys
+import tempfile
 import unittest
 from unittest.mock import MagicMock, patch
 import json
@@ -66,6 +68,27 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         self.assertFalse(self.importer._should_skip_file("file.jpg", "test/path/to/file.jpg"))
         self.assertTrue(self.importer._should_skip_file(".git", "test/path/to/.git"))
         self.assertFalse(self.importer._should_skip_file("test.csv", "test/path/to/test.csv"))
+
+    def test_is_zero_filled(self, mock_specify_db):
+        self._getImporter(mock_specify_db)
+        with tempfile.TemporaryDirectory() as d:
+            cases = {
+                'zeroed.dng': b'\0' * (self.importer.ZERO_CHECK_BYTES * 3),  # 2024 Hanna Baek raws
+                'short_zeroed.jpg': b'\0' * 100,
+                'empty.jpg': b'',
+                'tiff.dng': b'II*\0' + b'\0' * (self.importer.ZERO_CHECK_BYTES * 2),
+                'jpeg.jpg': b'\xff\xd8\xff\xe0' + b'\0' * 10,
+                'data_after_head.tif': b'\0' * self.importer.ZERO_CHECK_BYTES + b'II*\0',
+            }
+            expected = {'zeroed.dng': True, 'short_zeroed.jpg': True, 'empty.jpg': True,
+                        'tiff.dng': False, 'jpeg.jpg': False, 'data_after_head.tif': True}
+            for name, content in cases.items():
+                path = os.path.join(d, name)
+                with open(path, 'wb') as f:
+                    f.write(content)
+                self.assertEqual(self.importer._is_zero_filled(path), expected[name], name)
+            with self.assertRaises(FileNotFoundError):
+                self.importer._is_zero_filled(os.path.join(d, 'missing.jpg'))
 
     def test_find_key_file(self, mock_specify_db):
         """Test finding key files in various scenarios"""
@@ -351,7 +374,9 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
         self._getImporter(mock_specify_db)
         mock_data = self.get_mock_data()
         with patch('iz_importer.IzImporter.remove_file_from_database') as mock_remove_file_from_database:
-            with patch('iz_importer.IzImporter._should_skip_file') as mock_should_skip_file:
+            with patch('iz_importer.IzImporter._should_skip_file') as mock_should_skip_file, \
+                    patch('iz_importer.IzImporter._is_zero_filled') as mock_is_zero_filled:
+                mock_is_zero_filled.return_value = False
                 with patch('iz_importer.IzImporter._is_file_already_processed') as mock_is_file_already_processed:
                     with patch('iz_importer.IzImporter._update_metadata_map') as mock_update_metadata_map:
                         with patch('iz_importer.IzImporter._update_casiz_filepath_map') as mock_update_casiz_filepath_map:
@@ -395,6 +420,15 @@ class TestIzImporterBuildFilenameMapUtils(TestIzImporterBase):
                                                         self.assertEqual(status, FILENAME_BUILD_STATUS.SKIPPED_FILE)
                                                         self.assertFalse(success)
                                                         mock_should_skip_file.return_value = False
+
+                                                        # test zero-filled file: rejected before exif is read
+                                                        mock_is_zero_filled.return_value = True
+                                                        mock_read_exif_metadata.reset_mock()
+                                                        status, success = self.importer.build_filename_map(full_path)
+                                                        self.assertEqual(status, FILENAME_BUILD_STATUS.NO_IMAGE_DATA)
+                                                        self.assertFalse(success)
+                                                        mock_read_exif_metadata.assert_not_called()
+                                                        mock_is_zero_filled.return_value = False
                                                         # test removed file - when nothing was actually removed
                                                         mock_read_file_key.return_value = {'remove': 'true'}
                                                         mock_remove_file_from_database.return_value = False

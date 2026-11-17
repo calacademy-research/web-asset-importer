@@ -24,6 +24,7 @@ class FILENAME_BUILD_STATUS(BaseConstants):
     ALREADY_PROCESSED = 'already_processed'
     NO_CASIZ_SOURCE = 'no_casiz_source'
     CANNOT_LOCATE_AGENT = 'cannot_locate_agent'
+    NO_IMAGE_DATA = 'no_image_data'
     SUCCESS = 'success'
 
 class AgentNotFoundException(Exception):
@@ -383,6 +384,10 @@ class IzImporter(Importer):
         filename = os.path.basename(full_path)
         if self._should_skip_file(filename, full_path):
             return FILENAME_BUILD_STATUS.SKIPPED_FILE, False
+        if self._is_zero_filled(full_path):
+            self.log_file_status(filename=filename, path=full_path,
+                                 rejected="No image data: file is empty or zero-filled")
+            return FILENAME_BUILD_STATUS.NO_IMAGE_DATA, False
         file_key = self._read_file_key(full_path)
         exif_metadata = self._read_exif_metadata(full_path)
         casiz_source = self.get_casiz_ids(full_path, exif_metadata)
@@ -485,6 +490,17 @@ class IzImporter(Importer):
             self.log_file_status(filename=filename, path=full_path, rejected=".filename")
             return True
         return False
+
+    ZERO_CHECK_BYTES = 4096
+
+    def _is_zero_filled(self, full_path):
+        """True if the file's first ZERO_CHECK_BYTES are all zero bytes (or the file is empty).
+        No image format starts with 4 KiB of zeros; these are damaged copies on the share.
+        Checked before exiftool, which reads the whole file hunting for a header and can take
+        longer than its 20 s timeout on a 60 MB zeroed raw over CIFS, aborting the whole run."""
+        with open(full_path, 'rb') as f:
+            head = f.read(self.ZERO_CHECK_BYTES)
+        return head.count(0) == len(head)
 
     def _is_file_already_processed(self, full_path, orig_case_full_path):
 
