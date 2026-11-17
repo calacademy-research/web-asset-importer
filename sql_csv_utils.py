@@ -292,55 +292,6 @@ class SqlCsvTools:
         finally:
             cursor.close()
 
-    def create_batch_record(
-        self,
-        start_time: datetime,
-        end_time: datetime,
-        batch_size: int,
-        batch_md5: str,
-        agent_id: Union[str, int],
-    ):
-        """
-            create_timestamps:
-                uses starting and ending timestamps to create window for sql database purge,
-                adds 10 second buffer on either end to allow sql queries to populate.
-                appends each timestamp record in picturae_batch table.
-            args:
-                start_time: starting time stamp
-                end_time: ending time stamp
-        """
-        delt_time = timedelta(seconds=15)
-        time_stamp_list = [start_time - delt_time, end_time + delt_time]
-
-        column_list = [
-            "batch_MD5",
-            "TimestampCreated",
-            "TimestampModified",
-            "StartTimeStamp",
-            "EndTimeStamp",
-            "batch_size",
-            "CreatedByAgentID",
-            "ModifiedByAgentID",
-        ]
-
-        value_list = [
-            batch_md5,
-            time_utils.get_pst_time_now_string(),
-            time_utils.get_pst_time_now_string(),
-            time_stamp_list[0],
-            time_stamp_list[1],
-            batch_size,
-            agent_id,
-            agent_id,
-        ]
-
-        value_list, column_list = remove_two_index(value_list, column_list)
-
-        return self.create_insert_statement(
-            col_list=column_list,
-            val_list=value_list,
-            tab_name="picturae_batch",
-        )
 
     def create_update_statement(
         self,

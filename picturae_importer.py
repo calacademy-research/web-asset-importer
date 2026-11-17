@@ -2,7 +2,6 @@
     filling in the necessary relational tables, and uploading attached images to image server.
     Used as part of picturae_project for upload post-imaging, to create records to be updated post OCR and transcription
 """
-import atexit
 import os.path
 import shutil
 from uuid import uuid4
@@ -12,7 +11,6 @@ from string_utils import *
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
-from get_configs import get_config
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
@@ -33,8 +31,6 @@ class PicturaeImporter(Importer):
         self.picturae_config = config
 
         super().__init__(self.picturae_config, "Botany")
-
-        self.picdb_config = get_config(config='picbatch')
 
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
@@ -111,7 +107,6 @@ class PicturaeImporter(Importer):
 
         self.sql_csv_tools = SqlCsvTools(config=self.picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=self.picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # full collector list is for populating existing and missing agents into collector table
@@ -137,28 +132,6 @@ class PicturaeImporter(Importer):
             setattr(self, param, None)
 
         self.created_by_agent = self.picturae_config.IMPORTER_AGENT_ID
-
-
-    def run_timestamps(self, batch_size: int):
-        """updating md5 fields for new taxon and taxon mismatch batches"""
-        ending_time_stamp = datetime.now()
-
-        sql_statement = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                                 batch_md5=self.batch_md5, batch_size=batch_size,
-                                                                 agent_id=self.created_by_agent)
-
-        self.batch_sql_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
-
-
-    def exit_timestamp(self):
-        """time_stamper: runs timestamp at beginning of script and at exit,
-                        uses the create_timestamps function from data_utils
-                        to append timestamps with codes to csvs,
-                        for record purging"""
-        # marking starting time stamp
-        # at exit run ending timestamp and append timestamp csv
-        atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
-        atexit.register(self.unhide_files)
 
 
     def assign_col_dtypes(self):
@@ -365,6 +338,8 @@ class PicturaeImporter(Importer):
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
+        self.start_date_precision = row.start_date_precision
+        self.end_date_precision = row.end_date_precision
         self.collector_number = row.collector_number
         self.locality = row.locality
         self.habitat = row.habitat
@@ -593,8 +568,6 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectingevent record to database.
          """
-        start_date_precision = int(bool(self.start_date))
-        end_date_precision = int(bool(self.end_date))
 
         column_list = ['TimestampCreated',
                        'TimestampModified',
@@ -604,9 +577,9 @@ class PicturaeImporter(Importer):
                        'StationFieldNumber',
                        'VerbatimDate',
                        'StartDate',
+                       'EndDate',
                        'StartDatePrecision',
                        'EndDatePrecision',
-                       'EndDate',
                        'LocalityID',
                        'ModifiedByAgentID',
                        'CreatedByAgentID',
@@ -622,9 +595,9 @@ class PicturaeImporter(Importer):
                       f'{self.collector_number}',
                       f'{self.verbatim_date}',
                       f'{self.start_date}',
-                      start_date_precision,
-                      end_date_precision,
                       f'{self.end_date}',
+                      f'{self.start_date_precision}',
+                      f'{self.end_date_precision}',
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
                       f'{self.created_by_agent}',
@@ -640,14 +613,6 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectionobject record to database.
         """
-        if self.full_name == "missing taxon in row":
-            search_taxon = self.family_name
-        else:
-            search_taxon = self.full_name
-        if self.full_name in self.new_taxa:
-            self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
-                                                             key_col='FullName', match=search_taxon)
-
 
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                                     id_col='CollectingEventID',
@@ -695,7 +660,7 @@ class PicturaeImporter(Importer):
                       f"{self.barcode}",
                       f"{self.accession}",
                       f"{self.herb_code}",
-                      f"{starting_time_stamp.strftime('%Y-%m-%d')}",
+                      f"{time_utils.get_pst_time_now_string().strftime('%Y-%m-%d')}",
                       1,
                       f"{self.collection_ob_guid}",
                       4,
@@ -1008,10 +973,6 @@ class PicturaeImporter(Importer):
         # creating file list after conditions
         self.create_file_list()
 
-        # starting purge timer
-        if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
-            self.exit_timestamp()
-
         # creating tables
         self.upload_records()
 
@@ -1033,3 +994,4 @@ class PicturaeImporter(Importer):
                                                                       value_list=value_list)
 
         self.logger.info("process finished")
+
