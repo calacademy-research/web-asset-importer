@@ -338,8 +338,8 @@ class PicturaeImporter(Importer):
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
-        self.start_date_precision = row.start_date_precision
-        self.end_date_precision = row.end_date_precision
+        self.start_date_precision = int(float(row.start_date_precision)) if pd.notna(row.start_date_precision) else None
+        self.end_date_precision = int(float(row.end_date_precision)) if pd.notna(row.end_date_precision) else None
         self.collector_number = row.collector_number
         self.locality = row.locality
         self.habitat = row.habitat
@@ -660,7 +660,7 @@ class PicturaeImporter(Importer):
                       f"{self.barcode}",
                       f"{self.accession}",
                       f"{self.herb_code}",
-                      f"{time_utils.get_pst_time_now_string().strftime('%Y-%m-%d')}",
+                      f"{time_utils.get_pst_time_now().strftime('%Y-%m-%d')}",
                       1,
                       f"{self.collection_ob_guid}",
                       4,
