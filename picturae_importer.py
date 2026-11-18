@@ -2,7 +2,6 @@
     filling in the necessary relational tables, and uploading attached images to image server.
     Used as part of picturae_project for upload post-imaging, to create records to be updated post OCR and transcription
 """
-import atexit
 import os.path
 import shutil
 from uuid import uuid4
@@ -12,7 +11,6 @@ from string_utils import *
 from importer import Importer
 from sql_csv_utils import SqlCsvTools
 from botany_importer import BotanyImporter
-from get_configs import get_config
 import time_utils
 import logging.handlers
 from monitoring_tools_derived import MonitoringToolsDir
@@ -33,8 +31,6 @@ class PicturaeImporter(Importer):
         self.picturae_config = config
 
         super().__init__(self.picturae_config, "Botany")
-
-        self.picdb_config = get_config(config='picbatch')
 
         self.logger = logging.getLogger(f'Client.' + self.__class__.__name__)
 
@@ -111,7 +107,6 @@ class PicturaeImporter(Importer):
 
         self.sql_csv_tools = SqlCsvTools(config=self.picturae_config, logging_level=self.logger.getEffectiveLevel())
 
-        self.batch_sql_tools = SqlCsvTools(config=self.picdb_config, logging_level=self.logger.getEffectiveLevel())
 
 
         # full collector list is for populating existing and missing agents into collector table
@@ -137,28 +132,6 @@ class PicturaeImporter(Importer):
             setattr(self, param, None)
 
         self.created_by_agent = self.picturae_config.IMPORTER_AGENT_ID
-
-
-    def run_timestamps(self, batch_size: int):
-        """updating md5 fields for new taxon and taxon mismatch batches"""
-        ending_time_stamp = datetime.now()
-
-        sql_statement = self.batch_sql_tools.create_batch_record(start_time=starting_time_stamp, end_time=ending_time_stamp,
-                                                                 batch_md5=self.batch_md5, batch_size=batch_size,
-                                                                 agent_id=self.created_by_agent)
-
-        self.batch_sql_tools.insert_table_record(sql=sql_statement.sql, params=sql_statement.params)
-
-
-    def exit_timestamp(self):
-        """time_stamper: runs timestamp at beginning of script and at exit,
-                        uses the create_timestamps function from data_utils
-                        to append timestamps with codes to csvs,
-                        for record purging"""
-        # marking starting time stamp
-        # at exit run ending timestamp and append timestamp csv
-        atexit.register(self.run_timestamps, batch_size=self.num_barcodes)
-        atexit.register(self.unhide_files)
 
 
     def assign_col_dtypes(self):
@@ -365,6 +338,8 @@ class PicturaeImporter(Importer):
         self.verbatim_date = row.verbatim_date
         self.start_date = row.start_date
         self.end_date = row.end_date
+        self.start_date_precision = int(float(row.start_date_precision)) if pd.notna(row.start_date_precision) else None
+        self.end_date_precision = int(float(row.end_date_precision)) if pd.notna(row.end_date_precision) else None
         self.collector_number = row.collector_number
         self.locality = row.locality
         self.habitat = row.habitat
@@ -603,6 +578,8 @@ class PicturaeImporter(Importer):
                        'VerbatimDate',
                        'StartDate',
                        'EndDate',
+                       'StartDatePrecision',
+                       'EndDatePrecision',
                        'LocalityID',
                        'ModifiedByAgentID',
                        'CreatedByAgentID',
@@ -619,6 +596,8 @@ class PicturaeImporter(Importer):
                       f'{self.verbatim_date}',
                       f'{self.start_date}',
                       f'{self.end_date}',
+                      f'{self.start_date_precision}',
+                      f'{self.end_date_precision}',
                       f'{self.locality_id}',
                       f'{self.created_by_agent}',
                       f'{self.created_by_agent}',
@@ -634,14 +613,6 @@ class PicturaeImporter(Importer):
                 args through create_sql_string and create_table record
                 in order to add new collectionobject record to database.
         """
-        if self.full_name == "missing taxon in row":
-            search_taxon = self.family_name
-        else:
-            search_taxon = self.full_name
-        if self.full_name in self.new_taxa:
-            self.taxon_id = self.sql_csv_tools.get_one_match(tab_name='taxon', id_col='TaxonID',
-                                                             key_col='FullName', match=search_taxon)
-
 
         self.collecting_event_id = self.sql_csv_tools.get_one_match(tab_name='collectingevent',
                                                                     id_col='CollectingEventID',
@@ -689,7 +660,7 @@ class PicturaeImporter(Importer):
                       f"{self.barcode}",
                       f"{self.accession}",
                       f"{self.herb_code}",
-                      f"{starting_time_stamp.strftime('%Y-%m-%d')}",
+                      f"{time_utils.get_pst_time_now().strftime('%Y-%m-%d')}",
                       1,
                       f"{self.collection_ob_guid}",
                       4,
@@ -878,50 +849,87 @@ class PicturaeImporter(Importer):
             returns:
                 new table records related
         """
-        # the order of operations matters, if you change the order certain variables may overwrite
 
-        self.record_full = self.record_full.drop_duplicates(subset=['CatalogNumber'])
+        self.record_full = self.record_full.drop_duplicates(subset=["CatalogNumber"]).copy()
 
         barcode_set = set(self.barcode_list)
+        tax_importer = self.tax_importer
 
         for row in self.record_full.itertuples(index=True):
             if row.CatalogNumber not in barcode_set:
                 continue
-            else:
-                self.populate_fields(row)
 
-                # updating barcode present
-                self.record_full.at[row.Index, "barcode_present"] = True
+            self.populate_fields(row)
 
-                self.create_agent_list(row)
+            self.record_full.at[row.Index, "barcode_present"] = True
 
-                if not self.taxon_id and self.family_name and self.full_name:
-                    # Drive TaxonomyImporter off the current row
-                    self.tax_importer.populate_fields(row)
+            self.create_agent_list(row)
 
-                    if not self.tax_importer.taxon_id or pd.isna(self.tax_importer.taxon_id):
-                        self.tax_importer.populate_taxon()
-                        if self.tax_importer.taxon_list:
-                            self.tax_importer.create_taxon()
+            if (
+                    tax_importer.missing_taxon_id(self.taxon_id)
+                    and self.family_name
+                    and self.full_name
+            ):
+                search_name = (
+                    self.family_name
+                    if self.full_name == "missing taxon in row"
+                    else self.full_name
+                )
 
-                    self.taxon_id = self.tax_importer.taxon_id
-                    self.new_taxa.extend(self.tax_importer.new_taxa)
+                # Check the stored FullName before attempting creation.
+                # This includes taxa created for earlier specimens.
+                self.taxon_id = tax_importer.find_taxon(search_name)
 
+                if tax_importer.missing_taxon_id(self.taxon_id):
+                    tax_importer.populate_fields(row)
 
-                self.create_locality_record()
+                    previous_new_count = len(tax_importer.new_taxa)
 
-                self.create_locality_detail_record()
+                    tax_importer.populate_taxon()
 
-                self.create_agent_id()
+                    if tax_importer.taxon_list:
+                        tax_importer.create_taxon()
 
-                self.create_collecting_event()
+                        # create_taxon() does not assign the inserted ID.
+                        self.taxon_id = tax_importer.find_taxon(search_name)
 
-                self.create_collection_object()
+                        if tax_importer.missing_taxon_id(self.taxon_id):
+                            raise RuntimeError(
+                                f"Taxon creation returned no retrievable TaxonID "
+                                f"for {search_name!r}, barcode {self.barcode}"
+                            )
 
-                if self.taxon_id:
-                    self.create_determination()
+                        # Add only names from this creation operation.
+                        for name in tax_importer.new_taxa[previous_new_count:]:
+                            if name not in self.new_taxa:
+                                self.new_taxa.append(name)
+                    else:
+                        # populate_taxon() found an existing taxon or family.
+                        self.taxon_id = tax_importer.taxon_id
 
-                self.create_collector()
+                tax_importer.taxon_id = self.taxon_id
+
+            # Normalize missing IDs before later truth-value checks.
+            if tax_importer.missing_taxon_id(self.taxon_id):
+                self.taxon_id = None
+
+            self.record_full.at[row.Index, "taxon_id"] = self.taxon_id
+
+            self.create_locality_record()
+            self.create_locality_detail_record()
+            self.create_agent_id()
+            self.create_collecting_event()
+
+            # Preserve the resolved ID across the legacy lookup inside
+            # create_collection_object().
+            resolved_taxon_id = self.taxon_id
+            self.create_collection_object()
+            self.taxon_id = resolved_taxon_id
+
+            if self.taxon_id:
+                self.create_determination()
+
+            self.create_collector()
 
     def upload_attachments(self):
         """upload_attachments:
@@ -965,10 +973,6 @@ class PicturaeImporter(Importer):
         # creating file list after conditions
         self.create_file_list()
 
-        # starting purge timer
-        if len(self.barcode_list) >= 1 or len(self.image_list) >= 1:
-            self.exit_timestamp()
-
         # creating tables
         self.upload_records()
 
@@ -990,3 +994,4 @@ class PicturaeImporter(Importer):
                                                                       value_list=value_list)
 
         self.logger.info("process finished")
+

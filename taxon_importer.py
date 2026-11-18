@@ -641,6 +641,21 @@ class TaxonomyImporter:
         return author_insert, tree_item_id, rank_end, parent_id, taxon_guid, rank_id
 
 
+    @staticmethod
+    def missing_taxon_id(value):
+        """Check whether a normalized taxon ID is missing."""
+        return pd.isna(value) or not value
+
+
+    def find_taxon(self, full_name):
+        """Look up a taxon directly by its stored FullName."""
+        return self.sql_csv_tools.get_one_match(
+            tab_name="taxon",
+            id_col="TaxonID",
+            key_col="FullName",
+            match=full_name,
+        )
+
     def create_taxon(self):
         """create_taxon: populates the taxon table iteratively by adding higher taxa first,
                          before lower taxa. Assigns taxa ranks and TaxonTreedefItemID.
@@ -649,11 +664,16 @@ class TaxonomyImporter:
         """
         self.parent_list = [self.full_name, self.first_intra, self.gen_spec, self.genus, self.family_name]
         self.parent_list = unique_ordered_list(self.parent_list)
-        for index, taxon in reversed(list(enumerate(self.taxon_list))):
-            # getting index pos of taxon in parent list
+        for taxon in reversed(self.taxon_list):
+            index = self.parent_list.index(taxon)
 
-            author_insert, tree_item_id, rank_end, \
-                parent_id, taxon_guid, rank_id = self.generate_taxon_fields(index=index, taxon=taxon)
+            (author_insert, tree_item_id, rank_end,
+             parent_id, taxon_guid, rank_id) = \
+                self.generate_taxon_fields(index=index, taxon=taxon)
+
+            if parent_id is None or pd.isna(parent_id) or parent_id == "":
+                raise ValueError(f"Cannot insert taxon {taxon!r}: "
+                                 f"parent {self.parent_list[index + 1]!r} returned no TaxonID")
 
             if self.sql_csv_tools.get_is_taxon_id_redacted(taxon_id=parent_id):
                 self.redacted = True

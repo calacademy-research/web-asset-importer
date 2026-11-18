@@ -12,7 +12,6 @@ import sys
 from ichthyology_importer import IchthyologyImporter
 from image_client import ImageClient
 from botany_purger import BotanyPurger
-from PIC_undo_batch import PicturaeUndoBatch
 from BOT_database_updater import UpdateBotDbFields
 args = None
 logger = None
@@ -120,13 +119,9 @@ def main(args):
             izimporter.import_files()
     elif args.subcommand == 'purge':
         logger.debug("Purge!")
-
         if args.collection == "Botany":
             purger = BotanyPurger()
             purger.purge()
-        if args.collection == "Botany_PIC":
-            md5_insert = args.md5
-            PicturaeUndoBatch(MD5=md5_insert)
     elif args.subcommand == 'update':
         if args.collection == 'Botany':
             bot_config = get_config(config="Botany")
